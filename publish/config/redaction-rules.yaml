@@ -1,0 +1,176 @@
+# Shape-based regex redaction rules for the public-mirror sanitizer
+# (publish/sanitize.py). Committed - no real secret/PII values live here,
+# only patterns and generic replacement text. The actual real-value map is
+# publish/replacements.local.yaml (gitignored).
+#
+# Applied AFTER the exact-string pass (replacements.local.yaml), in the
+# order listed below.
+
+# Fixed salt for the deterministic hash-sub rules - same input always maps to
+# the same fake output, and identically across every file in one run, so
+# cross-references (e.g. the same MAC appearing in two files) stay consistent.
+salt: "lgtm-public-mirror-v1"
+
+# Pure regex - the pattern itself is enough to recognise these, no real value
+# needed to write the rule.
+regex_rules:
+  - name: jwt
+    pattern: 'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}'
+    replacement: "REDACTED_JWT"
+
+  - name: google_api_key
+    pattern: 'AIza[0-9A-Za-z_\-]{35}'
+    replacement: "REDACTED_GOOGLE_API_KEY"
+
+  - name: grafana_service_account_token
+    pattern: 'glsa_[A-Za-z0-9]+_[0-9a-f]+'
+    replacement: "REDACTED_GRAFANA_TOKEN"
+
+  - name: google_oauth_client_id
+    pattern: '\d{12}-[a-z0-9]{32}\.apps\.googleusercontent\.com'
+    replacement: "REDACTED.apps.googleusercontent.com"
+
+  - name: pem_private_key_block
+    pattern: '-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]+?-----END [A-Z ]*PRIVATE KEY-----'
+    replacement: "REDACTED_PRIVATE_KEY"
+    # Backstop only - Certificate/ and .codex/ are denylisted so this should
+    # never actually need to fire.
+
+  - name: generic_secret_field
+    # key: value / key = "value" / key="value" for the usual secret-ish field
+    # names, case-insensitive. Requires >=6 chars of value so it doesn't eat
+    # short non-secret words.
+    pattern: '(?i)(client_secret|client_id|api_key|apikey|password|passwd|apptoken|thingkey|thing_key|appid|app_id|x-api-key|secret_key)("?\s*[:=]\s*"?)[^\s"'',}\)]{6,}'
+    replacement: '\1\2REDACTED'
+    # .py excluded: confirmed live (2026-09-16) this rule corrupted real
+    # Python source. A dict literal like {"password": password} (the key
+    # name and a same-named local variable, completely ordinary code, not a
+    # secret) matches the pattern just as well as a real "key: <secret>"
+    # config line does - the "value" half can't tell a bare identifier
+    # reference apart from a literal secret string. Turned
+    # `"password": password` into `"password": REDACTED` (REDACTED with no
+    # quotes - a bare undefined name), which crashed the demo-image bake
+    # with NameError. No genuine hardcoded secret in this repo's .py files
+    # would ever need this backstop; they're all first-party tooling code,
+    # not config.
+    exclude_suffixes: [".py"]
+
+  - name: uk_mobile_phone
+    pattern: '(?:\+44\s?7\d{3}|\b07\d{3})[\s-]?\d{3}[\s-]?\d{3}\b'
+    replacement: "+44 7700 900000"
+
+  - name: email_address
+    pattern: '[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}'
+    replacement: "redacted@example.com"
+    exceptions:
+      # Not real addresses - leave alone.
+      - "noreply@anthropic.com"
+      - "grafana@homeassistant"  # matched loosely; real GCP SA emails still redacted
+
+  # --- Coordinates: keyed on the field name, not bare numbers, so an
+  # unrelated float elsewhere in a file is never mistaken for a coordinate.
+  # latitude_field/longitude_field themselves moved to hash_sub_rules below
+  # (2026-09-16) - see that section for why.
+
+  - name: elevation_field
+    pattern: '(?i)(\belevation\b\s*:\s*)\d+'
+    replacement: '\g<1>180'
+
+  - name: url_coord_param_lat
+    # Coordinates embedded as URL query params, e.g. a Windy.com embed
+    # iframe src: "?lat=52.401&lon=-1.783&...&detailLat=52.404&detailLon=-1.814".
+    # latitude_field above only matches a literal "latitude" key - this
+    # short/prefixed "lat="/"detailLat=" form slipped straight through as a
+    # real, live coordinate leaking out of a third-party map widget's URL.
+    # Confirmed live (2026-09-16): rendered as an actual real-world weather
+    # map, centred on the household's real location, in the published demo.
+    pattern: '(?i)([?&](?:detail)?lat(?:itude)?=)-?\d{1,3}\.\d+'
+    replacement: '\g<1>39.7817'
+
+  - name: url_coord_param_lon
+    pattern: '(?i)([?&](?:detail)?lon(?:gitude)?=)-?\d{1,3}\.\d+'
+    replacement: '\g<1>-89.6501'
+
+  # Backstop for the real home coordinates specifically, in case a coordinate
+  # shows up somewhere without a recognisable field name (e.g. baked into a
+  # static-map URL). Values come from replacements.local.yaml so the real
+  # prefix isn't hardcoded here; see coord_backstop_prefixes below.
+
+# Deterministic hash-substitution - same real value always maps to the same
+# fake one (see `salt` above), keeping cross-file/cross-references consistent
+# (e.g. a MAC in known_devices.yaml and again in a Lovelace card).
+hash_sub_rules:
+  - name: mac_address
+    pattern: '\b([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}\b'
+    kind: mac  # -> locally-administered 02:xx:xx:xx:xx:xx shape
+
+  - name: guid
+    pattern: '\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b'
+    kind: guid  # -> valid-shaped v4-style GUID
+
+  # internal_subnet MUST run before internal_ip: these are separate
+  # sequential passes over the same text (not a combined single-pass regex),
+  # and internal_ip's bare-dotted-quad pattern is a strict subset of what
+  # internal_subnet matches - "192.168.69.0" alone satisfies internal_ip's
+  # \d{1,3}\.\d{1,3} just as well as a real host IP does. Confirmed live
+  # (2026-09-15): with internal_ip first, it consumed "192.168.69.0" out of
+  # "192.168.69.0/24" and hash-subbed it to some non-zero decoy octet
+  # (e.g. "10.0.0.93"), leaving the literal "/24" suffix stranded on a decoy
+  # that isn't a network address - HA's own config validation rejects a CIDR
+  # with host bits set, so this broke the demo container's boot entirely.
+  - name: internal_subnet
+    pattern: '\b192\.168\.\d{1,3}\.0/24\b'
+    kind: subnet  # -> 10.0.0.0/24 (fixed, not hashed - there's only one)
+
+  # (?!/16) excludes the one place "192.168.0.0" is a literal, generic
+  # RFC1918 documentation constant (demo/configuration.yaml's
+  # trusted_proxies list), not a real host IP - confirmed live (2026-09-16):
+  # without this, the bare-dotted-quad match consumed "192.168.0.0" out of
+  # "192.168.0.0/16" the same way internal_subnet's own docstring above
+  # describes for /24, hash-subbing it to a decoy like "10.0.0.68" and
+  # leaving "/16" stranded on host bits that aren't zero - same class of
+  # corruption, just never extended past /24. A self-replacement regex_rule
+  # ahead of this one does NOT work: regex_rules and hash_sub_rules are both
+  # separate sequential passes over the whole text (see regex_pass()), so a
+  # rule "fixing" the text still leaves it there for this pass, running
+  # later, to find and corrupt again. The lookahead is the only thing that
+  # actually stops this pattern from matching it in the first place.
+  - name: internal_ip
+    pattern: '\b192\.168\.\d{1,3}\.\d{1,3}\b(?!/16)'
+    kind: ip  # -> 10.0.0.<1-254>
+
+  # Confirmed live (2026-09-16): every zone's real latitude/longitude was
+  # being replaced with the exact same fixed decoy (39.7817/-89.6501 -
+  # Springfield, IL's real coordinates), so all ~38 real zones - genuinely
+  # scattered across a city in reality - collapsed onto one identical point
+  # on the published map. Not a privacy leak on its own (no real coordinate
+  # escapes), but an obvious "this is synthetic" tell, and not what a real
+  # household's zone list looks like. Hashing the REAL coordinate (one-way,
+  # never reconstructible) into a small offset from that same anchor keeps
+  # every zone a few miles apart and distinct from every other zone, while
+  # staying deterministic (same real zone always gets the same decoy point
+  # across every file/run) and never leaking anything about the real value
+  # itself - the offset is derived from its hash, not its magnitude or
+  # direction.
+  - name: latitude_field
+    pattern: '(?i)\blatitude\b\s*[:=]\s*"?-?\d{1,3}\.\d{3,}'
+    kind: lat_jitter  # -> 39.7817 +/- up to ~0.03 (a few miles)
+
+  - name: longitude_field
+    pattern: '(?i)\blongitude\b\s*[:=]\s*"?-?\d{1,3}\.\d{3,}'
+    kind: lon_jitter  # -> -89.6501 +/- up to ~0.03
+
+  - name: long_digit_id
+    # Google Maps device_tracker account IDs are 21 digits; also catches
+    # other long numeric IDs that showed up as accidental identifiers.
+    # Lookaround, not \b: confirmed live (2026-09-16) that a real 21-digit
+    # Google Maps ID sitting inside a unique_id/entity_id
+    # ("demo_dt_google_maps_102283356650451563344") is underscore-adjacent,
+    # and \b treats "_" as an ordinary word character - the digits there
+    # were never hashed at all, while the exact same digits elsewhere
+    # (space-adjacent in a `name:` field) WERE hashed to a different decoy,
+    # so the entity's real id and the dashboard's reference to it diverged
+    # ("Entity not found") - and the real account id leaked unredacted
+    # everywhere it happened to be underscore-adjacent.
+    pattern: '(?<![A-Za-z0-9])\d{21}(?![A-Za-z0-9])'
+    kind: digits21

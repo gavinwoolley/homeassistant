@@ -1,0 +1,98 @@
+# UniFi network alerts via unpoller, job="unifi".
+# AP/device reachability is also covered by the blackbox ICMP probes
+# (uap_garden, u7_kitchen, ...) -> BlackboxProbeFailed.
+namespace: unifi
+groups:
+  - name: unifi
+    rules:
+      - alert: UnpollerDown
+        expr: up{job="unifi"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "unpoller (UniFi exporter) is down"
+          description: "No UniFi metrics - check the unpoller container and its controller login."
+
+      # unifi_site_disconnected is a site-level count with no per-device
+      # breakdown to filter on. Baseline of 2 is "Not in Use - AC-Lite 2
+      # Front" and "Not in Use - UniFi AP-LR-Lounge" - adopted-but-retired
+      # devices the controller still counts as disconnected. Forget those two
+      # devices in the UniFi controller and drop this back to `> 0`.
+      - alert: UnifiDevicesDisconnected
+        expr: unifi_site_disconnected > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value }} UniFi device(s) disconnected (beyond the known 2 retired devices)"
+          description: "The controller reports {{ $value }} adopted device(s) offline, more than the 2 known-retired ones."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=unifidevicesdisconnected"
+
+      - alert: UnifiInternetDrops
+        expr: increase(unifi_site_intenet_drops_total[15m]) > 2
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "WAN connectivity is flapping"
+          description: "{{ $value | printf \"%.0f\" }} internet drops in the last 15 minutes."
+
+      - alert: UnifiHighSiteLatency
+        expr: unifi_site_latency_seconds > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High gateway latency"
+          description: "UniFi site latency {{ $value | printf \"%.3f\" }}s (WAN health check)."
+
+      # name!~"Not in Use.*" - the 2 retired devices (see UnifiDevicesDisconnected
+      # above) flap their reported uptime and fired this constantly.
+      #
+      # for: 2m (not 0m) - unpoller occasionally reports a single scrape of
+      # uptime=0 for an AP that hasn't actually rebooted (seen right after a
+      # Mimir/Alloy restart: every AP's uptime dipped to 0 for exactly one
+      # sample, then resumed climbing from where it left off - no real
+      # reboot). A genuine reboot stays under 300s across multiple scrapes;
+      # a glitched sample doesn't survive to the next evaluation.
+      - alert: UnifiDeviceRebooted
+        expr: unifi_device_uptime_seconds{name!~"Not in Use.*"} < 300
+        for: 2m
+        labels:
+          severity: info
+        annotations:
+          summary: "UniFi device {{ $labels.name }} rebooted"
+          description: "{{ $labels.name }} uptime is {{ $value | printf \"%.0f\" }}s."
+
+      # unifi_device_vap_satisfaction_now_ratio (the per-radio one) reads 0 on
+      # EVERY radio at all times, not just idle ones - unpoller isn't
+      # populating it usefully for this controller, so it fired for every AP
+      # simultaneously and was pure noise. Alert on per-client RSSI instead,
+      # which is the actual "hanging onto a too-far AP" signal Homer Simpson is
+      # chasing - and per-client unifi_client_satisfaction_ratio stayed at 1
+      # even for clients with a rock-bottom RSSI, so it isn't a reliable
+      # stand-in either.
+      - alert: UnifiClientWeakSignal
+        expr: unifi_client_rssi_db{wired="false"} < 15
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          # $labels.name is the client's own self-reported hostname (from
+          # unpoller/UniFi). Some devices set a real one; others never set a
+          # custom one and unpoller falls back to their interface name
+          # (confirmed live: "wlan0") or their bare MAC (confirmed live:
+          # another client's name was literally its own MAC address). mac +
+          # ip are always present in the description regardless, so the
+          # device is always identifiable even when name isn't useful - but
+          # only append "(mac)" here when it's actually different
+          # information, so a MAC-as-name device doesn't show "X (X)".
+          summary: "{{ $labels.name }}{{ if ne $labels.name $labels.mac }} ({{ $labels.mac }}){{ end }} has a weak Wi-Fi signal on {{ $labels.ap_name }}"
+          description: >-
+            Client {{ $labels.name }} - MAC {{ $labels.mac }}, IP {{ $labels.ip }} - has RSSI
+            {{ $value }}dB on {{ $labels.essid }} ({{ $labels.radio_proto }}) via
+            {{ $labels.ap_name }} for 15 minutes - likely stuck on a distant AP instead
+            of roaming to a closer one. Look the MAC up in the UniFi client list to
+            identify the device. See mimir/README.md#unificlientweaksignal.
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=unificlientweaksignal"

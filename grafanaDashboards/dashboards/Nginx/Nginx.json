@@ -1,0 +1,79 @@
+{
+  "uid": "nginx-proxy",
+  "title": "Nginx",
+  "tags": ["nginx", "proxy"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat", "title": "nginx up",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "nginx_up" } ],
+      "fieldConfig": { "defaults": { "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Active connections",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "nginx_connections_active" } ],
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Requests/s",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "rate(nginx_http_requests_total[5m])" } ],
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Dropped conn/s",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "rate(nginx_connections_accepted[5m]) - rate(nginx_connections_handled[5m])" } ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 0.01 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "timeseries", "title": "Connections",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "nginx_connections_active", "legendFormat": "active" },
+        { "refId": "B", "expr": "nginx_connections_reading", "legendFormat": "reading" },
+        { "refId": "C", "expr": "nginx_connections_writing", "legendFormat": "writing" },
+        { "refId": "D", "expr": "nginx_connections_waiting", "legendFormat": "waiting" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Connection rate",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(nginx_connections_accepted[5m])", "legendFormat": "accepted" },
+        { "refId": "B", "expr": "rate(nginx_connections_handled[5m])", "legendFormat": "handled" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Request rate (from access logs)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "targets": [
+        { "refId": "A", "expr": "sum(count_over_time({job=\"nginx_access\"} [1m]))", "legendFormat": "requests/min" }
+      ]
+    },
+    {
+      "type": "logs", "title": "nginx errors",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "targets": [ { "refId": "A", "expr": "{job=\"nginx_error\"}" } ],
+      "options": { "showTime": true, "wrapLogMessage": true }
+    }
+  ]
+}

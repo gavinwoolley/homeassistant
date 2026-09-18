@@ -1,0 +1,1881 @@
+  #Projector Remote Scripts
+projector_down:
+  alias: Projector Screen Down
+  sequence:
+    - service: switch.turn_on
+      data:
+        entity_id: switch.projector_screen_down
+    - delay:
+        seconds: 30
+    - service: switch.turn_off
+      data:
+        entity_id: switch.projector_screen_down
+    - delay:
+        seconds: 1
+projector_up:
+  alias: Projector Screen Up
+  sequence:
+    - service: switch.turn_on
+      data:
+        entity_id: switch.projector_screen_up
+    - delay:
+        seconds: 60
+    - service: switch.turn_off
+      data:
+        entity_id: switch.projector_screen_up
+    - delay:
+        seconds: 1
+
+#TV Remote Learn Scripts
+learn:
+  alias: Learn Command
+  sequence:
+    - service: broadlink.learn
+      data:
+        host: 10.0.0.121
+
+#Remove IP Ban - delete the ban list then restart HA to apply
+remove_ip_ban:
+  alias: Remove IP Ban
+  sequence:
+    - service: rest_command.grafana_annotation
+      data:
+        tags: ["Cleared IP Ban List", "HomeAssistant", "Server"]
+        message: "Home Assistant - Cleared IP Ban List"
+    - service: shell_command.remove_ip_ban
+    - delay: "00:00:02"
+    - service: homeassistant.restart
+
+reload_all_yaml:
+  alias: Reload All YAML
+  sequence:
+    - service: rest_command.grafana_annotation
+      data:
+        tags: ["Reload", "HomeAssistant", "YAML"]
+        message: "Home Assistant - YAML Config Reloaded"
+    - service: homeassistant.reload_all
+
+##Bart Simpson Room Camera PTZ Scripts
+bart_simpson_room_camera_ptz1:
+  sequence:
+    - service: switch.turn_on
+      entity_id: switch.bart_simpson_room_camera_ptz1
+bart_simpson_room_camera_ptz2:
+  sequence:
+    - service: switch.turn_on
+      entity_id: switch.bart_simpson_room_camera_ptz2
+bart_simpson_room_camera_ptz3:
+  sequence:
+    - service: switch.turn_on
+      entity_id: switch.bart_simpson_room_camera_ptz3
+##Dogs Camera PTZ Scripts
+#dogs_camera_ptz1:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.dogs_camera_ptz1
+#dogs_camera_ptz2:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.dogs_camera_ptz2
+#dogs_camera_ptz3:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.dogs_camera_ptz3
+##Lounge Camera PTZ Scripts
+#lounge_camera_ptz1:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.lounge_camera_ptz1
+#lounge_camera_ptz2:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.lounge_camera_ptz2
+#lounge_camera_ptz3:
+#  sequence:
+#  - service: switch.turn_on
+#    entity_id: switch.lounge_camera_ptz3
+#Heating / Electricity Scripts
+heating_boost_on:
+  alias: Heating Boost On
+  sequence:
+    - service: scene.create
+      data:
+        scene_id: pre_boost_lounge
+        snapshot_entities:
+          - climate.lounge
+    - service: input_boolean.turn_on
+      data:
+        entity_id: input_boolean.heating_boost
+    - service: climate.set_hvac_mode
+      data:
+        entity_id: climate.lounge
+        hvac_mode: heat
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.lounge
+        temperature: "{{ (state_attr('climate.lounge', 'current_temperature') | float(20) + 5) | round(0) | int }}"
+    - service: timer.start
+      data:
+        entity_id: timer.heating_boost
+        duration: >-
+          {% set mins = states('input_number.heating_boost_minutes') | int(30) %}
+          {{ '{:02d}:{:02d}:00'.format(mins // 60, mins % 60) }}
+
+heating_boost_off:
+  alias: Heating Boost Off
+  sequence:
+    - service: input_boolean.turn_off
+      data:
+        entity_id: input_boolean.heating_boost
+    - service: timer.cancel
+      data:
+        entity_id: timer.heating_boost
+    - service: scene.turn_on
+      data:
+        entity_id: scene.pre_boost_lounge
+
+#System Maintenance
+purge_data_5:
+  sequence:
+    - service: recorder.purge
+      data:
+        keep_days: 5
+restart_home_assistant_service:
+  alias: Restart Home Assistant
+  sequence:
+    - service: rest_command.grafana_annotation
+      data:
+        tags: ["Restart", "HomeAssistant", "Service"]
+        message: "Home Assistant - Service Restarted"
+    - service: homeassistant.restart
+reload_lovelace:
+  alias: Reload Lovelace
+  # homeassistant.reload_all (script.reload_all_yaml) does NOT reload the
+  # yaml-mode Lovelace dashboard - lovelace.reload is its own service.
+  sequence:
+    - service: rest_command.grafana_annotation
+      data:
+        tags: ["Reload", "HomeAssistant", "Lovelace"]
+        message: "Home Assistant - Lovelace Reloaded"
+    - service: lovelace.reload
+restart_appdaemon:
+  sequence:
+    - service: switch.turn_on
+      entity_id: switch.restart_appdaemon
+reboot_system:
+  alias: Restart Home Assistant
+  sequence:
+    - service: homeassistant.restart
+#Media Extractor
+#TVs ON Script
+tv_lamp_on_confirm:
+  alias: TV and Lights On Confirm
+  sequence:
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      data:
+        title: Confirm TV / Lights On Action
+        message: Someone pressed the TV and lights on alert, do you want to continue
+        actions:
+          - action: tv_lamp_on_confirm
+            icon: "/local/tv.png"
+            title: Activate TV / Lights On Confirm
+        tag: 'tv_lamp_on_confirm_check_{{ now().strftime("%Y%m%d-%H%M%S") }}'
+
+tv_lamp_on:
+  alias: TV and Lights On
+  sequence:
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      continue_on_error: true
+      data:
+        title: TV / Lights On Running
+        message: Occupancy simulation is running. Use the action below to stop it.
+        actions:
+          - action: cancel_alerts
+            icon: "/local/tv.png"
+            title: Cancel Alerts
+        tag: tv_lamp_on_active
+    # Light the TVs up with the local camera stream (YouTube is blocked)
+    - service: media_player.play_media
+      continue_on_error: true
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+    - service: media_player.play_media
+      continue_on_error: true
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+    - service: script.all_lights_on
+      continue_on_error: true
+    - delay: "00:00:{{ (range(50, 1000)|random|int) }}"
+    - service: remote.send_command
+      continue_on_error: true
+      data:
+        entity_id: remote.lounge_roku_tv
+        command:
+          - power
+    - service: script.all_lights_off
+      continue_on_error: true
+    - service: media_player.media_stop
+      continue_on_error: true
+      data:
+        entity_id:
+          - media_player.chromecast1049
+          - media_player.chromecast6664
+
+#Cameras
+garden_upper_lounge:
+  alias: Garden Upper Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_upper_kitchen:
+  alias: Garden Upper Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg"
+        media_content_type: image/jpg
+patio_outdoor_lounge:
+  alias: Patio Outdoor Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg"
+        media_content_type: image/jpg
+patio_outdoor_kitchen:
+  alias: Patio Outdoor Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_upper_lounge:
+  alias: Garden Shed Upper Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_upper_kitchen:
+  alias: Garden Shed Upper Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_lower_lounge:
+  alias: Garden Shed Lower Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_lower_kitchen:
+  alias: Garden Shed Lower Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg"
+        media_content_type: image/jpg
+bart_simpson_room_lounge:
+  alias: Bart Simpson Room Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg"
+        media_content_type: image/jpg
+bart_simpson_room_kitchen:
+  alias: Bart Simpson Room Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg"
+        media_content_type: image/jpg
+front_camera_lounge:
+  alias: Front Camera on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Front/video.mjpg"
+        media_content_type: image/jpg
+front_camera_kitchen:
+  alias: Front Camera on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Front/video.mjpg"
+        media_content_type: image/jpg
+all_cameras_lounge:
+  alias: All Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+all_cameras_kitchen:
+  alias: All Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+cycle_cameras_lounge:
+  alias: Cycle Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/@index?/video.mjpg"
+        media_content_type: image/jpg
+cycle_cameras_kitchen:
+  alias: Cycle Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/@index?/video.mjpg"
+        media_content_type: image/jpg
+all_front_lounge:
+  alias: All Front Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Outside/video.mjpg"
+        media_content_type: image/jpg
+all_front_kitchen:
+  alias: All Front Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Outside/video.mjpg"
+        media_content_type: image/jpg
+all_rear_lounge:
+  alias: All Rear Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Back/video.mjpg"
+        media_content_type: image/jpg
+all_rear_kitchen:
+  alias: All Rear Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Back/video.mjpg"
+        media_content_type: image/jpg
+all_internal_lounge:
+  alias: All Internal Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Indoor/video.mjpg"
+        media_content_type: image/jpg
+all_internal_kitchen:
+  alias: All Internal Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Indoor/video.mjpg"
+        media_content_type: image/jpg
+all_kids_lounge:
+  alias: All Kids Cameras on Lounge TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast1049
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa Simpson/video.mjpg"
+        media_content_type: image/jpg
+all_kids_kitchen:
+  alias: All Kids Cameras on Bart Simpson TV
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.chromecast6664
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa Simpson/video.mjpg"
+        media_content_type: image/jpg
+garden_upper_bedroom_display:
+  alias: Garden Upper Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_upper_kitchen_display:
+  alias: Garden Upper Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg"
+        media_content_type: image/jpg
+patio_outdoor_bedroom_display:
+  alias: Patio Outdoor Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg"
+        media_content_type: image/jpg
+patio_outdoor_kitchen_display:
+  alias: Patio Outdoor Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_upper_bedroom_display:
+  alias: Garden Shed Upper Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_upper_kitchen_display:
+  alias: Garden Shed Upper Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_lower_bedroom_display:
+  alias: Garden Shed Lower Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg"
+        media_content_type: image/jpg
+garden_shed_lower_kitchen_display:
+  alias: Garden Shed Lower Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg"
+        media_content_type: image/jpg
+bart_simpson_room_bedroom_display:
+  alias: Bart Simpson Room Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg"
+        media_content_type: image/jpg
+bart_simpson_room_kitchen_display:
+  alias: Bart Simpson Room Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg"
+        media_content_type: image/jpg
+front_camera_bedroom_display:
+  alias: Front Camera on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Front/video.mjpg"
+        media_content_type: image/jpg
+front_camera_kitchen_display:
+  alias: Front Camera on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Front/video.mjpg"
+        media_content_type: image/jpg
+all_cameras_bedroom_display:
+  alias: All Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+all_cameras_kitchen_display:
+  alias: All Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/index?/video.mjpg"
+        media_content_type: image/jpg
+cycle_cameras_bedroom_display:
+  alias: Cycle Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/@index?/video.mjpg"
+        media_content_type: image/jpg
+cycle_cameras_kitchen_display:
+  alias: Cycle Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/@index?/video.mjpg"
+        media_content_type: image/jpg
+all_front_bedroom_display:
+  alias: All Front Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Outside/video.mjpg"
+        media_content_type: image/jpg
+all_front_kitchen_display:
+  alias: All Front Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Outside/video.mjpg"
+        media_content_type: image/jpg
+all_rear_bedroom_display:
+  alias: All Rear Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Back/video.mjpg"
+        media_content_type: image/jpg
+all_rear_kitchen_display:
+  alias: All Rear Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Back/video.mjpg"
+        media_content_type: image/jpg
+all_internal_bedroom_display:
+  alias: All Internal Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Indoor/video.mjpg"
+        media_content_type: image/jpg
+all_internal_kitchen_display:
+  alias: All Internal Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Indoor/video.mjpg"
+        media_content_type: image/jpg
+all_kids_bedroom_display:
+  alias: All Kids Cameras on Bedroom Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay80739
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa Simpson/video.mjpg"
+        media_content_type: image/jpg
+all_kids_kitchen_display:
+  alias: All Kids Cameras on Kitchen Display
+  sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.lenovosmartdisplay81380
+        media_content_id: "http://10.0.0.250:81/mjpg/Lisa Simpson/video.mjpg"
+        media_content_type: image/jpg
+
+intruder_alert_confirm:
+  alias: Intruder Alert Confirm
+  sequence:
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      data:
+        title: Confirm Intruder Alert Action
+        message: Someone pressed the intruder alert, do you want to continue
+        actions:
+          - action: intruder_alert_confirm
+            icon: "/local/Alarm-128.png"
+            title: Activate Intruder Alert Confirmed
+        tag: 'intruder_alert_confirm_check_{{ now().strftime("%Y%m%d-%H%M%S") }}'
+
+garden_lights_and_sound:
+  alias: Garden Lights and Sound
+  sequence:
+    - service: switch.turn_on
+      data:
+        entity_id: switch.gardenpath
+    - service: switch.turn_on
+      data:
+        entity_id: switch.garden_tree_light_switch
+    - service: switch.turn_on
+      data:
+        entity_id: switch.tree_house_light_socket
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.googlehome6669
+        volume_level: 1.0
+    - service: tts.cloud_say
+      data_template:
+        entity_id: media_player.googlehome6669
+        message: "Motion has been detected in the garden. Checking known faces...  No Match Found... Continuing to phase 2.. You have 30s to cancel..."
+        options:
+          voice: RyanNeural
+        language: en-GB
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.googlehome6669
+        media_content_id: "https://home.example.com:8123/local/intruder_alert.mp3"
+        media_content_type: music
+    - delay: "00:00:{{ (range(30, 55)|random|int) }}"
+    - service: switch.turn_off
+      data:
+        entity_id: switch.gardenpath
+    - service: switch.turn_off
+      data:
+        entity_id: switch.garden_tree_light_switch
+    - service: switch.turn_off
+      data:
+        entity_id: switch.tree_house_light_socket
+
+all_lights_on:
+  alias: All Lights On
+  sequence:
+    - service: light.turn_on
+      data:
+        entity_id: all
+    - service: switch.turn_on
+      data:
+        entity_id:
+          - switch.front_lights_switch_1
+          - switch.front_lights_switch_2
+          - switch.garden_tree_and_path_switch_1
+          - switch.garden_tree_and_path_switch_2
+          - switch.patio_lights_socket_1
+          - switch.shed_light_socket_1
+          - switch.door_number_light_socket
+          - switch.tree_house_light_socket
+
+all_lights_off:
+  alias: All Lights Off
+  sequence:
+    - service: light.turn_off
+      data:
+        entity_id: all
+    - service: switch.turn_off
+      data:
+        entity_id:
+          - switch.front_lights_switch_1
+          - switch.front_lights_switch_2
+          - switch.garden_tree_and_path_switch_1
+          - switch.garden_tree_and_path_switch_2
+          - switch.patio_lights_socket_1
+          - switch.shed_light_socket_1
+          - switch.door_number_light_socket
+          - switch.tree_house_light_socket
+
+intruder_alert:
+  alias: Intruder Alert
+  mode: restart
+  sequence:
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      continue_on_error: true
+      data:
+        title: Intruder Alert Activated
+        message: The intruder alert is sounding. Use the action below to stop it.
+        actions:
+          - action: cancel_alerts
+            icon: "/local/Alarm-128.png"
+            title: Cancel Alerts
+        tag: intruder_alert_active
+    - service: script.all_lights_on
+      continue_on_error: true
+    - service: switch.turn_on
+      continue_on_error: true
+      data:
+        entity_id:
+          - switch.disco_ball_socket_1
+          - switch.smoke_machine_socket_1
+    # Wake the TVs via CEC so they are audible group members; group casts
+    # alone do not power on a TV
+    - service: media_player.turn_on
+      continue_on_error: true
+      data:
+        entity_id:
+          - media_player.chromecast1049 # Lounge TV
+          - media_player.chromecast6664 # Bart Simpson TV
+    - service: media_player.volume_set
+      continue_on_error: true
+      data:
+        entity_id:
+          - media_player.chromecast1049
+          - media_player.chromecast6664
+        volume_level: 1.0
+    # All voice and siren casts go through the Google speaker group so
+    # every device plays in perfect sync (individual casts drift and echo)
+    - service: media_player.volume_set
+      continue_on_error: true
+      data:
+        entity_id: media_player.home_group
+        volume_level: 1.0
+    # Opening line on every speaker
+    - service: tts.cloud_say
+      continue_on_error: true
+      data:
+        entity_id: media_player.home_group
+        message: "Hello Homer Simpson... no. You are not Homer Simpson."
+        options:
+          voice: RyanNeural
+        language: en-GB
+    - delay: "00:00:05"
+    # Alternate siren bursts and voice lines. TTS interrupts the tone;
+    # the next loop restarts it, so it reads as tone -> voice -> tone.
+    - repeat:
+        for_each:
+          - message: "Facial recognition complete. You are not a resident. Your face, height, and clothing have been captured in 4K and stored off site. Damaging the cameras will not remove the footage."
+            speech_time: 13
+          - message: "The homeowner and the neighbours have been sent your images and are watching the live feed now."
+            speech_time: 8
+          - message: "Everything you do from this point is evidence. Leave now."
+            speech_time: 6
+        sequence:
+          - service: media_player.play_media
+            continue_on_error: true
+            data:
+              entity_id: media_player.home_group
+              media_content_id: "https://home.example.com:8123/local/intruder_alert.mp3"
+              media_content_type: music
+          - delay: "00:00:10"
+          - service: tts.cloud_say
+            continue_on_error: true
+            data:
+              entity_id: media_player.home_group
+              message: "{{ repeat.item.message }}"
+              options:
+                voice: RyanNeural
+              language: en-GB
+          - delay:
+              seconds: "{{ repeat.item.speech_time }}"
+    # Keep the siren going for ~10 minutes (replayed every 60s), then
+    # stand down automatically if nobody has pressed Cancel Alerts
+    - repeat:
+        count: 10
+        sequence:
+          - service: media_player.play_media
+            continue_on_error: true
+            data:
+              entity_id: media_player.home_group
+              media_content_id: "https://home.example.com:8123/local/intruder_alert.mp3"
+              media_content_type: music
+          - delay: "00:01:00"
+    - service: script.turn_on
+      entity_id: script.cancel_alerts
+
+cancel_alerts:
+  alias: Cancel Alerts
+  sequence:
+    - service: script.turn_off
+      continue_on_error: true
+      entity_id:
+        - script.intruder_alert
+        - script.tv_lamp_on
+    # Stop the speaker group and TVs individually so one failed/idle Cast
+    # device cannot abort the whole cancel
+    - repeat:
+        for_each:
+          - media_player.home_group
+          - media_player.chromecast1049 # Lounge TV
+          - media_player.chromecast6664 # Bart Simpson TV
+        sequence:
+          - service: media_player.media_stop
+            continue_on_error: true
+            data:
+              entity_id: "{{ repeat.item }}"
+          - service: media_player.volume_set
+            continue_on_error: true
+            data:
+              entity_id: "{{ repeat.item }}"
+              volume_level: 0.4
+    # Put the TVs back into standby after the alert woke them
+    - service: media_player.turn_off
+      continue_on_error: true
+      data:
+        entity_id:
+          - media_player.chromecast1049
+          - media_player.chromecast6664
+    - service: switch.turn_off
+      continue_on_error: true
+      data:
+        entity_id:
+          - switch.disco_ball_socket_1
+          - switch.smoke_machine_socket_1
+    # Everything off; if it's evening before midnight, re-light the door
+    # number light to match the normal driveway lighting schedule
+    - service: script.all_lights_off
+      continue_on_error: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ is_state('sun.sun', 'below_horizon') and now().hour >= 12 }}"
+          sequence:
+            - service: switch.turn_on
+              continue_on_error: true
+              data:
+                entity_id: switch.door_number_light_socket
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      data:
+        title: Alerts Cancelled
+        message: All alerts and simulations stopped, speaker volume reset.
+        tag: alerts_cancelled
+
+execute_cast_dropdown:
+  alias: Cast Cameras
+  sequence:
+    - service: media_player.play_media
+      data_template:
+        entity_id: >
+          {% if is_state("input_select.cast_to_screen_dropdown", "Lounge TV") %}media_player.chromecast1049
+          {% elif is_state("input_select.cast_to_screen_dropdown", "Bart Simpson TV") %}media_player.chromecast6664
+          {% elif is_state("input_select.cast_to_screen_dropdown", "Bedroom TV") %}media_player.chromecast7681
+          {% elif is_state("input_select.cast_to_screen_dropdown", "Kitchen Display") %}media_player.lenovosmartdisplay81380
+          {% elif is_state("input_select.cast_to_screen_dropdown", "Bedroom Display") %}media_player.lenovosmartdisplay80739
+          {% endif %}
+        media_content_id: >
+          {% if is_state("input_select.camera_dropdown", "Garden Upper") %}http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Patio Outdoor") %}http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Garden Shed Upper") %}http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Garden Shed Lower") %}http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Front") %}http://10.0.0.250:81/mjpg/Front/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Bart Simpson Room") %}http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Dogs") %}http://10.0.0.250:81/mjpg/Dogs/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "Cycle Cameras") %}http://10.0.0.250:81/mjpg/@index?/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "All Cameras") %}http://10.0.0.250:81/mjpg/index?/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "All Front Cams") %}http://10.0.0.250:81/mjpg/outside/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "All Rear Cams") %}http://10.0.0.250:81/mjpg/back/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "All Internal Cams") %}http://10.0.0.250:81/mjpg/indoor/video.mjpg
+          {% elif is_state("input_select.camera_dropdown", "All Kids Cams") %}http://10.0.0.250:81/mjpg/lisa_simpson/video.mjpg
+          {% endif %}
+        media_content_type: "image/jpg"
+
+vacuum_dining_room:
+  alias: Vacuum Dining Room
+  sequence:
+    - service: vacuum.send_command
+      target:
+        entity_id: vacuum.vacuum
+      data:
+        command: custom_area
+        params:
+          coordinates: 5195.000000,-2778.000000,-500.000000,587.000000
+
+#3D Printer Safe Toggle
+toggle_3d_printer_safe:
+  alias: Toggle 3D Printer (Safe)
+  sequence:
+    - if:
+        - condition: state
+          entity_id: switch.smart_plug_4_socket_1
+          state: 'on'
+        - condition: or
+          conditions:
+            - condition: state
+              entity_id: sensor.p2s_22e8bj620203679_print_status
+              state:
+                - prepare
+                - slicing
+                - running
+                - pause
+            - condition: state
+              entity_id: binary_sensor.p2s_22e8bj620203679_ams_1_drying
+              state: 'on'
+      then:
+        - service: persistent_notification.create
+          data:
+            title: 3D Printer
+            message: Blocked power-off — the printer is currently working.
+      else:
+        - service: switch.toggle
+          data:
+            entity_id: switch.smart_plug_4_socket_1
+
+#AC Quick Mode Toggle
+toggle_climate_mode:
+  alias: Toggle Climate Mode
+  mode: parallel
+  max: 10
+  fields:
+    entity_id:
+      description: Climate entity to control
+      example: climate.bart_simpson_room_2
+    hvac_mode:
+      description: Target HVAC mode - if already in this mode, turns off instead
+      example: cool
+  sequence:
+    - if:
+        - condition: template
+          value_template: "{{ is_state(entity_id, hvac_mode) }}"
+      then:
+        - service: climate.set_hvac_mode
+          data:
+            entity_id: "{{ entity_id }}"
+            hvac_mode: 'off'
+      else:
+        - service: climate.set_hvac_mode
+          data:
+            entity_id: "{{ entity_id }}"
+            hvac_mode: "{{ hvac_mode }}"
+
+#AdGuard Disable Protection
+disable_protection_10:
+  alias: AdGuard - Disable Protection 10 min
+  sequence:
+    - service: rest_command.adguard_set_protection
+      data:
+        enabled: false
+        duration_ms: 600000
+    - service: timer.start
+      target:
+        entity_id: timer.adguard_protection_disabled
+      data:
+        duration: "00:10:00"
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.adguard_protection_disabled
+
+disable_protection_30:
+  alias: AdGuard - Disable Protection 30 min
+  sequence:
+    - service: rest_command.adguard_set_protection
+      data:
+        enabled: false
+        duration_ms: 1800000
+    - service: timer.start
+      target:
+        entity_id: timer.adguard_protection_disabled
+      data:
+        duration: "00:30:00"
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.adguard_protection_disabled
+
+disable_protection_60:
+  alias: AdGuard - Disable Protection 60 min
+  sequence:
+    - service: rest_command.adguard_set_protection
+      data:
+        enabled: false
+        duration_ms: 3600000
+    - service: timer.start
+      target:
+        entity_id: timer.adguard_protection_disabled
+      data:
+        duration: "01:00:00"
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.adguard_protection_disabled
+
+disable_protection_24h:
+  alias: AdGuard - Disable Protection 24 hours
+  sequence:
+    - service: rest_command.adguard_set_protection
+      data:
+        enabled: false
+        duration_ms: 86400000
+    - service: timer.start
+      target:
+        entity_id: timer.adguard_protection_disabled
+      data:
+        duration: "24:00:00"
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.adguard_protection_disabled
+
+enable_protection_now:
+  alias: AdGuard - Resume Protection Now
+  sequence:
+    - service: timer.cancel
+      target:
+        entity_id: timer.adguard_protection_disabled
+    - service: rest_command.adguard_set_protection
+      data:
+        enabled: true
+        duration_ms: 0
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.adguard_protection_disabled
+
+# Kids Internet Block - UniFi "block client" on a set of kids' devices for the
+# window picked in input_select.kids_block_duration. The *_blocked switch is ON
+# when the client is allowed, so blocking = switch.turn_off.
+kids_internet_block:
+  alias: Kids Internet - Block
+  mode: restart
+  fields:
+    switches:
+      description: block-switch entity_ids to turn off (default = all kids devices)
+      example: "[switch.ipad_blocked]"
+  variables:
+    all_devices: &kids_block_switches
+      - switch.loungerokutv_blocked
+      - switch.lisa_simpson_roku_tv_blocked
+      - switch.kitchen_display_blocked
+      - switch.bedroom_display_blocked
+      - switch.bart_simpson_tv_blocked
+      - switch.lisa_simpson_mac_book_blocked
+      - switch.pixel_6_pro_blocked
+      - switch.ipad_blocked
+    target: "{{ switches | default(all_devices, true) }}"
+  sequence:
+    - service: switch.turn_off
+      target:
+        entity_id: "{{ target }}"
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.kids_internet_blocked
+    - service: timer.start
+      target:
+        entity_id: timer.kids_internet_block
+      data:
+        duration: >-
+          {% set d = states('input_select.kids_block_duration') %}
+          {%- if d == '10 minutes' -%}600
+          {%- elif d == '30 minutes' -%}1800
+          {%- elif d == '1 hour' -%}3600
+          {%- elif d == '2 hours' -%}7200
+          {%- elif d == 'Until midnight' -%}{{ ((today_at('00:00') + timedelta(days=1)) - now()).total_seconds() | int }}
+          {%- else -%}1800{%- endif -%}
+
+kids_internet_restore:
+  alias: Kids Internet - Restore
+  mode: restart
+  sequence:
+    - service: timer.cancel
+      target:
+        entity_id: timer.kids_internet_block
+    - service: switch.turn_on
+      target:
+        entity_id: *kids_block_switches
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.kids_internet_blocked
+
+#Kitchen Plinth (WLED) Presets
+#Add each new plinth light entity to every entity_id list below as controllers are wired in
+plinth_off:
+  alias: Plinths - Off
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: "Off"
+
+plinth_warm_white:
+  alias: Plinths - Warm White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_island_plinth_ip') }}"
+        cct: 255
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_tall_units_plinth_ip') }}"
+        cct: 255
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_under_stair_units_plinth_ip') }}"
+        cct: 255
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_sink_plinth_ip') }}"
+        cct: 255
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Warm
+
+plinth_neutral_white:
+  alias: Plinths - Neutral White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_island_plinth_ip') }}"
+        cct: 128
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_tall_units_plinth_ip') }}"
+        cct: 128
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_under_stair_units_plinth_ip') }}"
+        cct: 128
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_sink_plinth_ip') }}"
+        cct: 128
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Neutral
+
+plinth_cool_white:
+  alias: Plinths - Cool White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_island_plinth_ip') }}"
+        cct: 0
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_tall_units_plinth_ip') }}"
+        cct: 0
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_under_stair_units_plinth_ip') }}"
+        cct: 0
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_sink_plinth_ip') }}"
+        cct: 0
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Cool
+
+plinth_party_rainbow:
+  alias: Plinths - Party Rainbow
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: Rainbow
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Rainbow
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Rainbow
+
+plinth_party_fire:
+  alias: Plinths - Party Fire
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: Fire
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Fire 2012
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Fire
+
+plinth_party_strobe:
+  alias: Plinths - Colour Chase
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: Rainbow
+    - service: number.set_value
+      target:
+        entity_id:
+          - number.kitchen_island_plinth_speed
+          - number.kitchen_tall_units_plinth_speed
+          - number.kitchen_under_stair_units_plinth_speed
+          - number.kitchen_sink_plinth_speed
+      data:
+        value: 50
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: Chase Random
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Chase
+
+plinth_audio_reactive:
+  alias: Plinths - Audio Reactive
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: Party
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: "{{ states('input_select.plinth_default_audio_effect') }}"
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Audio
+
+plinth_audio_warm:
+  alias: Plinths - Audio Warm
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: "{{ states('input_select.plinth_default_audio_effect') }}"
+        rgbw_color: [255, 147, 41, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Audio Warm
+
+plinth_audio_cool:
+  alias: Plinths - Audio Cool
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id:
+          - select.kitchen_island_plinth_colour_palette
+          - select.kitchen_tall_units_plinth_colour_palette
+          - select.kitchen_under_stair_units_plinth_colour_palette
+          - select.kitchen_sink_plinth_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id:
+          - light.kitchen_island_plinth
+          - light.kitchen_tall_units_plinth
+          - light.kitchen_under_stair_units_plinth
+          - light.kitchen_sink_plinth
+      data:
+        effect: "{{ states('input_select.plinth_default_audio_effect') }}"
+        rgbw_color: [180, 210, 255, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.plinth_active_mode
+      data:
+        option: Audio Cool
+
+#Kitchen Wall Units (WLED) Presets - separate from the plinths group
+wall_units_off:
+  alias: Wall Units - Off
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id: light.kitchen_wall_units
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: "Off"
+
+wall_units_warm_white:
+  alias: Wall Units - Warm White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_wall_units_ip') }}"
+        cct: 255
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Warm
+
+wall_units_neutral_white:
+  alias: Wall Units - Neutral White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_wall_units_ip') }}"
+        cct: 128
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Neutral
+
+wall_units_cool_white:
+  alias: Wall Units - Cool White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.kitchen_wall_units_ip') }}"
+        cct: 0
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Cool
+
+wall_units_party_rainbow:
+  alias: Wall Units - Party Rainbow
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: Rainbow
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Rainbow
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Rainbow
+
+wall_units_party_fire:
+  alias: Wall Units - Party Fire
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: Fire
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Fire 2012
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Fire
+
+wall_units_party_strobe:
+  alias: Wall Units - Colour Chase
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: Rainbow
+    - service: number.set_value
+      target:
+        entity_id: number.kitchen_wall_units_speed
+      data:
+        value: 50
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: Chase Random
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Chase
+
+wall_units_audio_reactive:
+  alias: Wall Units - Audio Reactive
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: Party
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: "{{ states('input_select.wall_units_default_audio_effect') }}"
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Audio
+
+wall_units_audio_warm:
+  alias: Wall Units - Audio Warm
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: "{{ states('input_select.wall_units_default_audio_effect') }}"
+        rgbw_color: [255, 147, 41, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Audio Warm
+
+wall_units_audio_cool:
+  alias: Wall Units - Audio Cool
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.kitchen_wall_units_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id: light.kitchen_wall_units
+      data:
+        effect: "{{ states('input_select.wall_units_default_audio_effect') }}"
+        rgbw_color: [180, 210, 255, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wall_units_active_mode
+      data:
+        option: Audio Cool
+
+#Utility Units (WLED) Presets - separate area, not part of the kitchen plinths/wall units
+utility_units_off:
+  alias: Utility Units - Off
+  sequence:
+    - service: light.turn_off
+      target:
+        entity_id: light.utility_units
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: "Off"
+
+utility_units_warm_white:
+  alias: Utility Units - Warm White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.utility_units_ip') }}"
+        cct: 255
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Warm
+
+utility_units_neutral_white:
+  alias: Utility Units - Neutral White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.utility_units_ip') }}"
+        cct: 128
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Neutral
+
+utility_units_cool_white:
+  alias: Utility Units - Cool White
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Solid
+        rgbw_color: [0, 0, 0, 255]
+        brightness_pct: 100
+    - delay:
+        seconds: 1
+    - service: rest_command.wled_set_cct
+      data:
+        ip: "{{ states('sensor.utility_units_ip') }}"
+        cct: 0
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Cool
+
+utility_units_party_rainbow:
+  alias: Utility Units - Party Rainbow
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: Rainbow
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Rainbow
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Rainbow
+
+utility_units_party_fire:
+  alias: Utility Units - Party Fire
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: Fire
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Fire 2012
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Fire
+
+utility_units_party_strobe:
+  alias: Utility Units - Colour Chase
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: Rainbow
+    - service: number.set_value
+      target:
+        entity_id: number.utility_units_speed
+      data:
+        value: 50
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: Chase Random
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Chase
+
+utility_units_audio_reactive:
+  alias: Utility Units - Audio Reactive
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: Party
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: "{{ states('input_select.utility_units_default_audio_effect') }}"
+        rgbw_color: [255, 0, 0, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Audio
+
+utility_units_audio_warm:
+  alias: Utility Units - Audio Warm
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: "{{ states('input_select.utility_units_default_audio_effect') }}"
+        rgbw_color: [255, 147, 41, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Audio Warm
+
+utility_units_audio_cool:
+  alias: Utility Units - Audio Cool
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.utility_units_colour_palette
+      data:
+        option: "* Color 1"
+    - service: light.turn_on
+      target:
+        entity_id: light.utility_units
+      data:
+        effect: "{{ states('input_select.utility_units_default_audio_effect') }}"
+        rgbw_color: [180, 210, 255, 0]
+        brightness_pct: 100
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.utility_units_active_mode
+      data:
+        option: Audio Cool
+
+# Homer Simpson Laptop Wake on LAN
+homer_simpson_laptop_wake_full:
+  alias: Homer Simpson Laptop - Turn On and Wake
+  sequence:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.smart_plug_6_socket_1
+    - delay:
+        seconds: 10
+    - service: wake_on_lan.send_magic_packet
+      data:
+        mac: "ba:95:06:5b:30:5d"
+        broadcast_address: "10.0.0.104"
+
+homer_simpson_laptop_wol_only:
+  alias: Homer Simpson Laptop - Wake on LAN Only
+  sequence:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.homer_simpson_laptop_wol_pulse
+    - service: wake_on_lan.send_magic_packet
+      data:
+        mac: "ba:95:06:5b:30:5d"
+        broadcast_address: "10.0.0.104"
+    - delay:
+        seconds: 2
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.homer_simpson_laptop_wol_pulse
+
+# --- Monitoring / alert notifications ------------------------------------------
+
+# Single place the CallMeBot phone + apikey secrets are referenced. Callers
+# just pass `message`.
+notify_whatsapp:
+  alias: "Notify: WhatsApp (CallMeBot)"
+  mode: queued
+  max: 20
+  fields:
+    message:
+      description: Text to send
+  sequence:
+    - service: rest_command.callmebot_whatsapp
+      data:
+        phone: !secret callmebot_phone
+        apikey: REDACTED callmebot_apikey
+        text: "{{ message }}"
+    # CallMeBot is slow and serialises poorly - space out queued messages.
+    - delay:
+        seconds: 4

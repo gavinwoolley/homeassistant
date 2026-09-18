@@ -1,0 +1,409 @@
+name: $(Major).$(Minor).$(Patch)
+
+variables:
+  Major: 2
+  Minor: 0
+  Patch: $[counter(format('{0}.{1}', variables['Major'], variables['Minor']), 0)]
+
+resources:
+- repo: self
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - /*
+    - custom_components/*
+    - node_modules/*
+    - themes/*
+    - www/*
+    exclude:
+    - conf/*
+    - docker-compose.yml
+    - azure-pipelines-docker.yml
+    - azure-pipelines-renovate.yml
+    - azure-pipelines-publish.yml
+    - renovate.json
+    - nginx/*
+    - apache2/*
+    # TLS cert is owned by acme.sh (Strato DNS-01) + acme/reload.sh, not this
+    # pipeline. Deploying Certificate/* here overwrites the live LE cert.
+    - Certificate/*
+    # Public-mirror tooling and the demo instance - neither is part of the
+    # real HA config, but both live under the repo root so the broad /*
+    # include above would otherwise match them, and "Detect Changed Files"
+    # below diffs HEAD~1..HEAD directly (not filtered by this trigger's path
+    # list) - a publish/-only or demo/-only commit would have set
+    # deploy_ha=true and restarted the live HA container for nothing.
+    - publish/*
+    - publish/**/*
+    - demo/*
+    - demo/**/*
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build Home Assistant Job
+    pool:
+      name: Local Ubuntu
+    workspace:
+      clean: all
+    steps:
+    - bash: |
+        sudo find $(Build.SourcesDirectory) -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
+      displayName: 'Cleanup root-owned pycache'
+
+    - task: shellexec@0
+      displayName: 'Backup Config'
+      inputs:
+        code: |
+         cp /home/homeassistant/.homeassistant/docker-home-assistant-config/*.yaml /home/homeassistant/.homeassistant/BackupConfig/ 2>/dev/null || true
+         cp /home/homeassistant/.homeassistant/docker-home-assistant-config/*.conf /home/homeassistant/.homeassistant/BackupConfig/ 2>/dev/null || true
+         cp /home/homeassistant/.homeassistant/docker-home-assistant-config/*.js /home/homeassistant/.homeassistant/BackupConfig/ 2>/dev/null || true
+         cp /home/homeassistant/.homeassistant/Certificate /home/homeassistant/.homeassistant/BackupConfig/Certificate/ -R 2>/dev/null || true
+
+    - bash: |
+        CHANGED=$(git diff --name-only HEAD~1 HEAD)
+        echo "Changed files:"
+        echo "$CHANGED"
+        echo "$CHANGED" | grep -q "^loki/loki\.yaml$"    && echo "##vso[task.setvariable variable=deploy_loki;isOutput=true]true"    || echo "##vso[task.setvariable variable=deploy_loki;isOutput=true]false"
+        echo "$CHANGED" | grep -q "^mimir/mimir\.yaml$"   && echo "##vso[task.setvariable variable=deploy_mimir;isOutput=true]true"   || echo "##vso[task.setvariable variable=deploy_mimir;isOutput=true]false"
+        echo "$CHANGED" | grep -qE "^alloy/(config\.alloy|alloy\.service)$" && echo "##vso[task.setvariable variable=deploy_alloy;isOutput=true]true"   || echo "##vso[task.setvariable variable=deploy_alloy;isOutput=true]false"
+        OTHER=$(echo "$CHANGED" | grep -vE "^(loki/loki\.yaml|mimir/mimir\.yaml|alloy/config\.alloy|alloy/alloy\.service)$" | grep -v "^$")
+        # ui-lovelace.yaml is a yaml-mode Lovelace dashboard (see configuration.yaml
+        # lovelace:) - it can be applied with a `lovelace.reload` service call, no
+        # HA container restart. Only fall back to deploy_ha (= restart) when
+        # something OTHER than ui-lovelace.yaml also changed.
+        echo "$OTHER" | grep -q "^ui-lovelace\.yaml$" && echo "##vso[task.setvariable variable=deploy_lovelace;isOutput=true]true" || echo "##vso[task.setvariable variable=deploy_lovelace;isOutput=true]false"
+        NEEDS_RESTART=$(echo "$OTHER" | grep -vE "^ui-lovelace\.yaml$" | grep -v "^$")
+        [ -n "$NEEDS_RESTART" ] && echo "##vso[task.setvariable variable=deploy_ha;isOutput=true]true" || echo "##vso[task.setvariable variable=deploy_ha;isOutput=true]false"
+      displayName: 'Detect Changed Files'
+      name: detect_changes
+      workingDirectory: $(Build.SourcesDirectory)
+
+    - bash: |
+        AUTH=$(printf '%s:%s' "$ADGUARD_USER" "$ADGUARD_PASS" | base64 -w0)
+        echo "##vso[task.setvariable variable=adguard_auth_header]Basic $AUTH"
+      displayName: 'Compute AdGuard Basic Auth header'
+      env:
+        ADGUARD_USER: $(adguard_username)
+        ADGUARD_PASS: $(adguard_password)
+
+    - task: replacetokens@3
+      displayName: 'Replace secret tokens'
+      inputs:
+        rootDirectory: $(Build.SourcesDirectory)
+        targetFiles: |
+         *.sh
+         *.yaml
+         *.ps1
+         *.json
+         *.conf
+         **/*.htpasswd
+        actionOnMissing: fail
+      env:
+        home_assistant_base_url: $(home_assistant_base_url)
+        grafana_api_key: REDACTED)
+        plex_token: $(plex_token)
+        ha_api_token: $(ha_api_token)
+        lisa_simpson_watch_password: REDACTED)
+        lisa_simpson_watch_token: $(lisa_simpson_watch_token)
+        lisa_simpson_watch_api_token: $(lisa_simpson_watch_api_token)
+        lisa_simpson_watch_push_token: $(lisa_simpson_watch_push_token)
+        lisa_simpson_watch_user_name: $(lisa_simpson_watch_user_name)
+        lisa_simpson_watch_uid: $(lisa_simpson_watch_uid)
+        lisa_simpson_watch_family_id: $(lisa_simpson_watch_family_id)
+        lisa_simpson_watch_device_id: $(lisa_simpson_watch_device_id)
+        lisa_simpson_watch_bearer_token: $(lisa_simpson_watch_bearer_token)
+        pirateweather]_api_key: REDACTED)
+        google_geocode_api_key: REDACTED)
+        google_calendar_client_id: REDACTED)
+        http_password: REDACTED)
+        plex_password: REDACTED)
+        plex_user_name: $(plex_user_name)
+        google_maps_device_tracker_user_name: $(google_maps_device_tracker_user_name)
+        openalpr_cloud_api_key: REDACTED)
+        lisa_simpson_gravatar: $(lisa_simpson_gravatar)
+        marge_simpson_gravatar: $(marge_simpson_gravatar)
+        marge_simpson_google_maps_id: $(marge_simpson_google_maps_id)
+        homer_simpson_gravatar: $(homer_simpson_gravatar)
+        homer_simpson_google_maps_id: $(homer_simpson_google_maps_id)
+        homer_simpson_google_calendar_id: $(homer_simpson_google_calendar_id)
+        homer_simpson_google_calendar_device_id: $(homer_simpson_google_calendar_device_id)
+        unifi_controller_ssid: $(unifi_controller_ssid)
+        html5_notify_vapid_email: $(html5_notify_vapid_email)
+        html5_notify_vapid_prv_key: $(html5_notify_vapid_prv_key)
+        html5_notify_vapid_pub_key: $(html5_notify_vapid_pub_key)
+        htpasswd_variable: $(htpasswd_variable)
+        ecovacs_password: REDACTED)
+        NEST_CLIENT_ID: REDACTED)
+        NEST_CLIENT_SECRET: REDACTED)
+        NEST_PROJECT_ID: $(NEST_PROJECT_ID)
+        NEST_SUBSCRIBER_ID: $(NEST_SUBSCRIBER_ID)
+        bring_username: $(bring_username)
+        bring_password: REDACTED)
+        google_maps_api_key: REDACTED)
+        adguard_username: $(adguard_username)
+        adguard_password: REDACTED)
+        adguard_auth_header: $(adguard_auth_header)
+        callmebot_phone: $(callmebot_phone)
+        callmebot_apikey: REDACTED)
+
+    - task: replacetokens@3
+      displayName: 'Create Base64 file from variable'
+      inputs:
+        rootDirectory: $(Build.SourcesDirectory)
+        targetFiles: |
+         **/*.base64
+        actionOnMissing: fail
+      env:
+        homer_simpson_base64_image: $(homer_simpson_base64_image)
+        bart_simpson_base64_image: $(bart_simpson_base64_image)
+        lisa_simpson_base64_image: $(lisa_simpson_base64_image)
+        marge_simpson_base64_image: $(marge_simpson_base64_image)
+        comic_book_guy_base64_image: $(comic_book_guy_base64_image)
+        dad_base64_image: $(dad_base64_image)
+        grandad_base64_image: $(grandad_base64_image)
+        mona_simpson_base64_image: $(mona_simpson_base64_image)
+        barney_gumble_base64_image: $(barney_gumble_base64_image)
+        patty_bouvier_base64_image: $(patty_bouvier_base64_image)
+        ned_flanders_base64_image: $(ned_flanders_base64_image)
+        dog_base64_image: $(dog_base64_image)
+
+    - task: shellexec@0
+      displayName: 'Convert Base64 Variables back into images'
+      inputs:
+        code: |
+         base64 -d $(Build.SourcesDirectory)/www/base64images/homer_simpson.jpg.base64 > $(Build.SourcesDirectory)/www/homer_simpson.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/comic_book_guy.jpg.base64 > $(Build.SourcesDirectory)/www/comic_book_guy.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/dad.jpg.base64 > $(Build.SourcesDirectory)/www/dad.JPG
+         base64 -d $(Build.SourcesDirectory)/www/base64images/grandad.jpg.base64 > $(Build.SourcesDirectory)/www/grandad.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/mona_simpson.jpg.base64 > $(Build.SourcesDirectory)/www/mona_simpson.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/lisa_simpson.jpg.base64 > $(Build.SourcesDirectory)/www/lisa_simpson.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/bart_simpson.jpg.base64 > $(Build.SourcesDirectory)/www/bart_simpson.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/marge_simpson.jpg.base64 > $(Build.SourcesDirectory)/www/marge_simpson.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/Barney Gumble.jpg.base64 > $(Build.SourcesDirectory)/www/Barney Gumble.JPG
+         base64 -d $(Build.SourcesDirectory)/www/base64images/Patty Bouvier3.jpg.base64 > $(Build.SourcesDirectory)/www/Patty Bouvier3.JPG
+         base64 -d $(Build.SourcesDirectory)/www/base64images/ned_flanders.jpg.base64 > $(Build.SourcesDirectory)/www/ned_flanders.jpg
+         base64 -d $(Build.SourcesDirectory)/www/base64images/dog.jpg.base64 > $(Build.SourcesDirectory)/www/dog.jpg
+
+    - task: shellexec@0
+      displayName: 'Check Home Assistant Config YAML'
+      inputs:
+        code: 'docker run --rm -v $(Build.SourcesDirectory):/config homeassistant/home-assistant:stable python -m homeassistant --script check_config --config /config'
+
+    - bash: |
+        sudo find $(Build.SourcesDirectory) -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
+      displayName: 'Cleanup __pycache__ from Docker config check'
+
+    - task: CopyFiles@2
+      displayName: 'Copy Files to: $(Build.ArtifactStagingDirectory)'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)'
+        Contents: |
+         *.conf
+         *.yaml
+         *.alloy
+         *.service
+         **/www/**
+         **/themes/**
+         **/custom_components/**
+         *.js
+         *.sh
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+        CleanTargetFolder: true
+
+    - task: PublishPipelineArtifact@0
+      inputs:
+        ArtifactName: HomeAssistantPackage
+- stage: Deploy
+  dependsOn: Build
+  variables:
+    deploy_loki:  $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_loki'] ]
+    deploy_mimir: $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_mimir'] ]
+    deploy_alloy: $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_alloy'] ]
+    deploy_ha:    $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_ha'] ]
+    deploy_lovelace: $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_lovelace'] ]
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy Home Assistant Job
+    pool:
+      name: Local Ubuntu
+    environment: Live
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - bash: |
+             date +%s%3N > /tmp/ha_deploy_start_ms_$BUILD_ID
+            displayName: Record Deploy Start Time
+            env:
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             sudo cp /home/homeassistant/.homeassistant/docker-home-assistant-config/*.yaml /home/homeassistant/.homeassistant/BackupConfig/ 2>/dev/null || true
+             sudo cp /home/homeassistant/.homeassistant/docker-home-assistant-config/*.conf /home/homeassistant/.homeassistant/BackupConfig/ 2>/dev/null || true
+            displayName: 'Backup Config'
+
+          - bash: |
+             sudo cp -R $AGENT_BUILDDIRECTORY/HomeAssistantPackage/* /home/homeassistant/.homeassistant/docker-home-assistant-config/
+            displayName: 'Copy Artifacts to HomeAssistant Dir'
+            condition: and(succeeded(), eq(variables['deploy_ha'], 'true'))
+
+          - bash: |
+             sudo cp $AGENT_BUILDDIRECTORY/HomeAssistantPackage/alloy/config.alloy /home/homeassistant/.homeassistant/alloy/config.alloy
+             sudo cp $AGENT_BUILDDIRECTORY/HomeAssistantPackage/alloy/alloy.service /etc/systemd/system/alloy.service
+             sudo systemctl daemon-reload
+             sudo systemctl restart alloy
+            displayName: 'Deploy Alloy Config'
+            condition: and(succeeded(), eq(variables['deploy_alloy'], 'true'))
+
+          - bash: |
+             sudo cp $AGENT_BUILDDIRECTORY/HomeAssistantPackage/loki/loki.yaml /home/homeassistant/.homeassistant/loki/loki.yaml
+             sudo docker restart loki
+            displayName: 'Deploy Loki Config'
+            condition: and(succeeded(), eq(variables['deploy_loki'], 'true'))
+
+          - bash: |
+             sudo cp $AGENT_BUILDDIRECTORY/HomeAssistantPackage/mimir/mimir.yaml /home/homeassistant/.homeassistant/mimir/mimir.yaml
+             sudo docker restart mimir
+            displayName: 'Deploy Mimir Config'
+            condition: and(succeeded(), eq(variables['deploy_mimir'], 'true'))
+
+          # Lovelace-only change: copy the file and call lovelace.reload - no HA
+          # container restart. Falls back to a full restart if the reload call
+          # doesn't return 200 (e.g. ha_api_token not set / not admin), so a
+          # missing token degrades to today's behaviour rather than a silent
+          # no-op. Skipped entirely when deploy_ha is true (the restart covers it).
+          - bash: |
+             sudo cp "$AGENT_BUILDDIRECTORY/HomeAssistantPackage/ui-lovelace.yaml" \
+               /home/homeassistant/.homeassistant/docker-home-assistant-config/ui-lovelace.yaml
+             HTTP=$(curl -s -o /dev/null -w '%{http_code}' -m 20 \
+               -X POST http://localhost:8123/api/services/lovelace/reload \
+               -H "Authorization: Bearer $HA_TOKEN" -H 'Content-Type: application/json' -d '{}')
+             echo "lovelace.reload -> HTTP $HTTP"
+             if [ "$HTTP" != "200" ]; then
+               echo "reload not confirmed (HTTP $HTTP) - falling back to full HA restart"
+               sudo docker restart home-assistant
+             fi
+            displayName: 'Deploy Lovelace (reload, no HA restart)'
+            condition: and(succeeded(), eq(variables['deploy_lovelace'], 'true'), ne(variables['deploy_ha'], 'true'))
+            env:
+              HA_TOKEN: $(ha_api_token)
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON
+            displayName: 'Echo Build Details'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON | sudo tee /home/homeassistant/.homeassistant/buildData.json > /dev/null
+            displayName: 'Write Build Details to Json File'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON | sudo tee /home/homeassistant/.homeassistant/docker-home-assistant-config/buildData.json > /dev/null
+            displayName: 'Write Build Details to Json File new container path'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: 'sudo docker restart home-assistant'
+            displayName: 'Restart HomeAssistant Container'
+            condition: and(succeeded(), eq(variables['deploy_ha'], 'true'))
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: 'https://home.example.com:8123'
+              expectedReturnCode: '200'
+              retryAttemptCount: '8'
+              strictSSL: true
+              retryDelay: '30000'
+            displayName: 'Smoke Test Home Assistant'
+            condition: and(succeeded(), eq(variables['deploy_ha'], 'true'))
+
+          - bash: |
+             # jq --arg safely JSON-escapes the commit message - a raw
+             # $(Build.SourceVersionMessage) macro-substitution here breaks
+             # the single-quoted --data-raw block the instant a commit
+             # message contains an apostrophe (confirmed live: "didn't").
+             START_MS=$(cat /tmp/ha_deploy_start_ms_$BUILD_ID 2>/dev/null || date +%s%3N)
+             END_MS=$(date +%s%3N)
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg commitMessage "$COMMIT_MESSAGE" \
+               --arg buildId "$BUILD_ID" \
+               --argjson timeStart "$START_MS" \
+               --argjson timeEnd "$END_MS" \
+               '{
+                  time: $timeStart,
+                  timeEnd: $timeEnd,
+                  tags: ["Deploy","HomeAssistant",$buildNumber],
+                  text: ("HomeAssistant - Deploy - " + $buildNumber + "<br>" + $commitMessage + " <br> <a href=\"https://dev.azure.com/example/Home/_build/results?buildId=" + $buildId + "&view=results\" target=\"_blank\">Link to Azure DevOps Build</a>")
+                }')
+             curl --location --insecure --silent --show-error \
+             --write-out 'grafana annotation -> HTTP %{http_code}\n' \
+             --request POST 'https://$(home_assistant_base_url):599/grafana/api/annotations' \
+             --header 'Authorization: Bearer $(grafana_api_key)' \
+             --header 'Accept: application/json' \
+             --header 'Content-Type: application/json' \
+             --data-raw "$JSON"
+             rm -f /tmp/ha_deploy_start_ms_$BUILD_ID
+            displayName: Post Deploy Timespan Annotation to Grafana
+            continueOnError: true
+            env:
+              grafana_api_key: REDACTED)
+              home_assistant_base_url: $(home_assistant_base_url)
+              BUILD_NUMBER: $(Build.BuildNumber)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              BUILD_ID: $(Build.BuildId)

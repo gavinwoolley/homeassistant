@@ -1,0 +1,73 @@
+version: '2.3'  # matches docker-compose.yml - the home host's docker-compose CLI rejects 3.x
+
+# Standalone demo instance, its own compose project - not attached to
+# anything in the real stack, no credentials for anything real. Reached the
+# same way every other service in docker-compose.yml is reached: a published
+# host port, proxied by nginx (nginx/sites-available/demo.conf) over HTTPS
+# on the home domain.
+#
+# Not internal: true. That was tried first (no route out at all, not even to
+# the internet) but it also means Docker never publishes container ports to
+# the host on that network - confirmed the hard way (empty
+# NetworkSettings.Ports, no docker-proxy process, no iptables DNAT rule,
+# despite the port mapping being configured correctly). Routing round that
+# meant nginx joining the network directly instead, which needs a
+# multi-network container - and the docker-compose 1.17.1 on this host can't
+# reliably recreate a multi-network service in place ("Cannot create
+# container ... already in use"), breaking nginx (and therefore Grafana,
+# AdGuard, Portainer, everything else it fronts) on any future
+# docker-compose.yml change, not just ones touching the demo. Not worth it
+# for a demo instance - a normal published port, exactly like every other
+# service here, is simpler and doesn't put nginx's stability for unrelated
+# services at risk. Discovery integrations (bluetooth/dhcp/ssdp/usb/zeroconf)
+# are deliberately left out of configuration.yaml's default_config
+# replacement instead, so this having normal network access doesn't mean it
+# goes looking for real devices.
+#
+# Run standalone (no nginx) for a quick local look:
+#   docker compose -f demo/docker-compose.demo.yml up
+# Then open http://localhost:8124.
+
+networks:
+  demo-isolated:
+    driver: bridge
+    # Pinned, not left to Docker's auto-assigned pool - demo/configuration.yaml's
+    # trusted_proxies matches this subnet exactly (HA's http component 400s a
+    # forwarded request whose real peer IP isn't in trusted_proxies, and an
+    # auto-assigned subnet is a moving target).
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+
+services:
+  homeassistant-demo:
+    image: homeassistant/home-assistant:stable
+    container_name: homeassistant-demo
+    networks:
+      - demo-isolated
+    ports:
+      - "8124:8123"
+    volumes:
+      - ./:/config
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/London
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8123/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
+
+# HA needs to write to /config (.storage/, the recorder db, logs) so this
+# isn't mounted read-only - the mirror's public .gitignore (.storage/,
+# *.log, home-assistant_v2.db*) keeps that runtime state out of git even
+# though it lands inside demo/ on the host running this.
+
+# No auto-reset sidecar here on purpose - giving any container access to
+# /var/run/docker.sock so it can restart this one is effectively full
+# control of every container on the host, real stack included, which
+# defeats "isolated by construction". If you want a periodic reset to a
+# clean seeded state, add it on the HOST instead, outside this compose
+# file entirely, e.g. a cron entry:
+#   0 */6 * * *  docker restart homeassistant-demo

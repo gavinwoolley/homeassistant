@@ -1,0 +1,47 @@
+# Home Assistant alerts. HA's own Prometheus endpoint, job="home_assistant".
+namespace: home-assistant
+groups:
+  - name: home-assistant
+    rules:
+      - alert: HomeAssistantScrapeDown
+        expr: up{job="home_assistant"} == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Home Assistant metrics endpoint is down"
+          description: "HA is not answering /api/prometheus - HA itself may be down or restarting in a loop."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=homeassistantscrapedown"
+
+      - alert: HomeAssistantStale
+        expr: time() - max(homeassistant_last_updated_time_seconds) > 900
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Home Assistant has not updated any entity in 15 minutes"
+          description: "The scrape works but no state is changing - HA is wedged."
+
+      # Ratio, not a fixed count: this install's baseline is ~293/1275 (~23%)
+      # unavailable at any given moment - phones away from home, blocked kids'
+      # devices, disabled automations, etc. A flat count of 30 fired
+      # permanently. 35% gives headroom over that baseline while still
+      # catching a real integration/hub outage pushing well past it.
+      - alert: HomeAssistantManyEntitiesUnavailable
+        expr: |
+          (count(homeassistant_entity_available == 0) / count(homeassistant_entity_available)) > 0.35
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $value | humanizePercentage }} of Home Assistant entities are unavailable"
+          description: "An integration or device hub has probably fallen over."
+
+      - alert: HomeAssistantBatteryLow
+        expr: homeassistant_sensor_battery_percent < 15
+        for: 2h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low battery on {{ $labels.entity }}"
+          description: "{{ $labels.friendly_name }} ({{ $labels.entity }}) battery at {{ $value | printf \"%.0f\" }}%."

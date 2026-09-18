@@ -1,0 +1,744 @@
+person.dog:
+  entity_picture: "/local/dog.jpg"
+device_tracker.eleqqixh_dog:
+  entity_picture: "/local/dog.jpg"
+person.bart_simpson:
+  entity_picture: "/local/bart_simpson.jpg"
+person.lisa_simpson:
+  entity_picture: "/local/lisa_simpson.jpg"
+device_tracker.pixel_6_pro_lisa_simpson:
+  entity_picture: "/local/lisa_simpson.jpg"
+person.marge_simpson:
+  entity_picture: /local/marge_simpson.jpg
+person.homer_simpson:
+  entity_picture: /local/homer_simpson.jpg
+# System Monitor - short names for health panel glance card
+sensor.processor_use_percent:
+  friendly_name: CPU Use
+sensor.system_monitor_disk_usage:
+  friendly_name: Disk %
+sensor.last_boot:
+  friendly_name: Last Boot
+sensor.memory_free:
+  friendly_name: Mem Free
+sensor.memory_use_percent:
+  friendly_name: Mem %
+sensor.network_in_eth0:
+  friendly_name: Net In
+sensor.network_out_eth0:
+  friendly_name: Net Out
+sensor.load_1m:
+  friendly_name: Load 1m
+sensor.load_5m:
+  friendly_name: Load 5m
+sensor.load_15m:
+  friendly_name: Load 15m
+# Irrigation - drop the "WT-11W" device prefix on the Grafana dashboard
+valve.wt_11w_zone_1:
+  friendly_name: Zone 1
+valve.wt_11w_zone_2:
+  friendly_name: Zone 2
+valve.wt_11w_zone_3:
+  friendly_name: Zone 3
+number.wt_11w_zone_1_duration:
+  friendly_name: Zone 1 Duration
+number.wt_11w_zone_2_duration:
+  friendly_name: Zone 2 Duration
+number.wt_11w_zone_3_duration:
+  friendly_name: Zone 3 Duration
+sensor.heating_state:
+  hidden: true
+sensor.heating_state_name:
+  friendly_name: Heating
+  icon: mdi:thermometer
+sensor.internal_temp:
+  friendly_name: Kitchen Temp
+  icon: mdi:thermometer
+sensor.internal_temp_2:
+  friendly_name: Bedroom Temp
+  icon: mdi:thermometer
+sensor.internal_temp_3:
+  friendly_name: Lisa Simpson Temp
+  icon: mdi:thermometer
+sensor.internal_temp_4:
+  friendly_name: Bart Simpson Temp
+  icon: mdi:thermometer
+sensor.required_temp:
+  friendly_name: Required Temp
+  icon: mdi:thermometer
+sensor.watts:
+  friendly_name: Watts
+  icon: mdi:code-json
+sensor.daily:
+  friendly_name: Daily
+  icon: mdi:code-json
+sensor.elec_cost_day:
+  friendly_name: Daily Electricity Cost
+  icon: mdi:currency-gbp
+sensor.elec_price_now:
+  friendly_name: Elec Price Now P/H
+  icon: coins
+sensor.met_office_temperature:
+  hidden: true
+sensor.outside_temp:
+  friendly_name: Outside Temp
+  icon: mdi:thermometer
+sensor.met_office_feels_like_temperature:
+  hidden: true
+sensor.outside_temp_feel:
+  friendly_name: Outside Feels Like
+  icon: mdi:thermometer
+sensor.met_office_humidity:
+  hidden: true
+sensor.humidity:
+  friendly_name: Humidity
+  icon: mdi:water-percent
+sensor.met_office_probability_of_precipitation:
+  hidden: true
+sensor.rain_chance:
+  friendly_name: Chance of Rain
+  icon: mdi:water-percent
+sensor.met_office_weather:
+  hidden: true
+sensor.weather:
+  friendly_name: Weather
+  icon: eye
+#Network Ping Sensors
+binary_sensor.waste_bin:
+  friendly_name: "Waste Bin"
+binary_sensor.recycling_bin:
+  friendly_name: "Recycling Bin"
+binary_sensor.sunday_bool:
+  friendly_name: "Sunday Boolean"
+binary_sensor.recycling_bin_done:
+  friendly_name: "Recycling Bin Done"
+binary_sensor.waste_bin_done:
+  friendly_name: "Waste Bin Done"
+binary_sensor.blueiris:
+  hidden: true
+sensor.blueiris:
+  friendly_name: Blue Iris
+  icon: mdi:cctv
+binary_sensor.dc01:
+  hidden: true
+sensor.dc01:
+  friendly_name: DC01
+  icon: mdi:server
+binary_sensor.desktop01:
+  hidden: true
+sensor.desktop01:
+  friendly_name: Desktop01
+  icon: mdi:desktop-classic
+binary_sensor.firewall:
+  hidden: true
+sensor.firewall:
+  friendly_name: Firewall
+  icon: mdi:wall
+binary_sensor.plex01:
+  hidden: true
+sensor.plex01:
+  friendly_name: Plex01
+  icon: mdi:plex
+binary_sensor.server_1:
+  hidden: true
+sensor.server1:
+  friendly_name: Server01
+  icon: mdi:server
+binary_sensor.server_2:
+  hidden: true
+sensor.server2:
+  friendly_name: Server02
+  icon: mdi:server
+binary_sensor.server_3:
+  hidden: true
+sensor.server3:
+  friendly_name: Server03
+  icon: mdi:server
+binary_sensor.hp_switch:
+  hidden: true
+sensor.hp_switch:
+  friendly_name: hp_switch
+  icon: mdi:switch
+binary_sensor.unifi_ap:
+  hidden: true
+sensor.wifi:
+  friendly_name: Unifi AP LR
+  icon: mdi:wifi
+binary_sensor.unifi_ap_2:
+  hidden: true
+sensor.wifi3:
+  friendly_name: Unifi AP AC
+  icon: mdi:wifi
+binary_sensor.unifi_ap_3:
+  hidden: true
+sensor.wifi4:
+  friendly_name: Unifi AP AC 2
+  icon: mdi:wifi
+binary_sensor.unifi_mesh:
+  hidden: true
+sensor.wifi2:
+  friendly_name: Unifi Mesh
+  icon: mdi:wifi
+binary_sensor.google_dns:
+  hidden: true
+sensor.google:
+  friendly_name: Google DNS
+  icon: mdi:google
+#Camera ping Sesnsors
+binary_sensor.garden_upper:
+  hidden: true
+sensor.garden_upper_camera:
+  friendly_name: Garden Upper
+  icon: mdi:cctv
+binary_sensor.front:
+  hidden: true
+sensor.front_camera:
+  friendly_name: Front
+  icon: mdi:cctv
+binary_sensor.garden_shed_upper:
+  hidden: true
+sensor.garden_shed_upper_camera:
+  friendly_name: Garden Shed Upper
+  icon: mdi:cctv
+binary_sensor.garage_internal:
+  hidden: true
+sensor.garage_internal_camera:
+  friendly_name: Garage Internal
+  icon: mdi:cctv
+binary_sensor.patio_outdoor:
+  hidden: true
+sensor.patio_outdoor_camera:
+  friendly_name: Patio Outdoor
+  icon: mdi:cctv
+binary_sensor.garden_shed_lower:
+  hidden: true
+sensor.garden_shed_lower_camera:
+  friendly_name: Garden Shed Lower
+  icon: mdi:cctv
+binary_sensor.dogs:
+  hidden: true
+sensor.dogs_camera:
+  friendly_name: Dogs
+  icon: mdi:cctv
+binary_sensor.bart_simpson_room:
+  hidden: true
+sensor.bart_simpson_room_camera:
+  friendly_name: Bart Simpson Room
+  icon: mdi:cctv
+binary_sensor.broadlink_rm_pro:
+  hidden: true
+sensor.broadlink_rm_pro:
+  friendly_name: Broadlink RM Pro
+  icon: mdi:white-balance-iridescent
+sensor.heating_time_am_on:
+  friendly_name: "Heating Time on a.m"
+sensor.heating_time_am_off:
+  friendly_name: "Heating Time off a.m"
+sensor.heating_time_pm_on:
+  friendly_name: "Heating Time on p.m"
+sensor.heating_time_pm_off:
+  friendly_name: "Heating Time off p.m"
+sensor.nonsmoker:
+  friendly_name: "Not smoking"
+sensor.marge_simpson_towards_home:
+  friendly_name: "Marge Simpson Towards Home"
+sensor.homer_simpson_towards_home:
+  friendly_name: "Homer Simpson Towards Home"
+sensor.high_cpu:
+  friendly_name: "High CPU"
+sensor.marge_simpson_battery:
+  friendly_name: "Marge Simpson Battery"
+sensor.homer_simpson_battery:
+  friendly_name: "Homer Simpson Battery"
+sensor.lisa_simpson_battery:
+  friendly_name: "Lisa Simpson Battery"
+sensor.dog_battery_level:
+  friendly_name: "Dog Battery"
+#Projector Remote Customisations
+script.projector_down:
+  friendly_name: Projector Down
+  icon: mdi:projector-screen
+  assumed_state: false
+  can_cancel: false
+script.projector_up:
+  friendly_name: Projector Up
+  icon: mdi:projector-screen
+  assumed_state: false
+  can_cancel: false
+#Projector Remote Customisations 2
+switch.projector_screen_down:
+  friendly_name: Projector Down
+  icon: mdi:projector-screen
+  assumed_state: false
+  can_cancel: false
+switch.projector_screen_up:
+  friendly_name: Projector Up
+  icon: mdi:projector-screen
+  assumed_state: false
+  can_cancel: false
+# Learn Commands
+script.learn:
+  friendly_name: Learn Command
+  icon: mdi:remote
+  assumed_state: false
+  can_cancel: false
+##TV Remote Customisations
+#script.cbeebies:
+#  friendly_name: CBeebies
+#  icon: mdi:baby
+#  assumed_state: false
+#  can_cancel: false
+#script.tv_recall:
+#  friendly_name: TV Recall
+#  icon: mdi:repeat
+#  assumed_state: false
+#script.tv_volume_up:
+#  friendly_name: TV Volume Up
+#  icon: mdi:volume-plus
+#  assumed_state: false
+#script.tv_volume_down:
+#  friendly_name: TV Volume Down
+#  icon: mdi:volume-minus
+#  assumed_state: false
+#script.tv_mute:
+#  friendly_name: Mute
+#  icon: mdi:volume-mute
+#  assumed_state: false
+#script.tv_channel_1:
+#  friendly_name: Channel 1
+#  icon: mdi:numeric-1-box-outline
+#  assumed_state: false
+#script.tv_channel_2:
+#  friendly_name: Channel 2
+#  icon: mdi:numeric-2-box-outline
+#  assumed_state: false
+#script.tv_channel_3:
+#  friendly_name: Channel 3
+#  icon: mdi:numeric-3-box-outline
+#  assumed_state: false
+#script.tv_channel_4:
+#  friendly_name: Channel 4
+#  icon: mdi:numeric-4-box-outline
+#  assumed_state: false
+#script.tv_channel_5:
+#  friendly_name: Channel 5
+#  icon: mdi:numeric-5-box-outline
+#  assumed_state: false
+#script.tv_channel_6:
+#  friendly_name: Channel 6
+#  icon: mdi:numeric-6-box-outline
+#  assumed_state: false
+#script.tv_channel_7:
+#  friendly_name: Channel 7
+#  icon: mdi:numeric-7-box-outline
+#  assumed_state: false
+#script.tv_channel_8:
+#  friendly_name: Channel 8
+#  icon: mdi:numeric-8-box-outline
+#  assumed_state: false
+#script.tv_channel_9:
+#  friendly_name: Channel 9
+#  icon: mdi:numeric-9-box-outline
+#  assumed_state: false
+#script.tv_channel_0:
+#  friendly_name: Channel 0
+#  icon: mdi:numeric-0-box-outline
+#  assumed_state: false
+#script.tv_channel_up:
+#  friendly_name: Channel Up
+#  icon: mdi:arrow-up-box
+#  assumed_state: false
+#script.tv_channel_down:
+#  friendly_name: Channel Down
+#  icon: mdi:arrow-down-box
+#  assumed_state: false
+#script.tv_input_tv:
+#  friendly_name: TV
+#  icon: mdi:television
+#  assumed_state: false
+#script.tv_pause:
+#  friendly_name: Pause
+#  icon: mdi:pause
+#  assumed_state: false
+#script.tv_play:
+#  friendly_name: Play
+#  icon: mdi:play
+#  assumed_state: false
+#script.tv_power:
+#  friendly_name: Power
+#  icon: mdi:power
+#  assumed_state: false
+#script.tv_subtitles:
+#  friendly_name: Subtitles
+#  icon: mdi:comment-text-outline
+#  assumed_state: false
+#script.tv_rewind:
+#  friendly_name: Rewind
+#  icon: mdi:rewind-outline
+#  assumed_state: false
+#script.tv_forward:
+#  friendly_name: Fast Forward
+#  icon: mdi:fast-forward-outline
+#  assumed_state: false
+#script.tv_back:
+#  friendly_name: Back
+#  icon: mdi:backspace
+#  assumed_state: false
+#script.tv_exit:
+#  friendly_name: Exit
+#  icon: mdi:exit-to-app
+#  assumed_state: false
+#script.tv_guide:
+#  friendly_name: Guide
+#  icon: mdi:television-guide
+#  assumed_state: false
+#script.tv_input:
+#  friendly_name: Input
+#  icon: mdi:video-switch
+#  assumed_state: false
+#script.tv_menu:
+#  friendly_name: Menu
+#  icon: mdi:menu
+#  assumed_state: false
+#Sound Bar Customisations
+script.soundbar_power:
+  friendly_name: Power
+  icon: mdi:power
+  assumed_state: false
+script.soundbar_mute:
+  friendly_name: Mute
+  icon: mdi:volume-mute
+  assumed_state: false
+script.soundbar_volume_up:
+  friendly_name: Volume Up
+  icon: mdi:volume-plus
+  assumed_state: false
+script.soundbar_volume_down:
+  friendly_name: Volume Down
+  icon: mdi:volume-minus
+  assumed_state: false
+script.soundbar_forward:
+  friendly_name: Forward
+  icon: mdi:fast-forward-outline
+  assumed_state: false
+script.soundbar_back:
+  friendly_name: Back
+  icon: mdi:rewind-outline
+  assumed_state: false
+script.soundbar_bass_up:
+  friendly_name: Bass Up
+  icon: mdi:volume-high
+  assumed_state: false
+script.soundbar_bass_down:
+  friendly_name: Bass Down
+  icon: mdi:volume-low
+  assumed_state: false
+script.soundbar_equalizer:
+  friendly_name: Equalizer
+  icon: mdi:tune
+  assumed_state: false
+script.soundbar_input:
+  friendly_name: Input
+  icon: mdi:music-note-bluetooth
+  assumed_state: false
+#Candle Remote Customisations
+script.candle_on:
+  friendly_name: Candle On
+  icon: mdi:led-variant-on
+  assumed_state: false
+  can_cancel: false
+script.candle_off:
+  friendly_name: Candle Off
+  icon: mdi:led-variant-off
+  assumed_state: false
+  can_cancel: false
+#Projector Remote Customisations
+script.projector_power:
+  friendly_name: Projector Power
+  icon: mdi:projector
+  assumed_state: false
+  can_cancel: false
+script.projector_input:
+  friendly_name: Projector Input
+  icon: mdi:video-switch
+  assumed_state: false
+  can_cancel: false
+#Heating Remote Customisations
+script.heating_boost_on:
+  friendly_name: Heating Boost On
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+script.heating_boost_off:
+  friendly_name: Heating Boost Off
+  icon: mdi:toggle-switch-off
+  assumed_state: false
+  can_cancel: false
+#System Control Customisations
+script.restart_home_assistant_service:
+  friendly_name: Restart Home Assistant Service
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+script.restart_appdaemon:
+  friendly_name: Restart AppDaemon Service
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+script.reboot_system:
+  friendly_name: Reboot System
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+script.purge_data_5:
+  friendly_name: Purge Data to 5 x Days
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+#Bedroom TV Controller Remote Customisations
+script.bedroom_tv_up:
+  friendly_name: Bedroom TV Up
+  icon: mdi:arrow-up-bold-box-outline
+  assumed_state: false
+  can_cancel: false
+script.bedroom_tv_down:
+  friendly_name: Bedroom TV Down
+  icon: mdi:arrow-down-bold-box-outline
+  assumed_state: false
+  can_cancel: false
+#AirCon Remote Customisations
+script.aircon_power:
+  friendly_name: AirCon Power
+  icon: mdi:air-conditioner
+  assumed_state: false
+  can_cancel: false
+script.aircon_mode:
+  friendly_name: AirCon Mode
+  icon: mdi:toggle-switch
+  assumed_state: false
+  can_cancel: false
+script.aircon_colder:
+  friendly_name: AirCon Colder
+  icon: mdi:snowflake
+  assumed_state: false
+  can_cancel: false
+script.aircon_warmer:
+  friendly_name: AirCon Warmer
+  icon: mdi:weather-sunny
+  assumed_state: false
+  can_cancel: false
+script.aircon_fan_speed:
+  friendly_name: AirCon Fan Speed
+  icon: mdi:fan
+  assumed_state: false
+  can_cancel: false
+script.aircon_timer:
+  friendly_name: AirCon Timer
+  icon: mdi:timer-outline
+  assumed_state: false
+  can_cancel: false
+#Lisa Simpson Lounge Camera PTZ Customisations
+#Lisa Simpson Room Camera PTZ Customisations
+#Bart Simpson Room Camera PTZ Customisations
+switch.bart_simpson_room_camera_ptz_1:
+  friendly_name: Bart Simpson Room Camera PTZ 1
+  icon: mdi:numeric-1-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_ptz_2:
+  friendly_name: Bart Simpson Room Camera PTZ 2
+  icon: mdi:numeric-2-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_ptz_3:
+  friendly_name: Bart Simpson Room Camera PTZ 3
+  icon: mdi:numeric-3-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_left:
+  friendly_name: Bart Simpson Room Camera Left
+  icon: mdi:arrow-left-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_right:
+  friendly_name: Bart Simpson Room Camera Right
+  icon: mdi:arrow-right-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_up:
+  friendly_name: Bart Simpson Room Camera Up
+  icon: mdi:arrow-up-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.bart_simpson_room_camera_down:
+  friendly_name: Bart Simpson Room Camera Down
+  icon: mdi:arrow-down-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+#Dogs Camera PTZ Customisations
+switch.dogs_camera_ptz_1:
+  friendly_name: Dogs Camera PTZ 1
+  icon: mdi:numeric-1-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_ptz_2:
+  friendly_name: Dogs Camera PTZ 2
+  icon: mdi:numeric-2-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_ptz_3:
+  friendly_name: Dogs Camera PTZ 3
+  icon: mdi:numeric-3-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_left:
+  friendly_name: Dogs Camera Left
+  icon: mdi:arrow-left-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_right:
+  friendly_name: Dogs Camera Right
+  icon: mdi:arrow-right-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_up:
+  friendly_name: Dogs Camera Up
+  icon: mdi:arrow-up-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+switch.dogs_camera_down:
+  friendly_name: Dogs Camera Down
+  icon: mdi:arrow-down-circle-outline
+  assumed_state: false
+  can_cancel: false
+  initial_state: 'off'
+#Lounge Camera PTZ Customisations
+#Lisa Simpson Scripts
+switch.xmas_lights_socket:
+  friendly_name: Xmas Tree
+  icon: mdi:pine-tree
+switch.caravan_heater_socket:
+  friendly_name: Caravan Heater
+  icon: mdi:caravan
+switch.marge_simpson_electric_blanket_socket:
+  friendly_name: Marge Simpson Electric Blanket
+  icon: mdi:bed-empty
+switch.shed_light_socket_1:
+  friendly_name: Shed Light
+  icon: mdi:string-lights
+switch.lisa_simpson_fairy_lights_socket_1:
+  friendly_name: Lisa Simpson Fairy Lights
+  icon: mdi:string-lights
+switch.kitchen_counter_socket_1:
+  friendly_name: Kitchen Counter Lights
+  icon: mdi:led-variant-outline
+switch.patio_lights_socket_1:
+  friendly_name: Patio Lights
+  icon: mdi:lightbulb-group
+switch.door_number_light_socket:
+  friendly_name: Door Number Light
+  icon: mdi:numeric-7-box
+light.master_bedroom_dimmer_switch_light_1:
+  friendly_name: Master Bedroom Light Dimmer Switch
+  icon: mdi:ceiling-fan-light
+light.lisa_simpson_dimmer_switch_light_1:
+  friendly_name: Lisa Simpson Light Dimmer Switch
+  icon: mdi:ceiling-fan-light
+# These two switches are a single 2-gang device (channel names "Switch 1"/
+# "Switch 2" - the device itself has no idea which physical circuit is
+# wired to which gang), so the friendly_name is the same generic string on
+# every dashboard until customized. Names match the existing per-card
+# overrides in ui-lovelace.yaml so HA and Grafana agree.
+switch.front_lights_switch_1:
+  friendly_name: Front Lamppost
+  icon: mdi:post-lamp
+switch.front_lights_switch_2:
+  friendly_name: Front Wall
+  icon: mdi:wall-sconce-outline
+switch.patio_switch_1:
+  friendly_name: Patio Spots
+  icon: mdi:floor-lamp-torchiere-variant
+switch.patio_switch_2:
+  friendly_name: Patio Wall
+  icon: mdi:outdoor-lamp
+# The Tuya smart plugs picked up their device name ("Homer Simpson Laptop", "Work
+# Laptop", ...) at the device-registry level, so friendly_name is
+# "<device> Socket 1" everywhere - fine in HA, redundant on a Grafana
+# legend. Drop the "Socket 1" to match ui-lovelace.yaml's card names.
+switch.smart_plug_2_socket_1:
+  friendly_name: Work Laptop
+  icon: mdi:laptop
+switch.smart_plug_3_socket_1:
+  friendly_name: Brother Printer
+  icon: mdi:printer
+switch.smart_plug_4_socket_1:
+  friendly_name: 3D Printer
+  icon: mdi:printer-3d
+switch.smart_plug_5_socket_1:
+  friendly_name: Servers
+  icon: mdi:server
+switch.smart_plug_6_socket_1:
+  friendly_name: Homer Simpson Laptop
+  icon: mdi:laptop
+light.utility_units:
+  friendly_name: Utility Lights
+  icon: mdi:led-strip-variant
+switch.smart_socket_5_socket:
+  friendly_name: New Switch 1
+  icon: mdi:power-socket-uk
+switch.xmas_lights_window_socket:
+  friendly_name: Xmas Front Window
+  icon: mdi:string-lights
+switch.disco_ball_socket_1:
+  friendly_name: Disco Ball
+  icon: mdi:floor-lamp-torchiere-variant
+switch.smoke_machine_socket_1:
+  friendly_name: Smoke Machine
+  icon: mdi:track-light
+light.bedroom_lamp:
+  friendly_name: Bedroom Lamp
+  icon: mdi:floor-lamp
+switch.car_charger_socket_1:
+  friendly_name: Car Charger
+  icon: mdi:car-lifted-pickup
+switch.garden_tree_and_path_switch_1:
+  friendly_name: Garden Tree Light
+  icon: mdi:tree
+switch.garden_tree_and_path_switch_2:
+  friendly_name: Garden Path Light
+  icon: mdi:drag-vertical-variant
+switch.heating_boost:
+  icon: mdi:fire
+script.intruder_alert:
+  icon: mdi:alarm-bell
+script.cancel_alerts:
+  icon: mdi:alarm-off
+media_player.dogs_speaker:
+  friendly_name: Kitchen Speaker
+media_player.googlehome3553:
+  friendly_name: Utility Speaker
+switch.driveway_light_switch:
+  friendly_name: Driveway Light
+  icon: mdi:wall-sconce-flat-variant
+switch.garden_security_light_switch:
+  icon: mdi:spotlight
+  friendly_name: Garden Security Light
+switch.patio_wall_light_switch:
+  icon: mdi:wall-sconce-flat-variant
+  friendly_name: Patio Wall Light
+switch.tree_house_light_socket_1:
+  friendly_name: Tree House Light
+  icon: mdi:home-modern

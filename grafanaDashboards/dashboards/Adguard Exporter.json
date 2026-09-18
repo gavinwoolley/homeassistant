@@ -1,0 +1,1468 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "uid": "PAE45454D0EDB9216"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "This is a Adguard dashboard when using the https://github.com/ebrianne/adguard-exporter Prometheus exporter",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 60,
+      "panels": [],
+      "title": "AdGuard Home",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Stopped"
+                },
+                "1": {
+                  "text": "Enabled"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 0,
+        "y": 1
+      },
+      "id": 84,
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "value",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_running{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Status",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "text": "Stopped"
+                },
+                "1": {
+                  "text": "Enabled"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-red",
+                "value": 0
+              },
+              {
+                "color": "dark-green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 3,
+        "y": 1
+      },
+      "id": 102,
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_protection_enabled{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Protection",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 1,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "dark-green",
+                "value": 0
+              },
+              {
+                "color": "dark-orange",
+                "value": 0.05
+              },
+              {
+                "color": "dark-red",
+                "value": 0.1
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 6,
+        "y": 1
+      },
+      "id": 101,
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_avg_processing_time{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ legend }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Processing TIme",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "mappings": [
+            {
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A"
+                }
+              },
+              "type": "special"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 9,
+        "y": 1
+      },
+      "id": 82,
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_dns_queries{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Number of queries",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 12,
+        "y": 1
+      },
+      "id": 80,
+      "maxDataPoints": 100,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_blocked_filtering{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Domains being blocked",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 40
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 3,
+        "x": 15,
+        "y": 1
+      },
+      "id": 92,
+      "maxDataPoints": 1000,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_blocked_filtering{hostname=~'$node'} / adguard_num_dns_queries{hostname=~'$node'} * 100",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Percent of ads blocked",
+      "transparent": true,
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 18,
+        "y": 1
+      },
+      "id": 95,
+      "maxDataPoints": 3,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value",
+          "percent"
+        ],
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": false,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "sort": "desc",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_queried_domains{hostname=~'$node'}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ domain }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries by domain",
+      "transparent": true,
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 21,
+        "y": 1
+      },
+      "id": 99,
+      "maxDataPoints": 3,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value",
+          "percent"
+        ],
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": false,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "sort": "desc",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_blocked_domains{hostname=~'$node'}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ domain }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top ads by domain",
+      "transparent": true,
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pihole"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 0,
+        "y": 4
+      },
+      "id": 66,
+      "options": {
+        "alertThreshold": true,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_dns_queries{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ hostname }}",
+          "refId": "A"
+        }
+      ],
+      "title": "DNS queries all of types",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 7,
+        "x": 11,
+        "y": 4
+      },
+      "id": 97,
+      "options": {
+        "alertThreshold": true,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_query_types{hostname=~'$node'}",
+          "interval": "",
+          "legendFormat": "{{ type }}",
+          "refId": "A"
+        }
+      ],
+      "title": "DNS Query Types",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 18,
+        "y": 8
+      },
+      "id": 100,
+      "maxDataPoints": 3,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value",
+          "percent"
+        ],
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": false,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "sort": "desc",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_query_types{hostname=~'$node'}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ type }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Replies by type",
+      "transparent": true,
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 3,
+        "x": 21,
+        "y": 8
+      },
+      "id": 98,
+      "maxDataPoints": 3,
+      "options": {
+        "displayLabels": [
+          "name",
+          "value",
+          "percent"
+        ],
+        "legend": {
+          "calcs": [],
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": false,
+          "values": [
+            "value",
+            "percent"
+          ]
+        },
+        "pieType": "donut",
+        "reduceOptions": {
+          "calcs": [
+            "mean"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "sort": "desc",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_clients{hostname=~'$node'}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ client }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top clients by source",
+      "transparent": true,
+      "type": "piechart"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pihole"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "light-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 11,
+        "x": 0,
+        "y": 12
+      },
+      "id": 62,
+      "options": {
+        "alertThreshold": true,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_blocked_filtering{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ hostname }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Ads blocked",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": []
+            },
+            "inspect": false
+          },
+          "decimals": 2,
+          "displayName": "",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Time"
+              },
+              {
+                "id": "unit",
+                "value": "time: YYYY-MM-DD HH:mm:ss"
+              },
+              {
+                "id": "custom.align"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 13,
+        "x": 11,
+        "y": 15
+      },
+      "id": 93,
+      "options": {
+        "cellHeight": "sm",
+        "showHeader": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_clients{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ client }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top clients",
+      "transformations": [
+        {
+          "id": "seriesToRows",
+          "options": {
+            "reducers": []
+          }
+        }
+      ],
+      "transparent": true,
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pihole"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "super-light-red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 11,
+        "x": 0,
+        "y": 20
+      },
+      "id": 64,
+      "options": {
+        "alertThreshold": true,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_num_blocked_filtering{hostname=~'$node'} / adguard_num_dns_queries{hostname=~'$node'} * 100",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ hostname }}",
+          "refId": "A"
+        }
+      ],
+      "title": "% of ads blocked",
+      "transparent": true,
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 13,
+        "x": 11,
+        "y": 24
+      },
+      "id": 90,
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_blocked_domains{hostname=~'$node'}",
+          "format": "time_series",
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ domain }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top ads domains",
+      "transparent": true,
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "uid": "PAE45454D0EDB9216"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 11,
+        "x": 0,
+        "y": 27
+      },
+      "id": 74,
+      "targets": [
+        {
+          "datasource": {
+            "uid": "PAE45454D0EDB9216"
+          },
+          "expr": "adguard_top_queried_domains{hostname=~'$node'}",
+          "format": "time_series",
+          "instant": false,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "{{ domain }}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top queries",
+      "transparent": true,
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [
+    "adguard"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "definition": "label_values(adguard_num_dns_queries, hostname)",
+        "includeAll": false,
+        "name": "node",
+        "options": [],
+        "query": "label_values(adguard_num_dns_queries, hostname)",
+        "refresh": 1,
+        "regex": "",
+        "regexApplyTo": "value",
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {
+    "nowDelay": ""
+  },
+  "timezone": "browser",
+  "title": "Adguard Exporter",
+  "uid": "MIBVglomg",
+  "version": 3,
+  "weekStart": ""
+}

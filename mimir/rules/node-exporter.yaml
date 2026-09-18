@@ -1,0 +1,130 @@
+# Linux host alerts (node_exporter / prometheus.exporter.unix), job="integrations/unix".
+# Curated from the prometheus/node-mixin - the high-value subset, adapted to this
+# fleet's label schema. Hosts: the Ubuntu Docker VM + dev-linux (tier=transient).
+namespace: node-exporter
+groups:
+  - name: node-exporter-filesystem
+    rules:
+      - alert: NodeFilesystemAlmostOutOfSpace
+        expr: |
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"} /
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"}
+          ) * 100 < 8
+          and node_filesystem_readonly == 0
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk almost full on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          description: "{{ $labels.mountpoint }} on {{ $labels.instance }} has only {{ $value | printf \"%.1f\" }}% free."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=nodefilesystemalmostoutofspace"
+
+      - alert: NodeFilesystemCriticallyLow
+        expr: |
+          (
+            node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"} /
+            node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"}
+          ) * 100 < 4
+          and node_filesystem_readonly == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk critically low on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          description: "{{ $labels.mountpoint }} on {{ $labels.instance }} has only {{ $value | printf \"%.1f\" }}% free."
+
+      - alert: NodeFilesystemFilesFillingUp
+        expr: |
+          (
+            node_filesystem_files_free{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"} /
+            node_filesystem_files{fstype!~"tmpfs|overlay|squashfs|iso9660|nfs.*|autofs"}
+          ) * 100 < 10
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Running out of inodes on {{ $labels.instance }} ({{ $labels.mountpoint }})"
+          description: "Only {{ $value | printf \"%.1f\" }}% of inodes free."
+
+      - alert: NodeFilesystemReadOnly
+        expr: node_filesystem_readonly{fstype!~"tmpfs|overlay|squashfs|iso9660"} == 1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is read-only"
+          description: "A read-only remount usually means disk errors."
+
+  - name: node-exporter-resources
+    rules:
+      - alert: NodeMemoryHighUtilization
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 92
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Memory pressure on {{ $labels.instance }}"
+          description: "{{ $value | printf \"%.0f\" }}% of RAM in use for 20m (see mimir_metric_gaps - this VM is RAM-starved)."
+
+      - alert: NodeSwapFillingUp
+        # Swap >80% full is only a problem when the host is ALSO either short on
+        # RAM or actively paging back in. Linux never drains swap on its own, so
+        # one past memory spike leaves swap pinned near 100% for days with no ill
+        # effect - that must NOT alert (the old rule did). Clear stale swap with
+        # `swapoff -a && swapon -a` once RAM is free.
+        # (% expr leads so $value is the swap-used percentage.)
+        expr: |
+          (1 - node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes) * 100 > 80
+          and node_memory_SwapTotal_bytes > 0
+          and (
+                (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 20
+             or rate(node_vmstat_pswpin[15m]) * 4096 > 524288
+          )
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Swap {{ $value | printf \"%.0f\" }}% used on {{ $labels.instance }} and still under memory pressure"
+          description: "Swap is >80% full and the host is either low on RAM (<20% available) or actively paging in from disk (>0.5 MB/s). Check for a leak or add RAM / container limits."
+
+      - alert: NodeCPUHighUsage
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 92
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU saturated on {{ $labels.instance }}"
+          description: "CPU has been above 92% for 30 minutes ({{ $value | printf \"%.0f\" }}%)."
+
+      - alert: NodeLoadHigh
+        expr: node_load15 / count by (instance) (node_cpu_seconds_total{mode="idle"}) > 2
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Load average high on {{ $labels.instance }}"
+          description: "15m load per core is {{ $value | printf \"%.1f\" }}."
+
+  - name: node-exporter-clock
+    rules:
+      - alert: NodeClockNotSynchronising
+        expr: node_timex_sync_status == 0 and node_timex_maxerror_seconds >= 16
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Clock not synchronising on {{ $labels.instance }}"
+          description: "NTP sync is lost - time-based automations and TLS may misbehave."
+
+      - alert: NodeClockSkewDetected
+        expr: |
+          abs(node_timex_offset_seconds) > 0.05
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Clock skew on {{ $labels.instance }}"
+          description: "Clock offset is {{ $value | printf \"%.3f\" }}s from NTP."

@@ -1,0 +1,553 @@
+name: $(Major).$(Minor).$(Patch)
+
+variables:
+  Major: 2
+  Minor: 0
+  Patch: $[counter(format('{0}.{1}', variables['Major'], variables['Minor']), 0)]
+
+resources:
+- repo: self
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - docker-compose.yml
+    - azure-pipelines-docker.yml
+    - nginx/*
+    - apache2/*
+    - grafanaDashboards/*
+    - grafanaDashboards/**/*
+    - mimir/*
+    - mimir/**/*
+    - acme/*
+    - demo/*
+    - demo/**/*
+
+stages:
+- stage: Build
+  displayName: Build
+  jobs:
+  - job: Build
+    displayName: Build Home Assistant Docker Job
+    pool:
+      name: Local Ubuntu
+    workspace:
+      clean: all
+    steps:
+
+    - bash: |
+       CHANGED=$(git diff --name-only HEAD~1 HEAD)
+       echo "Changed files:"
+       echo "$CHANGED"
+       echo "$CHANGED" | grep -qE "^mimir/"          && echo "##vso[task.setvariable variable=deploy_mimir_rules;isOutput=true]true" || echo "##vso[task.setvariable variable=deploy_mimir_rules;isOutput=true]false"
+       echo "$CHANGED" | grep -qE "^(nginx/|apache2/)" && echo "##vso[task.setvariable variable=deploy_nginx;isOutput=true]true"      || echo "##vso[task.setvariable variable=deploy_nginx;isOutput=true]false"
+       echo "$CHANGED" | grep -qE "^grafanaDashboards/" && echo "##vso[task.setvariable variable=deploy_grafana;isOutput=true]true"    || echo "##vso[task.setvariable variable=deploy_grafana;isOutput=true]false"
+       echo "$CHANGED" | grep -qE "^docker-compose\.yml$" && echo "##vso[task.setvariable variable=deploy_compose;isOutput=true]true"  || echo "##vso[task.setvariable variable=deploy_compose;isOutput=true]false"
+       echo "$CHANGED" | grep -qE "^adguard/"          && echo "##vso[task.setvariable variable=deploy_adguard;isOutput=true]true"   || echo "##vso[task.setvariable variable=deploy_adguard;isOutput=true]false"
+       echo "$CHANGED" | grep -qE "^demo/"             && echo "##vso[task.setvariable variable=deploy_demo;isOutput=true]true"      || echo "##vso[task.setvariable variable=deploy_demo;isOutput=true]false"
+      displayName: 'Detect Changed Files'
+      name: detect_changes
+      workingDirectory: $(Build.SourcesDirectory)
+
+    - task: replacetokens@3
+      displayName: 'Replace secret tokens'
+      inputs:
+        rootDirectory: $(Build.SourcesDirectory)
+        targetFiles: |
+         *.yml
+         acme/*.json
+         grafanaDashboards/provisioning/datasources/datasources.yml
+         grafanaDashboards/dashboards/**/*.json
+         adguard/AdGuardHome.yaml
+        actionOnMissing: fail
+      env:
+        UP_UNIFI_PASS: $(UP_UNIFI_PASS)
+        dockerhub_username: $(dockerhub_username)
+        google_maps_api_key: REDACTED)
+        dockerhub_password: REDACTED)
+        strato_username: $(strato_username)
+        strato_password: REDACTED)
+        ha_grafana_token: $(ha_grafana_token)
+        mongodb_exporter_uri: $(mongodb_exporter_uri)
+        adguard_password_hash: $(adguard_password_hash)
+        code_server_password: REDACTED)
+        mongo_user: $(mongo_user)
+        mongo_pass: $(mongo_pass)
+
+    - bash: |
+       python3 - <<'PY'
+       import json
+       from pathlib import Path
+
+       dashboard_dir = Path("$(Build.SourcesDirectory)") / "grafanaDashboards" / "dashboards"
+       for path in sorted(dashboard_dir.rglob("*.json")):
+           with path.open(encoding="utf-8") as fh:
+               json.load(fh)
+           print(f"Validated dashboard JSON: {path.relative_to(dashboard_dir)}")
+       PY
+      displayName: 'Validate Grafana Dashboard JSON'
+
+    - bash: |
+       docker-compose -f $(Build.SourcesDirectory)/docker-compose.yml config
+      displayName: 'Verify New Docker Compose File'
+
+    - bash: |
+       docker-compose -f $(Build.SourcesDirectory)/demo/docker-compose.demo.yml config
+      displayName: 'Verify Demo Docker Compose File'
+
+    - bash: |
+       python3 -c "import yaml,sys; yaml.safe_load(open('$(Build.SourcesDirectory)/adguard/AdGuardHome.yaml')); print('AdGuardHome.yaml: valid YAML')"
+      displayName: 'Verify AdGuard config'
+
+    # mimirtool pinned to the same version as the mimir server image in
+    # docker-compose.yml (renovate.json has a customManagers regex match so
+    # Renovate bumps this - keep the two in step when it does).
+    - bash: |
+       set -e
+       RULES=$(find "$(Build.SourcesDirectory)/mimir/rules" -name '*.yaml' \
+         | sed "s|$(Build.SourcesDirectory)/mimir|/mimir|" | tr '\n' ' ')
+       echo "Checking rule files: $RULES"
+       docker run --rm -v "$(Build.SourcesDirectory)/mimir:/mimir:ro" grafana/mimirtool:3.2.1 \
+         rules check $RULES
+       docker run --rm -v "$(Build.SourcesDirectory)/mimir:/mimir:ro" grafana/mimirtool:3.2.1 \
+         alertmanager verify /mimir/alertmanager/alertmanager.yaml
+      displayName: 'Validate Mimir rules & Alertmanager config'
+
+    - bash: |
+       cp /home/homeassistant/.homeassistant/docker-compose.yml /home/homeassistant/.homeassistant/BackupConfig/docker-compose.yml
+      displayName: 'Backup Docker Compose File'
+
+    - task: replacetokens@3
+      displayName: 'Populate .htpasswd File from Variable'
+      inputs:
+        rootDirectory: $(Build.SourcesDirectory)
+        targetFiles: |
+         **/*.htpasswd
+        actionOnMissing: fail
+      env:
+        htpasswd_variable: $(htpasswd_variable)
+
+    - bash: |
+       mkdir $(Build.ArtifactStagingDirectory)/docker
+       mkdir $(Build.ArtifactStagingDirectory)/docker/nginx
+       mkdir $(Build.ArtifactStagingDirectory)/docker/apache2
+       mkdir $(Build.ArtifactStagingDirectory)/docker/docker
+       mkdir $(Build.ArtifactStagingDirectory)/docker/grafanaDashboards
+       mkdir $(Build.ArtifactStagingDirectory)/docker/mimir
+       mkdir $(Build.ArtifactStagingDirectory)/docker/acme
+       mkdir $(Build.ArtifactStagingDirectory)/docker/adguard
+       mkdir $(Build.ArtifactStagingDirectory)/docker/demo
+       cp $(Build.SourcesDirectory)/docker-compose.yml $(Build.ArtifactStagingDirectory)/docker/
+       cp $(Build.SourcesDirectory)/nginx/* $(Build.ArtifactStagingDirectory)/docker/nginx/ -R
+       cp $(Build.SourcesDirectory)/apache2/.htpasswd $(Build.ArtifactStagingDirectory)/docker/apache2/
+       cp $(Build.SourcesDirectory)/docker/* $(Build.ArtifactStagingDirectory)/docker/docker/ -R
+       cp $(Build.SourcesDirectory)/grafanaDashboards/* $(Build.ArtifactStagingDirectory)/docker/grafanaDashboards/ -R
+       # mimir/ = ruler rules + alertmanager config (NOT mimir.yaml, which the HA
+       # pipeline owns). Loaded into Mimir by mimirtool in the Deploy stage.
+       cp $(Build.SourcesDirectory)/mimir/* $(Build.ArtifactStagingDirectory)/docker/mimir/ -R
+       cp $(Build.SourcesDirectory)/acme/* $(Build.ArtifactStagingDirectory)/docker/acme/ -R
+       cp $(Build.SourcesDirectory)/adguard/AdGuardHome.yaml $(Build.ArtifactStagingDirectory)/docker/adguard/
+       cp $(Build.SourcesDirectory)/demo/* $(Build.ArtifactStagingDirectory)/docker/demo/ -R
+      displayName: 'Copy Docker Components to Artifacts Directory'
+
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/docker/'
+        artifact:  HomeAssistantDockerPackage
+
+- stage: Deploy
+  dependsOn: Build
+  variables:
+    deploy_mimir_rules: $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_mimir_rules'] ]
+    deploy_nginx:       $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_nginx'] ]
+    deploy_grafana:     $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_grafana'] ]
+    deploy_compose:     $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_compose'] ]
+    deploy_adguard:     $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_adguard'] ]
+    deploy_demo:        $[ stageDependencies.Build.Build.outputs['detect_changes.deploy_demo'] ]
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy Docker Compose Job
+    pool:
+      name: Local Ubuntu
+    environment: Live
+    variables:
+      # Pins the Compose project name to what the existing containers on the
+      # host are already labelled with, so `docker-compose up`/`down` manage
+      # them in place instead of erroring on container name conflicts.
+      COMPOSE_PROJECT_NAME: s
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - bash: |
+             date +%s%3N > /tmp/docker_deploy_start_ms_$BUILD_ID
+            displayName: Record Deploy Start Time
+            env:
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             ls $AGENT_BUILDDIRECTORY/HomeAssistantDockerPackage
+             # grafanaDashboards is fully managed from this repo, so clear out
+             # dashboards/renamed files that no longer exist in git (stale
+             # duplicate uid/title jams Grafana's whole file provisioner).
+             # Delete the *contents* of the bind-mounted dirs, NEVER the dirs
+             # themselves - `rm -rf` on a live bind-mount source detaches the
+             # mount inside the running Grafana container ("readdirent
+             # /var/lib/grafana/dashboards: no such file or directory").
+             GD=/home/homeassistant/.homeassistant/grafanaDashboards
+             sudo mkdir -p "$GD/dashboards" "$GD/provisioning"
+             sudo find "$GD/dashboards" "$GD/provisioning" -mindepth 1 -delete
+             # mimir/rules + mimir/alertmanager are fully repo-managed too - prune
+             # stale rule files so a deleted mixin doesn't stay loaded. Leave
+             # mimir.yaml (owned by the HA pipeline) untouched.
+             MD=/home/homeassistant/.homeassistant/mimir
+             sudo mkdir -p "$MD/rules" "$MD/alertmanager"
+             sudo find "$MD/rules" "$MD/alertmanager" -mindepth 1 -delete
+             sudo cp $AGENT_BUILDDIRECTORY/HomeAssistantDockerPackage/* /home/homeassistant/.homeassistant/ -R
+            displayName: 'Copy Docker Artifacts to HomeAssistant Dir'
+
+          - bash: docker-compose pull homeassistant
+            displayName: 'Pull latest HA image'
+            workingDirectory: /home/homeassistant/.homeassistant
+
+          # `up -d` recreates only the containers whose image or config actually
+          # changed and leaves everything else running. The old `down` + `up`
+          # restarted Mimir/Loki/HA on every commit (e.g. a dashboard tweak),
+          # and each restart risked losing the metrics still in Mimir's head.
+          - bash: docker-compose up -d --remove-orphans
+            displayName: 'Apply new Docker Compose File'
+            workingDirectory: /home/homeassistant/.homeassistant
+
+          # HA is pulled/applied on every deploy of this pipeline (not gated
+          # behind a path filter like the other smoke tests below), so check
+          # it every time too - it has its own Docker healthcheck, but that
+          # only catches a bad state on the container's own schedule, not on
+          # ours right after a deploy.
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' https://127.0.0.1:8123/'
+              expectedReturnCode: '200'
+              retryAttemptCount: '20'
+              strictSSL: false
+              retryDelay: '5000'
+            displayName: 'Smoke Test Home Assistant'
+
+          # Grafana reads datasource/plugin provisioning only at startup, and a
+          # running container won't recover a bind mount that was refreshed
+          # under it. Recreate just Grafana every deploy so dashboards,
+          # datasources and the dashboards mount are always in sync with git.
+          - bash: docker-compose up -d --force-recreate --no-deps grafana
+            displayName: 'Recreate Grafana (pick up provisioning)'
+            workingDirectory: /home/homeassistant/.homeassistant
+            condition: and(succeeded(), eq(variables['deploy_grafana'], 'true'))
+
+          # nginx bind-mounts its config dir, so `docker-compose up -d` won't
+          # pick up a .conf change on its own - test then hot-reload.
+          - bash: |
+             docker exec nginx nginx -t
+             docker exec nginx nginx -s reload
+            displayName: 'Reload nginx config'
+            condition: and(succeeded(), eq(variables['deploy_nginx'], 'true'))
+
+          # Deliberately NOT deleting .storage/http before every demo redeploy
+          # here (an earlier version of this step did). HA's http integration
+          # migrates configuration.yaml's http: block into .storage/http ONCE
+          # per fresh migration, then stages it as a "pending" trial that only
+          # promotes to "stable" after an uninterrupted boot - deleting the
+          # file before every deploy meant every deploy re-entered that
+          # trial window, and a deploy landing before promotion completed
+          # (or a second deploy arriving inside it) reverted straight back to
+          # the original no-forwarding-trust config, breaking nginx access
+          # until manually recovered. It's confirmed stable now (see
+          # demo/README.md) - leave .storage/http alone across ordinary
+          # redeploys; only touch it by hand for a deliberate trusted_proxies
+          # change, per the README.
+
+          # Isolated demo instance (demo/) - own compose file, own network,
+          # nothing shared with the stack above. Only touched when demo/
+          # itself changes. Explicit -f (the file isn't named docker-compose.yml,
+          # so the default lookup wouldn't find it) AND explicit -p demo - this
+          # job's COMPOSE_PROJECT_NAME=s (below) is exported to every step in
+          # it, and --remove-orphans under the real stack's project would treat
+          # every real container as an orphan of this compose file and delete it.
+          - bash: docker-compose -p demo -f docker-compose.demo.yml up -d --remove-orphans
+            displayName: 'Apply Demo Docker Compose File'
+            workingDirectory: /home/homeassistant/.homeassistant/demo
+            condition: and(succeeded(), eq(variables['deploy_demo'], 'true'))
+
+          # Plain bash, not oneluckidevWebSmokeTest@1 (used elsewhere in this
+          # pipeline) - that task silently clamps retryAttemptCount to 12 no
+          # matter what's configured ("the input value for retry count was
+          # greater than 12... setting a max of 12 retries"). Same
+          # wait-for-ready pattern already used below for Mimir. Checks the
+          # published host port directly, like everything else this pipeline
+          # deploys. Prints Docker's own health status and the curl result
+          # every attempt, and dumps container logs if it genuinely never
+          # comes up - a first boot means HA onboarding, creating the
+          # recorder DB from scratch, and registering ~530 generated
+          # entities, so give it real room (5 min) before deciding that's
+          # actually failed rather than slow.
+          - bash: |
+             set +e
+             echo "Waiting for the demo instance to come up..."
+             for i in $(seq 1 60); do
+               code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8124/)
+               health=$(docker inspect --format='{{.State.Health.Status}}' homeassistant-demo 2>/dev/null)
+               echo "attempt $i/60: http=$code docker-health=$health"
+               if [ "$code" = "200" ] || [ "$code" = "302" ]; then
+                 echo "Demo instance is up"
+                 exit 0
+               fi
+               sleep 5
+             done
+             echo "Demo instance did not come up in time. Container state and recent logs:"
+             docker ps -a --filter "name=homeassistant-demo"
+             docker inspect --format='Health: {{json .State.Health}}' homeassistant-demo
+             docker logs --tail 200 homeassistant-demo
+             exit 1
+            displayName: 'Wait for Demo Instance'
+            condition: and(succeeded(), eq(variables['deploy_demo'], 'true'))
+
+          - bash: |
+             set -e
+             echo "Waiting for Mimir /ready ..."
+             for i in $(seq 1 40); do
+               code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:9009/ready || true)
+               [ "$code" = "200" ] && break
+               sleep 3
+             done
+             curl -sf http://localhost:9009/ready
+             MD=/home/homeassistant/.homeassistant/mimir
+             RULES=$(sudo find "$MD/rules" -name '*.yaml' | sed "s|$MD|/mimir|" | tr '\n' ' ')
+             echo "Loading rule files: $RULES"
+             docker run --rm --network host -v "$MD:/mimir:ro" grafana/mimirtool:3.2.1 \
+               rules load $RULES --address=http://localhost:9009 --id=anonymous
+             docker run --rm --network host -v "$MD:/mimir:ro" grafana/mimirtool:3.2.1 \
+               alertmanager load /mimir/alertmanager/alertmanager.yaml \
+               --address=http://localhost:9009 --id=anonymous
+            displayName: 'Load Mimir alert rules & Alertmanager config'
+            workingDirectory: /home/homeassistant/.homeassistant
+            condition: and(succeeded(), eq(variables['deploy_mimir_rules'], 'true'))
+
+          # AdGuard reads AdGuardHome.yaml only at startup AND rewrites it on
+          # its own at runtime - so stop it first (let it flush whatever it
+          # was going to), then overwrite with the repo version, then start.
+          # Copy -> restart would race: AdGuard could rewrite the file back on
+          # SIGTERM and clobber what we just copied.
+          - bash: |
+             set -e
+             docker stop adguard
+             sudo cp "$AGENT_BUILDDIRECTORY/HomeAssistantDockerPackage/adguard/AdGuardHome.yaml" \
+               /home/homeassistant/.homeassistant/adguard/conf/AdGuardHome.yaml
+             docker start adguard
+             for i in $(seq 1 20); do
+               code=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:3008/ || true)
+               [ -n "$code" ] && [ "$code" != "000" ] && { echo "AdGuard web up (HTTP $code)"; break; }
+               sleep 2
+             done
+            displayName: 'Deploy AdGuard config'
+            condition: and(succeeded(), eq(variables['deploy_adguard'], 'true'))
+
+          - bash: |
+             bash /home/homeassistant/.homeassistant/acme/install-renew.sh
+            displayName: 'Bootstrap/renew Lets Encrypt cert via Strato DNS-01'
+            continueOnError: true
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' https://127.0.0.1:599/grafana/'
+              expectedReturnCode: '200'
+              retryAttemptCount: '12'
+              strictSSL: false
+              retryDelay: '5000'
+            displayName: 'Smoke Test Grafana'
+            condition: and(succeeded(), or(eq(variables['deploy_grafana'], 'true'), eq(variables['deploy_compose'], 'true')))
+
+         # - task: oneluckidevWebSmokeTest@1
+         #   inputs:
+         #     url: 'https://10.0.0.10:32400/web/index.html'
+         #     expectedReturnCode: '200'
+         #     retryAttemptCount: '3'
+         #     strictSSL: false
+         #     retryDelay: '1000'
+         #   displayName: 'Smoke Test Plex'
+         #   continueOnError: true
+
+          # - task: oneluckidevWebSmokeTest@1
+          #   inputs:
+          #     url: 'https://127.0.0.1:9453/portainer'
+          #     expectedReturnCode: '200'
+          #     retryAttemptCount: '3'
+          #     strictSSL: false
+          #     retryDelay: '1000'
+          #   displayName: 'Smoke Test Portainer'
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' https://127.0.0.1:8443/'
+              expectedReturnCode: '200'
+              retryAttemptCount: '12'
+              strictSSL: false
+              retryDelay: '10000'
+            displayName: 'Smoke Test Unifi Controller'
+            condition: and(succeeded(), eq(variables['deploy_compose'], 'true'))
+
+          - bash: |
+             for i in $(seq 1 20); do
+               if docker exec unifi-db mongosh --quiet --eval "db.adminCommand('ping')" 2>/dev/null | grep -q 'ok: 1'; then
+                 echo "unifi-db (MongoDB) responded to ping"
+                 exit 0
+               fi
+               echo "Waiting for unifi-db to respond... ($i/20)"
+               sleep 3
+             done
+             echo "unifi-db did not respond to ping in time"
+             exit 1
+            displayName: 'Smoke Test Unifi Database (Mongo)'
+            condition: and(succeeded(), eq(variables['deploy_compose'], 'true'))
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' http://127.0.0.1:9130/metrics'
+              expectedReturnCode: '200'
+              retryAttemptCount: '12'
+              strictSSL: false
+              retryDelay: '3000'
+            displayName: 'Smoke Test Unpoller'
+            condition: and(succeeded(), eq(variables['deploy_compose'], 'true'))
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' https://127.0.0.1:9454'
+              expectedReturnCode: '200'
+              retryAttemptCount: '3'
+              strictSSL: false
+              retryDelay: '1000'
+            displayName: 'Smoke Test VS Code'
+            condition: and(succeeded(), eq(variables['deploy_compose'], 'true'))
+
+          - task: oneluckidevWebSmokeTest@1
+            inputs:
+              url: ' https://127.0.0.1:4438/blueiris/'
+              expectedReturnCode: '401'
+              retryAttemptCount: '3'
+              strictSSL: false
+              retryDelay: '1000'
+            displayName: 'Smoke Test BlueIris'
+            condition: and(succeeded(), eq(variables['deploy_compose'], 'true'))
+
+          - bash: |
+             docker-compose down --remove-orphans
+             cp /home/homeassistant/.homeassistant/BackupConfig/docker-compose.yml /home/homeassistant/.homeassistant/docker-compose.yml
+             docker-compose up -d --remove-orphans
+            displayName: 'Rollback to previous Docker Compose file if previous step fails'
+            workingDirectory: /home/homeassistant/.homeassistant
+            condition: failed()
+
+          - bash: |
+             docker image prune -a -f --filter "until=24h"
+             docker system df
+            displayName: 'Prune unused Docker images older than 24h'
+            condition: succeeded()
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON
+            displayName: 'Echo Build Details'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON > /home/homeassistant/.homeassistant/dockerBuildData.json
+            displayName: 'Write Docker Build Details to Json File'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             DATE=$(date +"%d-%m-%Y %T")
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg buildStatus "$JOB_STATUS" \
+               --arg buildDate "$DATE" \
+               --arg buildReason "$BUILD_REASON" \
+               --arg lastCommitMessage "$COMMIT_MESSAGE" \
+               --arg committedBy "$REQUESTED_FOR" \
+               --arg link "https://dev.azure.com/example/Home/Home%20Team/_build/results?buildId=$BUILD_ID" \
+               '{CurrentBuildNumber:$buildNumber,BuildStatus:$buildStatus,BuildDate:$buildDate,BuildReason:$buildReason,LastCommitMessage:$lastCommitMessage,Committedby:$committedBy,LinkToLastBuild:$link}')
+             echo $JSON > /home/homeassistant/.homeassistant/docker-home-assistant-config/dockerBuildData.json
+            displayName: 'Write Docker Build Details to Json File for new container build'
+            env:
+              BUILD_NUMBER: $(Build.BuildNumber)
+              JOB_STATUS: $(Agent.JobStatus)
+              BUILD_REASON: $(Build.Reason)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              REQUESTED_FOR: $(Build.RequestedFor)
+              BUILD_ID: $(Build.BuildId)
+
+          - bash: |
+             # jq --arg safely JSON-escapes the commit message - a raw
+             # $(Build.SourceVersionMessage) macro-substitution here breaks
+             # the single-quoted --data-raw block the instant a commit
+             # message contains an apostrophe (confirmed live: "didn't").
+             START_MS=$(cat /tmp/docker_deploy_start_ms_$BUILD_ID 2>/dev/null || date +%s%3N)
+             END_MS=$(date +%s%3N)
+             JSON=$(jq -n \
+               --arg buildNumber "$BUILD_NUMBER" \
+               --arg commitMessage "$COMMIT_MESSAGE" \
+               --arg buildId "$BUILD_ID" \
+               --argjson timeStart "$START_MS" \
+               --argjson timeEnd "$END_MS" \
+               '{
+                  time: $timeStart,
+                  timeEnd: $timeEnd,
+                  tags: ["Deploy","Docker",$buildNumber],
+                  text: ("Docker - Deploy - " + $buildNumber + "<br>" + $commitMessage + " <br> <a href=\"https://dev.azure.com/example/Home/_build/results?buildId=" + $buildId + "&view=results\" target=\"_blank\">Link to Azure DevOps Build</a>")
+                }')
+             curl --location --insecure --silent --show-error \
+             --write-out 'grafana annotation -> HTTP %{http_code}\n' \
+             --request POST 'https://$(home_assistant_base_url):599/grafana/api/annotations' \
+             --header 'Authorization: Bearer $(grafana_api_key)' \
+             --header 'Accept: application/json' \
+             --header 'Content-Type: application/json' \
+             --data-raw "$JSON"
+             rm -f /tmp/docker_deploy_start_ms_$BUILD_ID
+            displayName: Post Deploy Timespan Annotation to Grafana
+            continueOnError: true
+            env:
+              grafana_api_key: REDACTED)
+              home_assistant_base_url: $(home_assistant_base_url)
+              BUILD_NUMBER: $(Build.BuildNumber)
+              COMMIT_MESSAGE: $(Build.SourceVersionMessage)
+              BUILD_ID: $(Build.BuildId)

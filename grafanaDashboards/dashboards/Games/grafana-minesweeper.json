@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A fully playable Minesweeper dashboard with flood-fill reveal, CSS-drawn flag markers that work without icon-font support, elapsed time, and observability-style state tiles. Right-click directly toggles a flag on or off.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A fully playable Minesweeper dashboard with reveal, flagging, elapsed time, and observability-style state tiles.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana Minesweeper\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); const restartButton=document.createElement('button');restartButton.textContent='NEW BOARD';Object.assign(restartButton.style,{padding:'5px 8px',background:'#111217',border:'1px solid #5794f2',borderRadius:'3px',color:'#d8d9da',font:'700 11px Roboto Mono,monospace',cursor:'pointer'});header.append(title,status,restartButton); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 105px)',minHeight:'420px',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, elapsedTimer=0; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);clearInterval(elapsedTimer);root.replaceChildren()};\nconst grid=document.createElement('div');Object.assign(grid.style,{display:'grid',gridTemplateColumns:'repeat(12,30px)',gap:'2px',padding:'10px'});stage.appendChild(grid);let mines=new Set(),open=new Set(),flags=new Set(),start=0,over=false;metric('mines_remaining','20');metric('cells_discovered','0');metric('elapsed_time','0s');metric('game_state','RUNNING');state('LEFT: reveal - RIGHT: flag - R: new board');function neighbors(i){let x=i%12,y=i/12|0;return[-13,-12,-11,-1,1,11,12,13].map(d=>i+d).filter(j=>j>=0&&j<144&&Math.abs((j%12)-x)<=1)}function nearbyMines(i){return neighbors(i).filter(j=>mines.has(j)).length}function revealArea(startCell){let queue=[startCell],seen=new Set();while(queue.length){let i=queue.shift();if(seen.has(i)||open.has(i)||flags.has(i)||mines.has(i))continue;seen.add(i);open.add(i);if(nearbyMines(i)===0)neighbors(i).forEach(j=>{if(!seen.has(j)&&!mines.has(j))queue.push(j)})}}function draw(){grid.innerHTML='';for(let i=0;i<144;i++){let b=document.createElement('button'),near=nearbyMines(i);b.textContent=open.has(i)?(mines.has(i)?'':near||''):'';Object.assign(b.style,{height:'30px',border:'1px solid #34373d',background:open.has(i)?(mines.has(i)?'#f2495c':'#111217'):'#22252b',color:'#d8d9da',fontWeight:'700'});if(open.has(i)&&mines.has(i)){let bomb=document.createElement('span'),blastH=document.createElement('span'),blastV=document.createElement('span'),core=document.createElement('span'),fuse=document.createElement('span'),spark=document.createElement('span');Object.assign(bomb.style,{display:'inline-block',position:'relative',width:'17px',height:'17px',verticalAlign:'middle'});Object.assign(blastH.style,{position:'absolute',left:'0',top:'7px',width:'17px',height:'3px',borderRadius:'2px',background:'#ffc857'});Object.assign(blastV.style,{position:'absolute',left:'7px',top:'0',width:'3px',height:'17px',borderRadius:'2px',background:'#ffc857'});Object.assign(core.style,{position:'absolute',left:'3px',top:'3px',width:'11px',height:'11px',border:'2px solid #f5f7ff',borderRadius:'50%',background:'#15171c',boxSizing:'border-box'});Object.assign(fuse.style,{position:'absolute',left:'1px',top:'1px',width:'6px',height:'2px',background:'#f5f7ff',transform:'rotate(-35deg)',transformOrigin:'right center'});Object.assign(spark.style,{position:'absolute',left:'0',top:'0',width:'3px',height:'3px',borderRadius:'50%',background:'#ffc857'});bomb.append(blastH,blastV,core,fuse,spark);b.appendChild(bomb)}if(flags.has(i)){let marker=document.createElement('span'),pole=document.createElement('span'),pennant=document.createElement('span');Object.assign(marker.style,{display:'inline-block',position:'relative',width:'13px',height:'15px',verticalAlign:'middle'});Object.assign(pole.style,{position:'absolute',left:'2px',top:'0',width:'2px',height:'15px',background:'#d8d9da'});Object.assign(pennant.style,{position:'absolute',left:'4px',top:'1px',width:'10px',height:'8px',background:'#f2495c',clipPath:'polygon(0 0,100% 22%,0 100%)'});marker.append(pole,pennant);b.appendChild(marker)}b.onclick=()=>{if(over||flags.has(i))return;if(mines.has(i)){open.add(i);over=true;state('SLO BREACHED','#f2495c');set('game_state','LOST')}else{revealArea(i);if(open.size===144-mines.size){mines.forEach(x=>flags.add(x));over=true;state('ALL CLEAR - MINES FLAGGED');set('game_state','WON')}}draw()};b.oncontextmenu=e=>{e.preventDefault();if(!open.has(i)&&!over){flags.has(i)?flags.delete(i):flags.add(i);draw()}};grid.appendChild(b)}set('mines_remaining',20-flags.size);set('cells_discovered',open.size)}function newBoard(){mines=new Set();open=new Set();flags=new Set();while(mines.size<20)mines.add(Math.random()*144|0);start=Date.now();over=false;set('mines_remaining','20');set('cells_discovered','0');set('elapsed_time','0s');set('game_state','RUNNING');state('LEFT: reveal - RIGHT: flag - R: new board');draw()}restartButton.onclick=newBoard;root.addEventListener('keydown',e=>{if(e.key&&e.key.toLowerCase()==='r'){e.preventDefault();newBoard()}});elapsedTimer=setInterval(()=>{if(!over)set('elapsed_time',Math.floor((Date.now()-start)/1000)+'s')},1000);newBoard();",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Minesweeper",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Minesweeper",
+  "uid": "grafana-minesweeper",
+  "version": 2,
+  "weekStart": ""
+}

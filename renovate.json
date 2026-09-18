@@ -1,0 +1,24 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "enabledManagers": ["docker-compose", "custom.regex"],
+  "dependencyDashboard": false,
+  "labels": ["renovate", "docker-image"],
+  "commitMessagePrefix": "chore(deps):",
+  "prConcurrentLimit": 0,
+  "automerge": true,
+  "automergeType": "pr",
+  "platformAutomerge": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "grafana/mimirtool is pinned inline in Bash steps (Azure Pipelines has no docker-compose manager for it), so it needs its own regex match to stay in lockstep with the mimir server version in docker-compose.yml.",
+      "fileMatch": ["^azure-pipelines-docker\\.yml$"],
+      "matchStrings": [
+        "grafana/mimirtool:(?<currentValue>[0-9.]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "grafana/mimirtool"
+    }
+  ]
+}

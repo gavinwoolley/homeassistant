@@ -1,0 +1,13 @@
+{
+  "name": "Home Assistant demo",
+  "image": "ghcr.io/gavinwoolley/homeassistant-demo:latest",
+  "overrideCommand": false,
+  "forwardPorts": [8123],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant demo",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "remoteUser": "root"
+}

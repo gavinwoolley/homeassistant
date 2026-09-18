@@ -1,0 +1,60 @@
+name: Publish demo image
+
+# Builds the demo/ dashboard into a fully self-contained image (onboarding
+# done, all cameras set up, http config settled - `docker run` on a clean
+# machine just shows the dashboard, no setup steps) and pushes it to GHCR.
+# demo/tools/bake_demo_image.sh does the actual work: build -> spin up a
+# throwaway container -> drive onboarding + camera setup against it live ->
+# docker commit the result. Runs on GitHub's own runner, which already has
+# a usable Docker daemon - no extra setup beyond Python for the onboarding
+# script.
+
+on:
+  # No `paths: demo/**` filter - confirmed live (2026-09-16) that it's
+  # unreliable here specifically: publish/sanitize.py's git_publish() does a
+  # fresh `git init` + orphan commit + `git push --force` on every publish
+  # (the mirror deliberately carries no history of its own), so every push
+  # to this repo has ZERO shared git history with whatever was here before.
+  # GitHub's paths filter diffs old-SHA -> new-SHA to decide whether to
+  # fire; with no common ancestor, that diff is unreliable - it fired for
+  # one push and silently skipped the next two in a row, with no error, no
+  # indication anything was wrong. This repo publishes infrequently and the
+  # build itself is cheap, so trading a few no-op rebuilds (when a publish
+  # genuinely didn't touch demo/) for actually firing reliably every time is
+  # the right call.
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/homeassistant-demo
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install aiohttp
+        run: pip install --quiet aiohttp pyyaml
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bake the demo image (build, onboard, seed cameras, commit)
+        run: bash demo/tools/bake_demo_image.sh "$IMAGE:latest"
+
+      - name: Push
+        run: docker push "$IMAGE:latest"

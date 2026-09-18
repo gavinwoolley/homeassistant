@@ -1,0 +1,33 @@
+# Not secret - the fictional mapping the demo uses, documented here for
+# reference. Applied cosmetically by demo/tools/generate_demo_entities.py
+# (to generated entity/helper display names) and by the one-off text pass
+# that produced demo/ui-lovelace.yaml from the real ui-lovelace.yaml -
+# entity_ids themselves are never changed, only human-readable "name:" text.
+# Shared conceptually with publish/config/replacements.local.yaml's
+# "names"/"zones" sections, which holds the real -> fictional mapping for
+# the static public mirror; this file only ever holds the fictional side.
+
+household:
+  Homer Simpson: Homer Simpson
+  Marge Simpson: Marge Simpson
+  Bart Simpson: Bart Simpson
+  Lisa Simpson: Lisa Simpson
+  Homer Simpson: Homer Simpson
+  Marge Simpson: Marge Simpson
+
+pets:
+  Dog: Santa's Little Helper
+
+other_people:
+  Patty Bouvier: Patty Bouvier
+  Comic Book Guy: Comic Book Guy
+  Barney Gumble: Barney Gumble
+  Ned Flanders: Ned Flanders
+  Abraham Simpson: Abraham "Grampa" Simpson
+  Mona Simpson: Mona Simpson
+
+zones:
+  Home: 742 Evergreen Terrace
+  Work: Springfield Nuclear Power Plant
+  School: Springfield Elementary
+  Moe's Tavern: Moe's Tavern

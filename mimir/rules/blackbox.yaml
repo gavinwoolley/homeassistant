@@ -1,0 +1,67 @@
+# Blackbox exporter alerts. jobs: blackbox_icmp / blackbox_http / blackbox_tcp.
+# instance = friendly slug (server_1, firewall, camera_front, grafana, mimir, ...).
+namespace: blackbox
+groups:
+  - name: blackbox-probes
+    rules:
+      - alert: BlackboxProbeFailed
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Probe to {{ $labels.instance }} is failing"
+          description: "{{ $labels.job }} probe to {{ $labels.instance }} has failed for 5 minutes."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=blackboxprobefailed"
+
+      - alert: BlackboxProbeSlowHTTP
+        expr: probe_duration_seconds{job="blackbox_http"} > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow HTTP probe to {{ $labels.instance }}"
+          description: "HTTP probe took {{ $value | printf \"%.1f\" }}s."
+
+      - alert: BlackboxICMPHighLatency
+        expr: probe_icmp_duration_seconds{job="blackbox_icmp"} * 1000 > 250
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency to {{ $labels.instance }}"
+          description: "ICMP RTT {{ $value | printf \"%.0f\" }}ms for 15 minutes."
+
+  - name: blackbox-tls
+    # Scoped to env="external"/"ssl" (nginx_external, ha_external, ssl_home in
+    # config.alloy) - the acme.sh-managed boundary cert. Everything else
+    # blackbox probes over HTTPS (unifi_controller, grafana, mimir, ...) is an
+    # internal self-signed cert that was never meant to be watched for expiry
+    # and just adds noise.
+    rules:
+      - alert: SSLCertExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry{env=~"external|ssl"} - time()) / 86400 < 21
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "TLS cert for {{ $labels.instance }} expires in {{ $value | printf \"%.0f\" }} days"
+          description: "acme.sh renewal (Strato DNS-01) may not be running - see ha_tls_cert_management."
+
+      - alert: SSLCertExpiringCritical
+        expr: (probe_ssl_earliest_cert_expiry{env=~"external|ssl"} - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "TLS cert for {{ $labels.instance }} expires in {{ $value | printf \"%.0f\" }} days"
+          description: "Renew now - acme/install-renew.sh."
+
+      - alert: SSLCertExpired
+        expr: probe_ssl_earliest_cert_expiry{env=~"external|ssl"} - time() <= 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "TLS cert for {{ $labels.instance }} has EXPIRED"
+          description: "HTTPS is broken for {{ $labels.instance }}."

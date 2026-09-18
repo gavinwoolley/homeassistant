@@ -1,0 +1,25 @@
+title = "gitleaks config for the public mirror"
+
+# Extend gitleaks' own default ruleset rather than redefining detection rules
+# from scratch - this file only adds allowlist entries for the fake/decoy
+# values the sanitizer deliberately injects, which would otherwise look
+# secret-shaped to the generic high-entropy/base64 detectors.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Sanitizer-injected decoy values - not real secrets"
+regexes = [
+  '''REDACTED_[A-Z_]+''',
+  '''demo-not-a-real-key''',
+  '''Basic ZGVtbzpkZW1v''',   # base64 of "demo:demo", the CI-safe secrets.yaml placeholder
+  '''447700900000''',
+  '''\+44 7700 900000''',
+  '''10\.0\.0\.\d{1,3}''',    # hash-sub decoy IPs
+  '''02:[0-9a-f]{2}(:[0-9a-f]{2}){4}''',  # hash-sub decoy MACs (locally-administered)
+  '''Q-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-\d+''',  # Grafana panel target "key" (auto-generated refId, not a credential)
+  '''\$\(System\.AccessToken\)''',  # Azure Pipelines' own built-in OAuth token variable - resolved fresh at runtime, never a literal stored secret, but "curl -u :<something>" pattern-matches gitleaks' curl-auth-user rule regardless. Confirmed live (2026-09-15) that gitleaks-action tests this against just the extracted secret/match text (here ":$(System.AccessToken)", starting right after "-u "), not the full line - a regex requiring a "-u " prefix never matches against that narrower text, so this can't require any prefix either.
+]
+paths = [
+  '''secrets\.yaml''',
+]

@@ -1,0 +1,106 @@
+{
+  "uid": "unifi-prometheus",
+  "title": "UniFi",
+  "tags": ["unifi", "network"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat", "title": "Clients",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "sum(unifi_site_stations)" } ],
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Guests",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "sum(unifi_site_guests)" } ],
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "APs",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "sum(unifi_site_aps)" } ],
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Disconnected devices",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "sum(unifi_site_disconnected)" } ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "WAN latency",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "max(unifi_site_latency_seconds)" } ],
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 0.03 }, { "color": "red", "value": 0.06 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "WAN drops (24h)",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "sum(increase(unifi_site_intenet_drops_total[24h]))" } ],
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "timeseries", "title": "Clients over time",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "sum(unifi_site_stations)", "legendFormat": "stations" },
+        { "refId": "B", "expr": "sum(unifi_site_guests)", "legendFormat": "guests" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Site throughput",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "sum(unifi_site_receive_rate_bytes)", "legendFormat": "down" },
+        { "refId": "B", "expr": "sum(unifi_site_transmit_rate_bytes)", "legendFormat": "up" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps" } }
+    },
+    {
+      "type": "table", "title": "Devices",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "unifi_device_uptime_seconds", "instant": true, "format": "table" },
+        { "refId": "B", "expr": "unifi_device_uplink_speed_mbps", "instant": true, "format": "table" },
+        { "refId": "C", "expr": "unifi_device_memory_used_bytes / unifi_device_memory_installed_bytes", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "joinByField", "options": { "byField": "name", "mode": "outer" } },
+        { "id": "organize", "options": {
+          "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "__name__": true, "__name__ 1": true, "__name__ 2": true, "__name__ 3": true, "job": true, "job 1": true, "job 2": true, "job 3": true, "instance": true, "instance 1": true, "instance 2": true, "instance 3": true, "site_name 1": true, "site_name 2": true, "site_name 3": true, "source 1": true, "source 2": true, "source 3": true },
+          "renameByName": { "name": "Device", "type 1": "Type", "Value #A": "Uptime (s)", "Value #B": "Uplink Mbps", "Value #C": "Mem used" }
+        } }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [
+        { "matcher": { "id": "byName", "options": "Uptime (s)" }, "properties": [ { "id": "unit", "value": "s" } ] },
+        { "matcher": { "id": "byName", "options": "Mem used" }, "properties": [ { "id": "unit", "value": "percentunit" }, { "id": "custom.cellOptions", "value": { "type": "gauge" } }, { "id": "max", "value": 1 } ] }
+      ] }
+    },
+    {
+      "type": "timeseries", "title": "Per-AP Wi-Fi satisfaction",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 22 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "avg by (name) (unifi_device_vap_satisfaction_now_ratio)", "legendFormat": "{{name}}" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "max": 1, "min": 0 } }
+    }
+  ]
+}

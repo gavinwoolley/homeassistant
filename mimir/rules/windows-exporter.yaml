@@ -1,0 +1,147 @@
+# Windows host alerts (windows_exporter), job="windows".
+# Hosts: server1/2/3, blueiris, plex01 (always-on); homer_simpson-hp-laptop
+# (tier=transient - only its TargetDown / WindowsHostRebooted are routed to the
+# non-paging receiver, everything else pages normally). homer_simpson-laptop was
+# decommissioned and its scrape target removed from config.alloy.
+namespace: windows-exporter
+groups:
+  - name: windows-exporter-disk
+    rules:
+      # server2's C:/D: and blueiris's E: are the same underlying storage
+      # (server2 is the hypervisor host, blueiris the guest VM it's allocated
+      # to) run deliberately near-full by design - BlueIris manages its
+      # retention within that space fine. Excluded here and watched instead
+      # by WindowsDiskNearlyFullByDesign below, which uses an absolute
+      # free-bytes floor rather than a percentage.
+      # volume=~"[A-Za-z]:" - restricts to real drive letters. Every Windows
+      # host also reports hidden hardware/recovery partitions with no drive
+      # letter (windows_exporter labels them "HarddiskVolumeN" instead) - EFI
+      # system partition, WinRE, and on OEM machines a small vendor recovery
+      # partition (Dell's SR_AED/SR_IMAGE, etc). Those are fixed-size,
+      # OS-managed, and nobody manages free space on them - a "nearly full"
+      # reading there is meaningless noise, confirmed via
+      # windows_logical_disk_size_bytes{instance="homer_simpson-hp-laptop"} showing
+      # exactly this: C: plus HarddiskVolume1/4/5/6 with no drive letter.
+      - alert: WindowsDiskAlmostFull
+        expr: |
+          (
+            (windows_logical_disk_free_bytes{volume=~"[A-Za-z]:"} / windows_logical_disk_size_bytes{volume=~"[A-Za-z]:"}) * 100 < 8
+            and windows_logical_disk_size_bytes{volume=~"[A-Za-z]:"} > 0
+          )
+          unless on (instance, volume) (
+            windows_logical_disk_size_bytes{instance="blueiris", volume="E:"}
+            or windows_logical_disk_size_bytes{instance="server2", volume=~"C:|D:"}
+          )
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disk {{ $labels.volume }} almost full on {{ $labels.instance }}"
+          description: "{{ $value | printf \"%.1f\" }}% free on {{ $labels.volume }}."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=windowsdiskalmostfull"
+
+      # See the volume=~"[A-Za-z]:" comment on WindowsDiskAlmostFull above -
+      # same reasoning, excludes the no-drive-letter hardware/recovery
+      # partitions.
+      - alert: WindowsDiskCriticallyLow
+        expr: |
+          (
+            (windows_logical_disk_free_bytes{volume=~"[A-Za-z]:"} / windows_logical_disk_size_bytes{volume=~"[A-Za-z]:"}) * 100 < 4
+            and windows_logical_disk_size_bytes{volume=~"[A-Za-z]:"} > 0
+          )
+          unless on (instance, volume) (
+            windows_logical_disk_size_bytes{instance="blueiris", volume="E:"}
+            or windows_logical_disk_size_bytes{instance="server2", volume=~"C:|D:"}
+          )
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Disk {{ $labels.volume }} critically low on {{ $labels.instance }}"
+          description: "{{ $value | printf \"%.1f\" }}% free on {{ $labels.volume }}."
+
+      # The BlueIris storage exception. BlueIris runs E: as a rolling buffer:
+      # its retention deletes the oldest footage in batches, so free space
+      # sawtooths - measured over 21 days it cycles between ~0.27% and ~0.7%
+      # free (2.6-6 GB on the 966 GB volume) and has never dropped below
+      # 2.6 GB. A percentage threshold (the old "< 0.3%") sat right inside
+      # that normal band and paged on an ordinary retention low.
+      # Use an absolute floor instead: < 1 GiB free is well below anything
+      # BlueIris's own housekeeping produces, so it only fires if that
+      # housekeeping has actually stopped keeping up (or server2 genuinely
+      # needs more storage allocated to the guest). for: 1h rides out a
+      # single deeper-than-usual trough.
+      - alert: WindowsDiskNearlyFullByDesign
+        expr: |
+          (
+            windows_logical_disk_free_bytes < 1073741824
+            and windows_logical_disk_size_bytes > 0
+          )
+          and on (instance, volume) (
+            windows_logical_disk_size_bytes{instance="blueiris", volume="E:"}
+            or windows_logical_disk_size_bytes{instance="server2", volume=~"C:|D:"}
+          )
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "BlueIris storage {{ $labels.volume }} on {{ $labels.instance }} is critically low even for its normal near-full operation"
+          description: "Only {{ $value | humanize1024 }}B free on {{ $labels.volume }} - BlueIris normally keeps 2.5 GB+ free, so its retention cleanup has stopped keeping up. Check BlueIris clip/storage settings and disk health, or whether server2 needs more storage allocated."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=windowsdisknearlyfullbydesign"
+
+  - name: windows-exporter-resources
+    rules:
+      - alert: WindowsMemoryHighUtilization
+        expr: |
+          (windows_os_physical_memory_free_bytes / windows_cs_physical_memory_bytes) * 100 < 6
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low free memory on {{ $labels.instance }}"
+          description: "Only {{ $value | printf \"%.1f\" }}% RAM free."
+
+      - alert: WindowsCPUHighUsage
+        expr: |
+          100 - (avg by (instance) (rate(windows_cpu_time_total{mode="idle"}[5m])) * 100) > 92
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU saturated on {{ $labels.instance }}"
+          description: "CPU above 92% for 30 minutes ({{ $value | printf \"%.0f\" }}%)."
+
+      - alert: WindowsProcessorQueueBacked
+        expr: windows_system_processor_queue_length > 5
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Processor queue backed up on {{ $labels.instance }}"
+          description: "Queue length {{ $value }} - the box is CPU-bound."
+
+  - name: windows-exporter-state
+    rules:
+      # windows_system_system_up_time is the boot time (unix seconds).
+      - alert: WindowsHostRebooted
+        expr: time() - windows_system_system_up_time < 600
+        for: 0m
+        labels:
+          severity: info
+        annotations:
+          summary: "{{ $labels.instance }} rebooted"
+          description: "Windows host {{ $labels.instance }} booted less than 10 minutes ago."
+
+      # Edit the name=~ regex to the services that matter per host. Keep this
+      # to services that should be continuously running - W32Time/WinRM are
+      # legitimately stopped/started on demand and fired false positives on
+      # homer_simpson-hp-laptop and plex01, so they're intentionally excluded.
+      - alert: WindowsServiceNotRunning
+        expr: |
+          windows_service_state{state="running", name=~"(?i)(blueiris|plexmediaserver)"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service {{ $labels.name }} not running on {{ $labels.instance }}"
+          description: "Expected the {{ $labels.name }} service to be running."

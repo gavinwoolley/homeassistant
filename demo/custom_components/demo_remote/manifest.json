@@ -1,0 +1,8 @@
+{
+  "domain": "demo_remote",
+  "name": "Demo Remote",
+  "codeowners": [],
+  "documentation": "https://github.com/homer_simpson/homeassistant",
+  "iot_class": "calculated",
+  "version": "1.0.0"
+}

@@ -1,0 +1,1723 @@
+- id: marge_simpson_heading_home_html5
+  alias: "Notify: Marge Simpson Heading Home (HTML5)"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: sensor.marge_simpson_home_marge_simpson_direction_of_travel
+      to: "towards"
+      for: "00:05:00"
+  condition:
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: person.marge_simpson
+          state: "home"
+    - condition: template
+      value_template: "{{ states('sensor.marge_simpson_home_marge_simpson_distance') | float(99999) < 10000 }}"
+  action:
+    - action: html5.send_message
+      target:
+        label_id: push_devices
+      data:
+        title: "Marge Simpson Heading Home"
+        message: "Marge Simpson is on the way home."
+        tag: "marge_simpson_heading_home"
+
+- id: IFTTT Service WebHook Shopping List
+  alias: IFTTT Service WebHook Shopping List
+  trigger:
+    platform: event
+    event_type: ifttt_webhook_received
+  condition:
+  - condition: template
+    value_template: '{{ trigger.event.data.service.startswith(''shopping'') }}'
+  action:
+  - service: '{{ trigger.event.data.service }}'
+    data:
+      name: '{{ trigger.event.data.name }}'
+- id: IFTTT Service WebHook Scripts
+  alias: IFTTT Service WebHook Scripts
+  trigger:
+    platform: event
+    event_type: ifttt_webhook_received
+  condition:
+  - condition: template
+    value_template: '{{ trigger.event.data.service.startswith(''script'') }}'
+  action:
+  - service: '{{ trigger.event.data.service }}'
+- id: Homer Simpson Leaving Work
+  alias: Homer Simpson Leaving Work
+  trigger:
+    platform: zone
+    zone: zone.work
+    event: leave
+    entity_id: person.homer_simpson
+  condition:
+  - condition: time
+    after: '15:00:00'
+    before: '19:00:00'
+  action:
+  - service: media_player.volume_set
+    data:
+      entity_id: media_player.lounge_speaker
+      volume_level: 0.4
+  - service: tts.cloud_say
+    data:
+      entity_id: media_player.lounge_speaker
+      message: Homer Simpson is Leaving Work.
+      language: en-GB
+      options:
+        voice: RyanNeural
+- id: Heating Boost Timer Finished
+  alias: Heating Boost Timer Finished
+  trigger:
+    platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.heating_boost
+  action:
+  - service: script.heating_boost_off
+- id: AdGuard Protection Timer Finished
+  alias: AdGuard Protection Timer Finished
+  trigger:
+    platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.adguard_protection_disabled
+  condition:
+    condition: state
+    entity_id: input_boolean.adguard_protection_disabled
+    state: "on"
+  action:
+  - service: script.enable_protection_now
+- id: Kids Internet Block Timer Finished
+  alias: Kids Internet Block Timer Finished
+  trigger:
+    platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.kids_internet_block
+  condition:
+    condition: state
+    entity_id: input_boolean.kids_internet_blocked
+    state: "on"
+  action:
+  - service: script.kids_internet_restore
+- id: Clear Stuck Countdown Cards On Startup
+  alias: Clear Stuck Countdown Cards On Startup
+  # Safety net for deploys: timers use restore:true, but if a timer somehow
+  # comes back idle while its input_boolean is still on, the Home-screen
+  # countdown card would be stuck. A minute after startup, reconcile them.
+  trigger:
+  - platform: homeassistant
+    event: start
+  action:
+  - delay: "00:01:00"
+  - if:
+    - condition: state
+      entity_id: input_boolean.heating_boost
+      state: "on"
+    - condition: state
+      entity_id: timer.heating_boost
+      state: idle
+    then:
+    - service: script.heating_boost_off
+  - if:
+    - condition: state
+      entity_id: input_boolean.adguard_protection_disabled
+      state: "on"
+    - condition: state
+      entity_id: timer.adguard_protection_disabled
+      state: idle
+    then:
+    - service: script.enable_protection_now
+  - if:
+    - condition: state
+      entity_id: input_boolean.kids_internet_blocked
+      state: "on"
+    - condition: state
+      entity_id: timer.kids_internet_block
+      state: idle
+    then:
+    - service: script.kids_internet_restore
+  - if:
+    - condition: state
+      entity_id: input_boolean.alerts_muted
+      state: "on"
+    - condition: state
+      entity_id: timer.alerts_muted
+      state: idle
+    then:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.alerts_muted
+- id: Update Binary Template Sensors
+  alias: Update Binary Template Sensors
+  trigger:
+  - platform: time
+    at: 00:01:00
+  action:
+  - service: homeassistant.update_entity
+    data:
+      entity_id: binary_sensor.sunday_bool
+  - service: homeassistant.update_entity
+    data:
+      entity_id: binary_sensor.recycling_bin
+  - service: homeassistant.update_entity
+    data:
+      entity_id: binary_sensor.waste_bin
+  - service: homeassistant.update_entity
+    data:
+      entity_id: binary_sensor.garden_waste_bin
+- id: Update Date Sensor Template
+  alias: Update Date Sensor Template
+  trigger:
+  - platform: time
+    at: 00:00:02
+  action:
+  - service: homeassistant.update_entity
+    data:
+      entity_id: sensor.custom_date
+- id: Reset Recycling Bins Input Select
+  alias: Reset Recycling Bins Input Select
+  trigger:
+  - platform: time
+    at: 00:01:00
+  condition:
+    condition: time
+    weekday:
+    - mon
+  action:
+  - service: input_select.select_option
+    data:
+      entity_id: input_select.recycling_bin
+      option: Recycling Bin
+  - service: input_select.select_option
+    data:
+      entity_id: input_select.waste_bin
+      option: Refuse Bin
+  - service: input_select.select_option
+    data:
+      entity_id: input_select.garden_waste_bin
+      option: Garden Waste
+  - service: input_select.select_option
+    data:
+      entity_id: input_select.food_waste_bin
+      option: Food Waste
+- id: Homer Simpson Entering Home
+  alias: Homer Simpson Entering Home
+  trigger:
+    platform: zone
+    zone: zone.home
+    event: enter
+    entity_id: person.homer_simpson
+  action:
+  - service: media_player.volume_set
+    data:
+      entity_id: media_player.lounge_speaker
+      volume_level: 0.6
+  - service: tts.cloud_say
+    data:
+      entity_id: media_player.lounge_speaker
+      message: Homer Simpson is Home
+      language: en-GB
+      options:
+        voice: RyanNeural
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Homer Simpson is Home - {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      actions:
+      - action: open
+        icon: /static/icons/favicon-192x192.png
+        title: Open Home Assistant
+      tag: homer_simpson-arrived-home
+- id: Marge Simpson Entering Home
+  alias: Marge Simpson Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: person.marge_simpson
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: "Marge Simpson is Home - {{ now().strftime('%H:%M %d/%b') }}"
+      tag: marge_simpson-arrived-home
+- id: Grandad Barney Gumble Entering Home
+  alias: Grandad Barney Gumble Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: device_tracker.barney_gumble_s7_edge
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Grandad Barney Gumble is Home - {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      tag: grandad-barney_gumble-arrived-home
+- id: Comic Book Guy Entering Home
+  alias: Comic Book Guy Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: device_tracker.comic_book_guy2
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Comic Book Guy is Home - {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      tag: comic_book_guy-arrived-home
+- id: Ned Flanders Entering Home
+  alias: Ned Flanders Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: device_tracker.ned_flanders_iphone
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Ned Flanders is Home - {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      tag: ned_flanders-arrived-home
+- id: Patty Bouvier Entering Home
+  alias: Patty Bouvier Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: device_tracker.patty_bouviers_iphone
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Patty Bouvier is Home - {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      tag: patty_bouvier-arrived-home
+- id: HTML5 Notifcation Action Intruder Alert
+  alias: HTML5 Notifcation Action Intruder Alert
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: intruder_alert
+  action:
+    service: script.turn_on
+    entity_id: script.intruder_alert_confirm
+- id: HTML5 Notifcation Action Intruder Alert Confirmed
+  alias: HTML5 Notifcation Action Intruder Alert Confirmed
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: intruder_alert_confirm
+  action:
+    service: script.turn_on
+    entity_id: script.intruder_alert
+- id: HTML5 Notifcation Action TV Lamp On
+  alias: HTML5 Notification Action TV Lights On
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: tv_lamp_on
+  action:
+    service: script.turn_on
+    entity_id: script.tv_lamp_on_confirm
+- id: HTML5 Notifcation Action TV Lamp On Confirmed
+  alias: HTML5 Notification Action TV Lights On Confirmed
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: tv_lamp_on_confirm
+  action:
+    service: script.turn_on
+    entity_id: script.tv_lamp_on
+- id: HTML5 Notifcation Action Cancel Alerts
+  alias: HTML5 Notification Action Cancel Alerts
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: cancel_alerts
+  action:
+    service: script.turn_on
+    entity_id: script.cancel_alerts
+- id: Abraham Simpson Entering Home
+  alias: Abraham Simpson Entering Home
+  trigger:
+    platform: state
+    from: not_home
+    to: home
+    entity_id: device_tracker.dad
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Abraham Simpson is Home {{ now().strftime("%H:%M %d/%b") }}''
+
+        '
+      tag: abraham_simpson-arrived-home
+- id: Set theme at startup
+  alias: Set theme at startup
+  initial_state: 'on'
+  trigger:
+  - platform: homeassistant
+    event: start
+  action:
+    service: frontend.set_theme
+    data:
+      name: midnight_homer_simpson
+- id: Run Service Start Shell Script
+  alias: Run Service Start Shell Script
+  initial_state: 'on'
+  trigger:
+  - platform: homeassistant
+    event: start
+  action:
+    service: shell_command.home_assistant_service_started
+- id: Heating Comfort On - am
+  alias: Heating Comfort On - am
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.time.state == states.sensor.heating_time_am_on.state
+      }}'
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      entity_id: climate.kitchen
+      hvac_mode: heat
+- id: Heating Comfort Off - am
+  alias: Heating Comfort Off - am
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.time.state == states.sensor.heating_time_am_off.state
+      }}'
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      entity_id: climate.kitchen
+      hvac_mode: 'off'
+- id: Heating Comfort On - pm
+  alias: Heating Comfort On - pm
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.time.state == states.sensor.heating_time_pm_on.state
+      }}'
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      entity_id: climate.kitchen
+      hvac_mode: heat
+- id: Heating Comfort Off - pm
+  alias: Heating Comfort Off - pm
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{{ states.sensor.time.state == states.sensor.heating_time_pm_off.state
+      }}'
+  action:
+  - service: climate.set_hvac_mode
+    data:
+      entity_id: climate.kitchen
+      hvac_mode: 'off'
+- id: Heating Away Mode On
+  alias: Heating Away Mode On
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and not is_state(''person.marge_simpson'',
+      ''home'') %}true{% endif %}'
+  action:
+  - service: climate.set_preset_mode
+    data:
+      entity_id: climate.kitchen
+      preset_mode: away
+- id: Heating Away Mode Off
+  alias: Heating Away Mode Off
+  initial_state: false
+  trigger:
+  - platform: template
+    value_template: '{% if is_state(''person.homer_simpson'', ''home'') or is_state(''person.marge_simpson'',
+      ''home'') %}true{% endif %}'
+  action:
+  - service: climate.set_preset_mode
+    data:
+      entity_id: climate.kitchen
+      preset_mode: none
+- id: Empty Bins Reminder
+  alias: Empty Bins Reminder
+  trigger:
+  - platform: time
+    at: '20:30:00'
+  condition:
+  - condition: time
+    weekday:
+    - sun
+  action:
+  - service: media_player.volume_set
+    data:
+      entity_id: media_player.lounge_speaker
+      volume_level: 0.6
+  - service: tts.cloud_say
+    data:
+      entity_id: media_player.lounge_speaker
+      message: Household Reminder - Empty Bins Please
+      language: en-GB
+      options:
+        voice: RyanNeural
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: Remember to put bins put
+      tag: bins out reminder
+- id: Xmas on
+  alias: Xmas on
+  initial_state: false
+  trigger:
+  - platform: time
+    at: 07:30:00
+  action:
+  - service: switch.turn_on
+    data:
+      entity_id: switch.christmas_lights_front_socket_1
+- id: Xmas off
+  alias: Xmas off
+  initial_state: false
+  trigger:
+  - platform: time
+    at: '23:50:00'
+  action:
+  - service: switch.turn_off
+    data:
+      entity_id: switch.christmas_lights_front_socket_1
+- id: Driveway on
+  alias: Driveway on
+  trigger:
+  - platform: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - platform: homeassistant
+    event: start
+  condition:
+  - condition: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - condition: time
+    before: '00:00:00'
+    after: '12:00:00'
+  action:
+  - service: switch.turn_on
+    data:
+      entity_id:
+      - switch.door_number_light_socket
+      - switch.front_lights_switch_1
+- id: Driveway off
+  alias: Driveway off
+  trigger:
+  - platform: time
+    at: '00:00:00'
+  # The automation trace showed the real cause: switch.turn_off errors with
+  # "network error:(-9999999) Remote api run unknown failed" - a Tuya cloud
+  # SDK failure, not a logic bug (manual/voice control never fails - those
+  # are single isolated calls). Driveway off and Patio off both used to
+  # trigger at the same 00:00:00 instant, bursting up to 4 simultaneous Tuya
+  # calls within ~1s of each other. Spread this automation's two calls out
+  # (5s apart) and see "Patio off" for the other half of the desync.
+  action:
+  - service: switch.turn_off
+    data:
+      entity_id: switch.door_number_light_socket
+  - delay: '00:00:05'
+  - service: switch.turn_off
+    data:
+      entity_id: switch.front_lights_switch_1
+- id: Patio on
+  alias: Patio on
+  trigger:
+  - platform: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - platform: homeassistant
+    event: start
+  condition:
+  - condition: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - condition: time
+    before: '00:00:00'
+    after: '12:00:00'
+  action:
+  - service: switch.turn_on
+    data:
+      entity_id:
+      - switch.patio_switch_1
+      - switch.patio_lights_socket_1
+- id: Patio off
+  alias: Patio off
+  trigger:
+  - platform: time
+    at: '00:00:30'
+  # See "Driveway off" - separate service call per switch. Triggers 30s
+  # after Driveway off (not 00:00:00) so the two automations' Tuya calls
+  # don't burst together.
+  action:
+  - service: switch.turn_off
+    data:
+      entity_id: switch.patio_switch_1
+  - delay: '00:00:05'
+  - service: switch.turn_off
+    data:
+      entity_id: switch.patio_lights_socket_1
+- id: Kitchen WLED on
+  alias: Kitchen WLED on
+  trigger:
+  - platform: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - platform: homeassistant
+    event: start
+  condition:
+  - condition: numeric_state
+    entity_id: sun.sun
+    attribute: elevation
+    below: 0
+  - condition: time
+    before: '00:00:00'
+    after: '12:00:00'
+  action:
+  - service: script.plinth_warm_white
+  - service: script.wall_units_warm_white
+  - service: script.utility_units_warm_white
+  - service: light.turn_on
+    target:
+      entity_id:
+      - light.kitchen_plinths
+      - light.kitchen_wall_units
+      - light.utility_units
+    data:
+      brightness_pct: 25
+- id: Kitchen WLED off
+  alias: Kitchen WLED off
+  trigger:
+  - platform: time
+    at: '00:00:00'
+  action:
+  - service: light.turn_off
+    target:
+      entity_id:
+      - light.kitchen_plinths
+      - light.kitchen_wall_units
+      - light.utility_units
+- id: Kids Motion Night Time On
+  alias: Kids Motion Night Time On
+  trigger:
+  - platform: time
+    at: '23:30:00'
+  action:
+  - service: switch.turn_on
+    data:
+      entity_id: switch.bart_simpson_motion_bedroom_display
+- id: Kids Motion Night Time Off
+  alias: Kids Motion Night Time Off
+  trigger:
+  - platform: time
+    at: 07:40:00
+  action:
+  - service: switch.turn_off
+    data:
+      entity_id: switch.bart_simpson_motion_bedroom_display
+- id: Garden Shed Upper Motion
+  initial_state: true
+  mode: single
+  alias: Garden Shed Upper Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_shed_upper_camera
+      filename: /config/www/alerts/garden_shed_upper_camera_alert.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Garden Shed Upper Camera {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/garden_shed_upper_camera_alert.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: garden-shed-upper-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/garden_shed_upper_camera_alert.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Garden Upper Motion
+  initial_state: true
+  mode: single
+  alias: Garden Upper Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_upper_camera
+      filename: /config/www/alerts/garden_upper_camera_alerts.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Garden Upper Camera - {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/garden_upper_camera_alerts.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: garden-upper-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/garden_upper_camera_alerts.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Front Motion
+  initial_state: true
+  mode: single
+  alias: Front Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.front_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.front_camera
+      filename: /config/www/alerts/front_camera.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Front Camera - {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/front_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: front-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/front_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Patio Outdoor Motion
+  initial_state: true
+  mode: single
+  alias: Patio Outdoor Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.patio_outdoor_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.patio_outdoor_camera
+      filename: /config/www/alerts/patio_outdoor_camera_alerts.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Patio Outdoor Camera - {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/patio_outdoor_camera_alerts.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: patio-outdoor-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/patio_outdoor_camera_alerts.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Garden Shed Lower Motion
+  initial_state: true
+  mode: single
+  alias: Garden Shed Lower Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_shed_lower_camera
+      filename: /config/www/alerts/garden_shed_lower_camera_alert.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Garden Shed Lower Camera {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/garden_shed_lower_camera_alert.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: garden-shed-lower-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/garden_shed_lower_camera_alert.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Dogs Motion
+  initial_state: true
+  mode: single
+  alias: Dogs Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.dogs_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.dogs_camera
+      filename: /config/www/alerts/dogs_camera.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Dogs Camera - {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/dogs_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: dogs-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/dogs_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Bart Simpson Room Motion
+  initial_state: true
+  mode: single
+  alias: Bart Simpson Room Motion
+  trigger:
+    platform: state
+    entity_id: binary_sensor.bart_simpson_room_motion
+    to: 'on'
+  condition:
+    condition: template
+    value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+      and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.bart_simpson_room_camera
+      filename: /config/www/alerts/bart_simpson_room_camera.jpg
+  - delay: 00:00:02
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      title: Home Security Alert
+      message: Motion Bart Simpson Room Camera - {{ now().strftime("%H:%M %d/%b") }}
+      image: https://home.example.com:8123/local/alerts/bart_simpson_room_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+      actions:
+      - action: tv_lamp_on
+        icon: /local/tv.png
+        title: TV / Lights On
+      - action: intruder_alert
+        icon: /local/Alarm-128.png
+        title: Activate Intruder Alert
+      tag: bart_simpson-room-motion
+      data:
+        url: https://home.example.com:8123/local/alerts/bart_simpson_room_camera.jpg?{{now().second}}{{now().second}}{{range(1000)|random}}
+  - delay: 00:01:00
+- id: Garden Shed Upper Motion Lamp On
+  initial_state: false
+  alias: Garden Shed Upper Motion Lamp On
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: script.all_lights_on
+  - delay: 00:00:{{ (range(30, 55)|random|int) }}
+  - service: script.all_lights_off
+- id: Garden Upper Motion Lamp On
+  initial_state: false
+  alias: Garden Upper Motion Lamp On
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: script.all_lights_on
+  - delay: 00:00:{{ (range(30, 55)|random|int) }}
+  - service: script.all_lights_off
+- id: Front Motion Lamp On
+  initial_state: false
+  alias: Front Motion Lamp On
+  trigger:
+    platform: state
+    entity_id: binary_sensor.front_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: script.all_lights_on
+  - delay: 00:00:{{ (range(30, 55)|random|int) }}
+  - service: script.all_lights_off
+- id: Patio Outdoor Motion Lamp On
+  initial_state: false
+  alias: Patio Outdoor Motion Lamp On
+  trigger:
+    platform: state
+    entity_id: binary_sensor.patio_outdoor_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: script.all_lights_on
+  - delay: 00:00:{{ (range(30, 55)|random|int) }}
+  - service: script.all_lights_off
+- id: Garden Shed Lower Motion Lamp On
+  initial_state: false
+  alias: Garden Shed Lower Motion Lamp On
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: script.all_lights_on
+  - delay: 00:00:{{ (range(30, 55)|random|int) }}
+  - service: script.all_lights_off
+- id: Garden Shed Upper Motion Image Processing
+  initial_state: false
+  alias: Garden Shed Upper Motion Image Processing
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_shed_upper_camera
+      filename: /config/www/alerts/garden_shed_upper_camera.jpg
+- id: Garden Shed Lower Motion Image Processing
+  initial_state: false
+  alias: Garden Shed Lower Motion Image Processing
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_shed_lower_camera
+      filename: /config/www/alerts/garden_shed_lower_camera.jpg
+- id: Front Motion Image Processing
+  initial_state: false
+  alias: Front Motion Image Processing
+  trigger:
+    platform: state
+    entity_id: binary_sensor.front_motion
+    to: 'on'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.front_camera
+      filename: /config/www/alerts/front_camera.jpg
+- id: Garden Upper Motion Image Processing
+  initial_state: false
+  alias: Garden Upper Motion Image Processing
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.garden_upper_camera
+      filename: /config/www/alerts/garden_upper_camera.jpg
+- id: Patio Outdoor Motion Image Processing
+  initial_state: false
+  alias: Patio Outdoor Motion Image Processing
+  trigger:
+    platform: state
+    entity_id: binary_sensor.patio_outdoor_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+  - service: camera.snapshot
+    data:
+      entity_id: camera.patio_outdoor_camera
+      filename: /config/www/alerts/patio_outdoor_camera.jpg
+- id: Garden Shed Upper Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Garden Shed Upper Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Garden Upper Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Garden Upper Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Front Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Front Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.front_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/Front/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Patio Outdoor Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Patio Outdoor Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.patio_outdoor_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Garden Shed Lower Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Garden Shed Lower Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Bart Simpson Room Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Bart Simpson Room Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.bart_simpson_room_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:02:00
+  - data:
+      entity_id: media_player.lenovosmartdisplay80739
+    service: media_player.turn_off
+- id: Dogs Motion Camera Image on Bedroom Display
+  initial_state: false
+  alias: Dogs Motion Camera Image on Bedroom Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.dogs_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+      media_content_id: http://10.0.0.250:81/mjpg/Dogs/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay80739
+- id: Garden Shed Upper Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Garden Shed Upper Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/GardenShedUpper/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+- id: Garden Upper Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Garden Upper Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/GardenUpper/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+- id: Front Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Front Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.front_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/Front/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+- id: Patio Outdoor Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Patio Outdoor Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.patio_outdoor_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/PatioOutdoor/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+- id: Garden Shed Lower Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Garden Shed Lower Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/GardenShedLower/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:01:00
+  - service: media_player.turn_off
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+- id: Bart Simpson Room Motion Camera Image on Kitchen Display
+  initial_state: false
+  alias: Bart Simpson Room Motion Camera Image on Kitchen Display
+  trigger:
+    platform: state
+    entity_id: binary_sensor.bart_simpson_room_motion
+    to: 'on'
+  action:
+  - service: media_player.play_media
+    data:
+      entity_id: media_player.lenovosmartdisplay81380
+      media_content_id: http://10.0.0.250:81/mjpg/Lisa SimpsonBackRoom/video.mjpg
+      media_content_type: image/jpg
+  - delay: 00:02:00
+  - data:
+      entity_id: media_player.lenovosmartdisplay81380
+    service: media_player.turn_off
+- id: Home Assistant Update Available
+  alias: Update Available Notifications
+  trigger:
+    platform: state
+    entity_id: updater.updater
+  action:
+  - action: html5.send_message
+    target:
+      label_id: push_devices
+    data:
+      message: '''Update for Home Assistant is available. - {{ now().strftime("%H:%M
+        %d/%b") }}''
+
+        '
+      actions:
+      - action: open
+        icon: /static/icons/favicon-192x192.png
+        title: Open Home Assistant
+      tag: ha-update-available
+- id: Garden Shed Lower Motion Lights and Sound
+  initial_state: false
+  alias: Garden Shed Lower Motion Lights and Sound
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_lower_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+    service: script.turn_on
+    entity_id: script.garden_lights_and_sound
+- id: Garden Shed Upper Motion Lights and Sound
+  initial_state: false
+  alias: Garden Shed Upper Motion Lights and Sound
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_shed_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+    service: script.turn_on
+    entity_id: script.garden_lights_and_sound
+- id: Garden Upper Motion Lights and Sound
+  initial_state: false
+  alias: Garden Upper Motion Lights and Sound
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garden_upper_motion
+    to: 'on'
+  condition:
+    condition: or
+    conditions:
+    - condition: template
+      value_template: "{% set start = today_at(states('input_datetime.motion_alert_evening_condition_time')) %} {% set end = today_at(states('input_datetime.motion_alert_morning_condition_time')) %} {{ now() >= start and now() <= end }}"
+    - condition: template
+      value_template: '{% if not is_state(''person.homer_simpson'', ''home'') and (now() - states.person.homer_simpson.last_changed).total_seconds() > 300
+        and not is_state(''person.marge_simpson'', ''home'') and (now() - states.person.marge_simpson.last_changed).total_seconds() > 300 %}true{% endif %}'
+  action:
+    service: script.turn_on
+    entity_id: script.garden_lights_and_sound
+- id: TTS To Speakers
+  initial_state: true
+  alias: TTS to Speakers
+  trigger:
+    platform: state
+    entity_id: input_button.tts_cast
+    not_from:
+      - unknown
+      - unavailable
+  variables:
+    tts_target: >-
+      {% if is_state("input_select.cast_to_media_player_dropdown", "Lounge TV") %} media_player.chromecast1049
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Bart Simpson TV") %} media_player.chromecast6664
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Bedroom TV") %} media_player.chromecast7681
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Bedroom Display") %} media_player.lenovosmartdisplay80739
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Kitchen Display") %} media_player.lenovosmartdisplay81380
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Kitchen Speaker") %} media_player.dogs_speaker
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Lisa Simpson Room Speaker") %} media_player.googlehome2510
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Garden Speaker") %} media_player.googlehome6669
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Garden Audio") %} media_player.lounge_speaker
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Lounge Speaker") %} media_player.nestaudio8600
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Bart Simpson Room Speaker") %} media_player.googlehome8636
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Upstairs Bedroom Speaker") %} media_player.lounge_assistant
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Bathroom Speaker") %} media_player.kitchen_speaker_2
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Upstairs Group") %} media_player.upstairs_group
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Downstairs Group") %} media_player.downstairs_group
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Home Group") %} media_player.home_group
+      {% elif is_state("input_select.cast_to_media_player_dropdown", "Utility Speaker") %} media_player.googlehome3553
+      {% endif %}
+  action:
+    - service: media_player.volume_set
+      data:
+        entity_id: "{{ tts_target }}"
+        volume_level: "{{ (states('input_number.media_volume_select') | float(4)) / 10 }}"
+    - service: tts.cloud_say
+      data:
+        entity_id: "{{ tts_target }}"
+        message: '{{ states("input_text.tts_text") }}'
+        language: en-GB
+        options:
+          voice: "{{ states('input_select.tts_voice_dropdown') }}Neural"
+
+- id: irrigation_daily_schedule
+  alias: "Irrigation: Daily Schedule"
+  description: "Runs Zone 1, Zone 2, Zone 3 sequentially each morning"
+  mode: single
+  trigger:
+    - platform: time
+      at: input_datetime.irrigation_start_time
+  condition:
+    - condition: state
+      entity_id: input_boolean.irrigation_enabled
+      state: 'on'
+    - condition: template
+      value_template: >
+        {% set day = now().weekday() %}
+        {% set day_map = {
+          0: 'input_boolean.irrigation_monday',
+          1: 'input_boolean.irrigation_tuesday',
+          2: 'input_boolean.irrigation_wednesday',
+          3: 'input_boolean.irrigation_thursday',
+          4: 'input_boolean.irrigation_friday',
+          5: 'input_boolean.irrigation_saturday',
+          6: 'input_boolean.irrigation_sunday'
+        } %}
+        {{ is_state(day_map[day], 'on') }}
+  action:
+    - service: weather.get_forecasts
+      target:
+        entity_id: weather.home_homer_simpson_com
+      data:
+        type: hourly
+      response_variable: irrigation_rain_forecast
+    - if:
+        - condition: template
+          value_template: >
+            {% set threshold = states('input_number.irrigation_rain_threshold') | float(1.0) %}
+            {% if is_state('input_boolean.irrigation_rain_sensor_enabled', 'off') %}
+              false
+            {% else %}
+              {% set current = states('sensor.home_homer_simpson_com_rain_intensity') | float(0) %}
+              {% set past_12h = states('sensor.rain_intensity_12h_max') | float(0) %}
+              {% set fc = irrigation_rain_forecast['weather.home_homer_simpson_com']['forecast'] | default([]) %}
+              {% set now_ts = as_timestamp(now()) %}
+              {% set cutoff_ts = now_ts + (12 * 3600) %}
+              {% set ns = namespace(next_12h = 0) %}
+              {% for f in fc %}
+                {% set f_ts = as_timestamp(f.datetime) %}
+                {% if f_ts >= now_ts and f_ts <= cutoff_ts %}
+                  {% set ns.next_12h = [ns.next_12h, f.precipitation | float(0)] | max %}
+                {% endif %}
+              {% endfor %}
+              {{ current >= threshold or past_12h >= threshold or ns.next_12h >= threshold }}
+            {% endif %}
+      then:
+        - stop: "Skipped: rain detected in the past 12h, current reading, or next 12h forecast"
+    # Zone 1
+    - service: valve.open_valve
+      target:
+        entity_id: valve.wt_11w_zone_1
+    - delay:
+        minutes: "{{ states('input_number.irrigation_zone1_duration') | int }}"
+    - service: valve.close_valve
+      target:
+        entity_id: valve.wt_11w_zone_1
+    - delay:
+        seconds: 30
+    # Zone 2
+    - service: valve.open_valve
+      target:
+        entity_id: valve.wt_11w_zone_2
+    - delay:
+        minutes: "{{ states('input_number.irrigation_zone2_duration') | int }}"
+    - service: valve.close_valve
+      target:
+        entity_id: valve.wt_11w_zone_2
+    - delay:
+        seconds: 30
+    # Zone 3
+    - service: valve.open_valve
+      target:
+        entity_id: valve.wt_11w_zone_3
+    - delay:
+        minutes: "{{ states('input_number.irrigation_zone3_duration') | int }}"
+    - service: valve.close_valve
+      target:
+        entity_id: valve.wt_11w_zone_3
+
+- id: ha_update_available_notification
+  alias: "Notify: Home Assistant Update Available"
+  trigger:
+    - platform: homeassistant
+      event: start
+    - platform: state
+      entity_id: sensor.ha_latest_version
+  condition:
+    - condition: template
+      value_template: >
+        {{ states('sensor.ha_latest_version') not in ['unknown', 'unavailable', ''] and
+           states('sensor.current_version_2') not in ['unknown', 'unavailable', ''] and
+           states('sensor.ha_latest_version') != states('sensor.current_version_2') }}
+  action:
+    - service: persistent_notification.create
+      data:
+        title: "Home Assistant Update Available"
+        message: >
+          Version {{ states('sensor.ha_latest_version') }} is available.
+          You are running {{ states('sensor.current_version_2') }}.
+          Update HA_VERSION in docker-compose.yml and rebuild to upgrade.
+        notification_id: ha_update_available
+
+# --- Mimir alerting -----------------------------------------------------------
+
+- id: mimir_alert_whatsapp
+  alias: "Alerts: Mimir -> WhatsApp"
+  mode: queued
+  max: 30
+  trigger:
+    - platform: webhook
+      webhook_id: mimir_alert_whatsapp
+      allowed_methods: [POST]
+      local_only: false
+  condition:
+    - condition: state
+      entity_id: input_boolean.alerts_muted
+      state: "off"
+  action:
+    - repeat:
+        for_each: "{{ trigger.json.alerts | default([]) }}"
+        sequence:
+          - variables:
+              a: "{{ repeat.item }}"
+          - service: script.notify_whatsapp
+            data:
+              message: >-
+                {%- set sev = a.labels.severity | default('none') -%}
+                {%- set sev_emoji = {'critical': '🚨', 'warning': '⚠️', 'info': 'ℹ️'}.get(sev, '❓') -%}
+                {%- set status_emoji = '✅' if a.status == 'resolved' else '🔥' -%}
+                {%- set tag = '[RESOLVED]' if a.status == 'resolved' else '[FIRING]' -%}
+                {%- set instance_meaningful = a.labels.job in ['windows', 'integrations/unix'] -%}
+                {%- set head = status_emoji ~ ' ' ~ tag ~ ' ' ~ sev_emoji ~ ' ' ~ (sev | upper) ~ ' · ' ~ a.labels.alertname ~ (' · ' ~ a.labels.instance if instance_meaningful and a.labels.instance is defined else '') -%}
+                {%- set parts = [head] -%}
+                {%- if a.annotations.summary is defined -%}
+                  {%- set parts = parts + ['Summary: ' ~ a.annotations.summary] -%}
+                {%- endif -%}
+                {%- if a.annotations.description is defined -%}
+                  {%- set parts = parts + ['Description: ' ~ a.annotations.description] -%}
+                {%- endif -%}
+                {%- if a.status == 'resolved' -%}
+                  {%- set start_ts = as_timestamp(a.startsAt) -%}
+                  {%- set end_ts = as_timestamp(a.endsAt) -%}
+                  {%- set dur_s = (end_ts - start_ts) | int(0) -%}
+                  {%- set dur_h = dur_s // 3600 -%}
+                  {%- set dur_m = (dur_s % 3600) // 60 -%}
+                  {%- set duration = (dur_h ~ 'h ' ~ dur_m ~ 'm') if dur_h > 0 else ((dur_m ~ 'm') if dur_m > 0 else (dur_s ~ 's')) -%}
+                  {%- set parts = parts + ['Started: ' ~ (start_ts | timestamp_custom('%d %b %H:%M', true))] -%}
+                  {%- set parts = parts + ['Ended: ' ~ (end_ts | timestamp_custom('%d %b %H:%M', true))] -%}
+                  {%- set parts = parts + ['Duration: ' ~ duration] -%}
+                {%- else -%}
+                  {%- if a.annotations.runbook_url is defined -%}
+                    {%- set parts = parts + ['Runbook: ' ~ a.annotations.runbook_url] -%}
+                  {%- endif -%}
+                  {%- set nsm = namespace(matchers=[]) -%}
+                  {%- for k, v in a.labels.items() -%}
+                    {%- set nsm.matchers = nsm.matchers + ['matcher=' ~ k ~ '=' ~ (v | string | urlencode)] -%}
+                  {%- endfor -%}
+                  {%- set silence_url = 'https://home.example.com:599/grafana/alerting/silence/new?alertmanager=' ~ ('Mimir Alertmanager' | urlencode) ~ '&' ~ (nsm.matchers | join('&')) -%}
+                  {%- set parts = parts + ['Silence: ' ~ silence_url] -%}
+                {%- endif -%}
+                {%- set parts = parts + ['Alerts: https://home.example.com:599/grafana/alerting/list?search=' ~ a.labels.alertname] -%}
+                {{ parts | join('\n') }}
+          # Also push criticals to phones so a CallMeBot outage isn't silent.
+          - if:
+              - condition: template
+                value_template: "{{ a.status == 'firing' and a.labels.severity == 'critical' }}"
+            then:
+              - service: html5.send_message
+                target:
+                  label_id: push_devices
+                data:
+                  title: "🔴 {{ a.labels.alertname }}"
+                  message: "{{ a.annotations.summary | default(a.labels.instance) | default('critical alert') }}"
+                  tag: "mimir_{{ a.labels.alertname }}_{{ a.labels.instance | default('') }}"
+
+- id: mimir_watchdog_heartbeat
+  alias: "Alerts: Mimir watchdog heartbeat"
+  mode: queued
+  trigger:
+    - platform: webhook
+      webhook_id: mimir_watchdog
+      allowed_methods: [POST]
+      local_only: false
+  action:
+    - service: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.monitoring_last_watchdog
+      data:
+        timestamp: "{{ now().timestamp() }}"
+
+- id: monitoring_pipeline_silent
+  alias: "Alerts: Monitoring pipeline silent"
+  mode: single
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.monitoring_watchdog
+      to: "off"
+      for: "00:02:00"
+    - platform: state
+      entity_id: binary_sensor.monitoring_watchdog
+      to: "off"
+      for: "00:32:00"
+    - platform: state
+      entity_id: binary_sensor.monitoring_watchdog
+      to: "off"
+      for: "01:02:00"
+  condition:
+    - condition: state
+      entity_id: input_boolean.alerts_muted
+      state: "off"
+  action:
+    - service: script.notify_whatsapp
+      data:
+        message: >-
+          ⚠️ Monitoring pipeline not reporting — the Mimir watchdog has been
+          silent for {{ relative_time(states.binary_sensor.monitoring_watchdog.last_changed) }}.
+          Check Mimir / Alloy / nginx on the Docker host.
+    - service: html5.send_message
+      target:
+        label_id: push_devices
+      data:
+        title: "⚠️ Monitoring pipeline silent"
+        message: "Mimir watchdog heartbeat lost. Check Mimir / Alloy."
+        tag: "monitoring_pipeline_silent"
+
+- id: alerts_mute_auto_unmute
+  alias: "Alerts: Start the auto-unmute timer"
+  # A bare `delay:` here was lost on every HA restart (deploys), so a mute
+  # set on 2026-09-07 stayed on for 3 days and silenced every WhatsApp alert.
+  # timer.alerts_muted has restore:true, so the countdown survives restarts -
+  # same pattern as heating_boost / adguard_protection_disabled.
+  # restart mode => re-muting (or changing the duration) resets the timer.
+  mode: restart
+  trigger:
+    - platform: state
+      entity_id: input_boolean.alerts_muted
+      to: "on"
+  action:
+    - service: timer.start
+      target:
+        entity_id: timer.alerts_muted
+      data:
+        duration: >-
+          {% set d = states('input_select.alert_mute_duration') %}
+          {{ {'15 minutes': '00:15:00', '1 hour': '01:00:00', '4 hours': '04:00:00', '24 hours': '24:00:00'}[d] | default('01:00:00') }}
+    - service: persistent_notification.create
+      data:
+        title: "Alerts muted"
+        message: >-
+          WhatsApp/push alerts muted for {{ states('input_select.alert_mute_duration') }}.
+          Rules still evaluate in Mimir; the Alertmanager still records them.
+        notification_id: alerts_muted
+
+- id: alerts_mute_timer_finished
+  alias: "Alerts: Auto-unmute when the timer finishes"
+  trigger:
+    - platform: event
+      event_type: timer.finished
+      event_data:
+        entity_id: timer.alerts_muted
+  condition:
+    - condition: state
+      entity_id: input_boolean.alerts_muted
+      state: "on"
+  action:
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.alerts_muted
+
+- id: alerts_mute_tidy_up
+  alias: "Alerts: Tidy up when unmuted"
+  trigger:
+    - platform: state
+      entity_id: input_boolean.alerts_muted
+      to: "off"
+  action:
+    - service: timer.cancel
+      target:
+        entity_id: timer.alerts_muted
+    - service: persistent_notification.dismiss
+      data:
+        notification_id: alerts_muted

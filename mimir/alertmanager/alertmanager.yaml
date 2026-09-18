@@ -1,0 +1,106 @@
+# Mimir Alertmanager config. Loaded by `mimirtool alertmanager load` in the
+# Deploy stage of azure-pipelines-docker.yml against http://localhost:9009,
+# tenant "anonymous" (multitenancy is disabled in mimir.yaml).
+#
+# All receivers are webhooks into Home Assistant, which composes the WhatsApp
+# message (via CallMeBot) and handles muting - see automations.yaml
+# (mimir_alert_whatsapp / mimir_watchdog) and configuration.yaml (rest_command
+# callmebot_whatsapp). Keeping the routing logic here and the delivery in HA
+# means WhatsApp/formatting changes never touch the metrics stack.
+
+route:
+  receiver: whatsapp-warning
+  # '...' means "group by every label" - i.e. no aggregation, each alert gets
+  # its own notification group. Grouping by [alertname, instance] silently
+  # merged every container's ContainerHighMemory alert into ONE group,
+  # because cAdvisor's `instance` label is the same scrape target
+  # (localhost:8089) for every container on the host. With grafana's own
+  # memory alert flapping almost continuously, that shared group was rarely
+  # "fresh", so home-assistant's own firing transitions got absorbed into
+  # group_interval/repeat_interval throttling and never sent a FIRING
+  # message - only RESOLVED (sent per-alert, not gated the same way) got
+  # through. The HA automation already sends one WhatsApp message per alert
+  # in the payload regardless of how Alertmanager batches them, so grouping
+  # buys nothing here - disable it instead of chasing per-route group_by
+  # fixes as new instance-sharing alerts show up.
+  group_by: ["..."]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  routes:
+    # Dead-man's-switch heartbeat - HA times these and self-pages if they stop.
+    - matchers:
+        - alertname="Watchdog"
+      receiver: watchdog
+      group_wait: 0s
+      group_interval: 1m
+      repeat_interval: 2m
+      continue: false
+
+    # Laptops / dev VM: go up and down normally as a matter of course. Only
+    # the "expected churn" alerts for those hosts are dropped here - the host
+    # being unreachable (TargetDown) and the laptop rebooting
+    # (WindowsHostRebooted). Every other transient-tier alert (CPU, memory,
+    # disk, clock, read-only FS, ...) falls through to the normal
+    # severity routing below and pages like any other host - a laptop with a
+    # full disk is still a real problem worth knowing about.
+    - matchers:
+        - tier="transient"
+        - alertname=~"TargetDown|WindowsHostRebooted"
+      receiver: transient
+      group_by: [alertname, instance]
+      continue: false
+
+    - matchers:
+        - severity="critical"
+      receiver: whatsapp-critical
+
+receivers:
+  # HA serves :8123 as HTTPS-only (self-signed cert for the external hostname,
+  # not this LAN IP - same pattern as the Grafana Infinity datasource and
+  # Alloy's grafana scrape). A plain http:// URL here gets the TCP connection
+  # accepted then torn down as soon as HA's TLS layer sees plaintext, which
+  # Alertmanager reports as "Post ...: EOF" - confirmed live (47/48 webhook
+  # notifications failed with exactly that error before this fix).
+  - name: whatsapp-critical
+    webhook_configs:
+      - url: https://10.0.0.10:8123/api/webhook/mimir_alert_whatsapp
+        send_resolved: true
+        http_config:
+          tls_config:
+            insecure_skip_verify: true
+
+  - name: whatsapp-warning
+    webhook_configs:
+      - url: https://10.0.0.10:8123/api/webhook/mimir_alert_whatsapp
+        send_resolved: true
+        http_config:
+          tls_config:
+            insecure_skip_verify: true
+
+  # Deliberately no webhook_configs - transient-tier alerts (homer_simpson-hp-laptop,
+  # dev-linux) are silently dropped here instead of reaching WhatsApp/push.
+  - name: transient
+
+  - name: watchdog
+    webhook_configs:
+      - url: https://10.0.0.10:8123/api/webhook/mimir_watchdog
+        send_resolved: false
+        http_config:
+          tls_config:
+            insecure_skip_verify: true
+
+inhibit_rules:
+  # A critical mutes the matching warning for the same alert on the same host.
+  - source_matchers:
+      - severity="critical"
+    target_matchers:
+      - severity="warning"
+    equal: [alertname, instance]
+
+  # A host being down mutes its own threshold alerts (they'd just be noise).
+  - source_matchers:
+      - alertname="TargetDown"
+    target_matchers:
+      - severity=~"warning|critical"
+    equal: [instance]

@@ -1,0 +1,12 @@
+.ha_run.lock
+home-assistant.log
+home-assistant.log.*
+home-assistant.log.fault
+home-assistant_v2.db*
+.storage/
+deps/
+tts/
+blueprints/
+docker-compose.demo.yml
+Dockerfile
+.dockerignore

@@ -1,0 +1,43 @@
+# MongoDB alerts. percona/mongodb_exporter (--compatible-mode), job="mongodb".
+# Exporter lands in PR3 - verify these metric names once it is scraping
+# (mongodb_up, mongodb_connections, mongodb_asserts_total).
+namespace: mongodb
+groups:
+  - name: mongodb
+    rules:
+      - alert: MongoDBExporterDown
+        expr: up{job="mongodb"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB exporter is down"
+          description: "No visibility into unifi-db."
+
+      - alert: MongoDBDown
+        expr: mongodb_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB (unifi-db) is down"
+          description: "The UniFi Network Application stores everything here - the controller will fail without it."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=mongodbdown"
+
+      - alert: MongoDBHighConnections
+        expr: mongodb_connections{state="current"} > 400
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB has {{ $value | printf \"%.0f\" }} open connections"
+          description: "Connection leak or a client hammering the DB."
+
+      - alert: MongoDBHighAssertRate
+        expr: sum(rate(mongodb_asserts_total[5m])) > 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MongoDB assertion rate elevated"
+          description: "{{ $value | printf \"%.1f\" }} asserts/s - check mongod logs for errors."

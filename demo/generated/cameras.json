@@ -1,0 +1,56 @@
+{
+  "bart_simpson_room_camera": {
+    "source_image": "bart_room_camera.jpg"
+  },
+  "bart_simpson_room_last_motion": {
+    "source_image": "bart_room_last_motion.jpg"
+  },
+  "dogs_camera": {
+    "source_image": "dogs_camera.jpg"
+  },
+  "dogs_last_motion": {
+    "source_image": "dogs_last_motion.jpg"
+  },
+  "front_camera": {
+    "source_image": "front_camera.jpg"
+  },
+  "front_door": {
+    "source_image": "FrontDoor.jpg"
+  },
+  "front_last_motion": {
+    "source_image": "front_last_motion.jpg"
+  },
+  "garden_shed_lower": {
+    "source_image": "garden_shed_lower.jpg"
+  },
+  "garden_shed_lower_camera": {
+    "source_image": "garden_shed_lower_camera.jpg"
+  },
+  "garden_shed_lower_last_motion": {
+    "source_image": "garden_shed_lower_last_motion.jpg"
+  },
+  "garden_shed_upper_camera": {
+    "source_image": "garden_shed_upper_camera.jpg"
+  },
+  "garden_shed_upper_last_motion": {
+    "source_image": "garden_shed_upper_last_motion.jpg"
+  },
+  "garden_upper_camera": {
+    "source_image": "garden_upper_camera.jpg"
+  },
+  "garden_upper_last_motion": {
+    "source_image": "garden_upper_last_motion.jpg"
+  },
+  "maps_googleapis_com": {
+    "source_image": "mower-satellite.png"
+  },
+  "p2s_22e8bj620203679_camera": {
+    "source_image": "3d-print.jpg"
+  },
+  "patio_last_motion": {
+    "source_image": "patio_last_motion.jpg"
+  },
+  "patio_outdoor_camera": {
+    "source_image": "patio_outdoor_camera.jpg"
+  }
+}

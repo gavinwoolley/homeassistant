@@ -1,0 +1,8 @@
+{
+  "domain": "demo_media_player",
+  "name": "Demo Media Player",
+  "codeowners": [],
+  "documentation": "https://github.com/homer_simpson/homeassistant",
+  "iot_class": "calculated",
+  "version": "1.0.0"
+}

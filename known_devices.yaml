@@ -1,0 +1,357 @@
+lisa_simpson_lounge_camera:
+  hide_if_away: false
+  icon:
+  mac: 9e:83:44:f5:81:b7
+  name: Lisa Simpson Lounge Camera
+  picture:
+  track: false
+  vendor: unknown
+
+chromecast:
+  hide_if_away: false
+  icon:
+  mac: 7e:a1:b8:5c:b6:ff
+  name: Chromecast
+  picture:
+  track: false
+  vendor: Google, Inc.
+
+lounge_camera:
+  hide_if_away: false
+  icon:
+  mac: e2:0d:46:06:4e:db
+  name: Lounge Camera
+  picture:
+  track: false
+  vendor: unknown
+
+kitchen_firestick:
+  hide_if_away: false
+  icon:
+  mac: 4e:4b:be:a8:e2:d4
+  name: Kitchen Firestick
+  picture:
+  track: false
+  vendor: Amazon Technologies Inc.
+
+amazon_fire_tablet:
+  hide_if_away: false
+  icon:
+  mac: 6a:0f:7c:15:bd:53
+  name: Amazon Fire Tablet
+  picture:
+  track: false
+  vendor: Amazon Technologies Inc.
+
+lounge_firestick:
+  hide_if_away: false
+  icon:
+  mac: ba:2e:40:8c:26:60
+  name: Lounge Firestick
+  picture:
+  track: false
+  vendor: Amazon Technologies Inc.
+
+googlehome:
+  hide_if_away: false
+  icon:
+  mac: ce:51:57:37:3c:2e
+  name: Google-Home
+  picture:
+  track: false
+  vendor: Google, Inc.
+
+dogs_camera:
+  hide_if_away: false
+  icon:
+  mac: f2:9f:fb:0d:d0:23
+  name: Dogs Camera
+  picture:
+  track: false
+  vendor: unknown
+
+bart_simpson_room_camera:
+  hide_if_away: false
+  icon:
+  mac: d6:39:d2:c9:26:05
+  name: Bart Simpson Room Camera
+  picture:
+  track: false
+  vendor: unknown
+
+chromecast_lounge:
+  hide_if_away: false
+  icon:
+  mac: 2a:5c:2e:a1:3e:18
+  name: Chromecast Lounge
+  picture:
+  track: false
+  vendor: AzureWave Technology Inc.
+
+ipad18:
+  hide_if_away: false
+  icon:
+  mac: 72:a1:7e:bb:06:8a
+  name: iPad18
+  picture:
+  track: false
+  vendor: Apple, Inc.
+
+broadlink_rmproplusf436d6:
+  hide_if_away: false
+  icon:
+  mac: 2e:8f:64:7b:38:65
+  name: Broadlink RMPROPLUS-f4-36-d6
+  picture:
+  track: false
+  vendor: HangZhou Gubei Electronics Technology Co.,Ltd
+
+androidb3c80a62f30376e6:
+  hide_if_away: false
+  icon:
+  mac: be:b0:d8:50:05:54
+  name: android-b3c80a62f30376e6
+  picture:
+  track: false
+  vendor: HTC Corporation
+
+patty_bouvier:
+  hide_if_away: true
+  icon:
+  mac: f6:a5:e5:ef:7a:5b
+  name: Patty Bouvier
+  picture: /local/Patty Bouvier.JPG
+  track: true
+  vendor: Apple, Inc.
+
+desktop97v6mqq:
+  hide_if_away: false
+  icon:
+  mac: 0a:3e:c9:64:45:fb
+  name: DESKTOP-97V6MQQ
+  picture:
+  track: false
+  vendor: Intel Corporate
+
+iphone_2:
+  hide_if_away: false
+  icon:
+  mac: 9a:9e:55:3d:9d:0e
+  name: iPhone
+  picture:
+  track: false
+  vendor: Apple, Inc.
+
+iphone_3:
+  hide_if_away: false
+  icon:
+  mac: 42:3d:3e:10:93:f7
+  name: iPhone
+  picture:
+  track: false
+  vendor: Apple, Inc.
+
+usersiphone:
+  hide_if_away: false
+  icon:
+  mac: 0a:54:cc:5f:39:64
+  name: Users-iPhone
+  picture:
+  track: false
+  vendor: Apple, Inc.
+
+desktopr4tovdl:
+  hide_if_away: false
+  icon:
+  mac: 0a:bc:4e:3e:a9:20
+  name: DESKTOP-R4TOVDL
+  picture:
+  track: false
+  vendor: BELKIN COMPONENTS
+
+desktop0jk9kkj:
+  hide_if_away: false
+  icon:
+  mac: 8a:dd:10:2c:e9:68
+  name: DESKTOP-0JK9KKJ
+  picture:
+  track: false
+  vendor: Intel Corporate
+
+lisa_simpson:
+  hide_if_away: false
+  mac:
+  name: Lisa Simpson
+  gravatar: #{lisa_simpson_gravatar}#
+  track: true
+
+comic_book_guy:
+  hide_if_away: true
+  mac: 32:11:21:77:3d:6d
+  name: Comic Book Guy
+  picture: /local/comic_book_guy.jpg
+  track: true
+  vendor: Apple iPhone
+
+wii:
+  hide_if_away: true
+  mac: 7a:1a:14:21:1c:e5
+  name: Wii
+  picture: /local/wii.png
+  track: true
+  vendor: Nintendo
+
+abraham_simpson:
+  hide_if_away: true
+  mac: 06:da:88:de:9e:33
+  name: Abraham Simpson
+  picture: /local/abraham_simpson.jpg
+  track: true
+  vendor: Samsung
+
+mona_simpson:
+  hide_if_away: true
+  mac: 0e:5d:10:f0:d3:ed
+  name: Mona Simpson
+  picture: /local/mona_simpson.jpg
+  track: true
+  vendor: Samsung
+
+barney_gumble:
+  hide_if_away: true
+  icon:
+  mac: 8a:9b:fe:87:76:e6
+  name: barney_gumble
+  picture: /local/Barney Gumble.JPG
+  track: true
+  vendor: Sony Mobile Communications AB
+
+chromecast_2:
+  hide_if_away: false
+  icon:
+  mac: d6:60:de:e1:df:1a
+  name: Chromecast
+  picture:
+  track: false
+  vendor: AzureWave Technology Inc.
+
+broadlink_outlett1bdd9d0:
+  hide_if_away: false
+  icon:
+  mac: de:26:3e:57:9b:21
+  name: Broadlink Outlet-T1-bd-d9-d0
+  picture:
+  track: false
+
+googlehomemini:
+  hide_if_away: false
+  icon:
+  mac: ea:8e:ec:e2:94:b0
+  name: Google-Home-Mini
+  picture:
+  track: false
+
+00d7150222d0:
+  hide_if_away: false
+  icon:
+  mac: 6a:a1:2e:b8:df:9e
+  name: 00d7150222d0
+  picture:
+  track: false
+
+googlehomemini_2:
+  hide_if_away: false
+  icon:
+  mac: 4a:6e:56:4e:a9:ad
+  name: Google-Home-Mini
+  picture:
+  track: false
+
+broadlink_outlett1bd67ee:
+  hide_if_away: false
+  icon:
+  mac: 02:bd:e6:8e:22:e6
+  name: Broadlink Outlet-T1-bd-67-ee
+  picture:
+  track: false
+
+googlehomemini_3:
+  hide_if_away: false
+  icon:
+  mac: e2:72:e4:3c:9e:c1
+  name: Google-Home-Mini
+  picture:
+  track: false
+
+broadlink_outlett1bd5f48:
+  hide_if_away: false
+  icon:
+  mac: ba:86:09:c1:22:db
+  name: Broadlink Outlet-T1-bd-5f-48
+  picture:
+  track: false
+
+broadlink_outlett1bd67eb:
+  hide_if_away: false
+  icon:
+  mac: 26:85:0d:c0:b0:9c
+  name: Broadlink Outlet-T1-bd-67-eb
+  picture:
+  track: false
+
+#Marge Simpson
+google_maps_#{marge_simpson_google_maps_id}#:
+  hide_if_away: false
+  name: Marge Simpson
+  gravatar: #{marge_simpson_gravatar}#
+  track: true
+  vendor: Google Pixel 6
+
+marge_simpson_pixel_6:
+  hide_if_away: false
+  icon:
+  mac: 8a:e1:1d:67:c6:6e
+  name: Google Pixel 6
+  picture:
+  track: true
+
+#Homer Simpson
+google_maps_#{homer_simpson_google_maps_id}#:
+  hide_if_away: false
+  name: Homer Simpson
+  gravatar: #{homer_simpson_gravatar}#
+  vendor: Google Pixel 6 Pro
+  track: true
+
+homer_simpson_pixel_6_pro:
+  hide_if_away: false
+  icon:
+  mac: b2:bf:28:eb:15:c5
+  name: Homer Simpson
+  gravatar: #{homer_simpson_gravatar}#
+  track: true
+  vendor: Google Pixel
+
+homer_simpson_pixel_10_pro:
+  hide_if_away: false
+  icon:
+  mac: 2a:74:97:c0:57:91
+  name: Homer Simpson
+  gravatar: #{homer_simpson_gravatar}#
+  track: true
+  vendor: Google Pixel
+
+google_maps_homer_simpson_google_maps:
+  hide_if_away: false
+  icon:
+  mac:
+  name: google maps homer_simpsonhomeassistant gmail com
+  picture:
+  track: false
+
+mower:
+  name: mower
+  mac:
+  icon:
+  picture:
+  track: true
