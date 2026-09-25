@@ -1,0 +1,180 @@
+version: '2.3'
+
+# This is the standalone "Grafana observability" demo, a separate entry point
+# from the plain HA-only one (../devcontainer.json vs this directory's
+# ../devcontainer.json - the root .devcontainer/devcontainer.json). Grafana
+# is the featured service here; homeassistant-demo still runs, but headless
+# - purely a data source for Alloy/the datasources to point at, not meant to
+# be the thing a visitor browses (see this directory's devcontainer.json for
+# which port actually auto-opens). Deliberately not one Codespace trying to
+# be both demos at once - that combined shape is what caused the OOM/port-
+# forwarding/mixed-content issues this file's own git history fixed one at a
+# time; two separate, single-purpose demos sidesteps needing HA to embed or
+# link to Grafana at all.
+#
+# Fully self-contained - does NOT merge with demo/docker-compose.demo.yml or
+# demo/docker-compose.demo-observability.yml at all (see ../devcontainer.json,
+# which references only this one file). That's deliberate, not an
+# oversight: an earlier version tried layering this on top of those two
+# files and overriding just the one thing that needed to differ
+# (homeassistant-demo's image + mount). Confirmed live, on the real Docker
+# host, that Compose merges `volumes:` lists PER TARGET PATH, not by list
+# position - so a later file can only ever REPLACE a bind mount's source
+# for a given target, never remove that target entirely. Since
+# demo/docker-compose.demo.yml unconditionally mounts something at /config,
+# there was no reliable way to leave /config unmounted from a later
+# override file, no matter what was tried (empty list, `!reset`, `!override`,
+# a different target - all either no-ops or silent appends). Defining
+# every service fresh here, with nothing to override, sidesteps that limit
+# entirely rather than fighting it further.
+#
+# Uses two baked images instead of the plain upstream ones + live
+# first-boot setup - the whole point of this file:
+#   - homeassistant-demo: ghcr.io/gavinwoolley/homeassistant-demo (same
+#     image the plain "Open in Codespaces" badge uses) - onboarding,
+#     recorder DB, and all ~450 generated entities already exist in the
+#     image's own layers. No /config mount at all - keeping one, even
+#     pointed elsewhere, would still shadow that baked-in state the same
+#     way the override attempt did.
+#   - grafana-demo: ghcr.io/gavinwoolley/homeassistant-demo-grafana (built
+#     by demo/Dockerfile.grafana) - the two plugins the dashboards need
+#     are already installed, so GF_PLUGINS_PREINSTALL_SYNC's per-boot
+#     network fetch isn't needed here.
+# mimir-demo/alloy-demo don't have this problem - their configs are small
+# and they start fast already, so they're just plain upstream images with
+# the same mounted config files demo/docker-compose.demo-observability.yml
+# uses for the local flow. No loki-demo here at all - see the dashboards
+# mount comment on grafana-demo below for why.
+#
+# Every relative path below resolves against THIS file's own directory
+# (.devcontainer/grafana/) since it's the only -f given - no multi-file
+# merge to worry about the "resolves against the first file" gotcha for
+# here either.
+
+services:
+  # The version after the colon on the two image: lines below is stamped
+  # by publish/sanitize.py's apply_demo_image_version() on every publish,
+  # not left as `:latest`. Confirmed live (2026-09-23): a brand new
+  # Codespace showed entity_ids that have never existed anywhere in this
+  # repo's history - `:latest` alone gives no way to tell a genuinely
+  # fresh pull apart from a stale cached layer, since the tag string never
+  # changes. Normally the real Azure DevOps pipeline build number that
+  # produced this publish (a semantic version like 1.0.42), falling back
+  # to this private repo's own source commit sha only for a local/dry-run
+  # publish with no pipeline context. demo-image.yml tags its build with
+  # the exact same value (parsed back out of the mirror commit's own
+  # message), so this always points at the image actually built from this
+  # same source.
+  homeassistant-demo:
+    image: ghcr.io/gavinwoolley/homeassistant-demo:__DEMO_IMAGE_VERSION__
+    container_name: homeassistant-demo
+    # No `ports:` publish here, deliberately - this service is purely a
+    # data source for grafana-demo/alloy-demo over the shared Docker
+    # network (http://homeassistant-demo:8123, container DNS - see
+    # demo/alloy/config.alloy and the Grafana "Home Assistant" datasource,
+    # neither uses a host-published port), and it's not in
+    # ../devcontainer.json's forwardPorts either, so nothing on the
+    # Codespace VM host or GitHub's SSH port-forwarder ever touches this
+    # port at all. An earlier version of this file DID publish it
+    # (`ports: ["8123:8123"]`) to fix a real 502 - confirmed live at the
+    # time via CodespacesTunnel.log that GitHub's forwarder was trying to
+    # reach a host port that didn't exist - but that was for when 8123 was
+    # also in forwardPorts, auto-opening as a second browser tab. Now that
+    # HA is headless-only here (grafana-demo is the sole forwarded port),
+    # there's nothing for that forwarder to ever try reaching in the first
+    # place. The healthcheck below runs entirely inside this container's
+    # own network namespace and needs no port published at all.
+    environment:
+      - TZ=Europe/London
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8123/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  grafana-demo:
+    image: ghcr.io/gavinwoolley/homeassistant-demo-grafana:__DEMO_IMAGE_VERSION__
+    container_name: grafana-demo
+    # 256m OOM-killed this container back when it provisioned the FULL
+    # grafanaDashboards/dashboards/ catalogue (confirmed live 2026-09-22
+    # via docker inspect's OOMKilled flag - Grafana 12.4's dashboard-
+    # provisioning pass, bleve search indexing, peaked well past 256m for
+    # that much content). Now that the catalogue's curated down to just
+    # Home Assistant + Games (see the dashboards mount comment below),
+    # 256m is comfortably enough again - confirmed live, settles around
+    # 125MiB/256MiB (~49%) at steady state.
+    mem_limit: 256m
+    memswap_limit: 256m
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-demo-data:/var/lib/grafana
+      - ../../demo/grafana/provisioning:/etc/grafana/provisioning:ro
+      # Curated set (Home Assistant + Games only), not the whole
+      # grafanaDashboards/dashboards/ catalogue - confirmed live
+      # (2026-09-22) that provisioning the full catalogue meant most of it
+      # (AdGuard/Mosquitto/MongoDB/UniFi/cAdvisor/node-exporter/windows-
+      # exporter/LGTM Stats/Topology dashboards) showed "No data" forever
+      # for every visitor, since none of those services exist in this
+      # demo at all - not a bug to fix, just not useful to provision by
+      # default. Built by demo/tools/build_demo_dashboards.py and
+      # committed (unlike demo/grafana/dashboards/ historically, this is
+      # no longer gitignored) specifically so this mount works with zero
+      # build step here - the public mirror has no
+      # publish/config/replacements.local.yaml to run
+      # publish/sanitize.py against at all.
+      - ../../demo/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=demo
+      # Grafana 12.4 auto-installs four default apps (Explore Traces,
+      # Metrics Drilldown, Log Explore, Pyroscope) over the network on
+      # first boot even though this image bakes in only the two plugins
+      # the dashboards actually need - this demo has no Tempo/Pyroscope
+      # datasource for them to do anything with. Confirmed live this
+      # alone wasn't what was OOM-killing the container (dashboard
+      # provisioning is - see mem_limit above), but it's still dead
+      # weight in a Codespace: a startup network dependency and extra
+      # memory/CPU this demo has no use for.
+      - GF_PLUGINS_PREINSTALL_DISABLED=true
+      # Without this, Grafana's own "/" lands on its generic empty home
+      # page (dashboard search), not on anything this demo actually shows
+      # off - the whole point of a Grafana-first demo. Confirmed live via
+      # /api/dashboards/home that this resolves to the real "Home
+      # Assistant" dashboard (uid oVTa8pdWk) once set.
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/Home Assistant.json
+    depends_on:
+      - mimir-demo
+
+  mimir-demo:
+    image: grafana/mimir:3.2.1
+    container_name: mimir-demo
+    mem_limit: 384m
+    memswap_limit: 384m
+    command: ["-target=all,alertmanager", "-config.file=/etc/mimir/mimir.yaml"]
+    volumes:
+      - ../../demo/mimir:/etc/mimir:ro
+      - mimir-demo-data:/data
+
+  alloy-demo:
+    image: grafana/alloy:v1.19.2
+    container_name: alloy-demo
+    mem_limit: 192m
+    memswap_limit: 192m
+    command:
+      - "run"
+      - "/etc/alloy/config.alloy"
+      - "--storage.path=/var/lib/alloy/data"
+    volumes:
+      - ../../demo/alloy:/etc/alloy:ro
+    depends_on:
+      - mimir-demo
+      - homeassistant-demo
+
+volumes:
+  mimir-demo-data:
+  grafana-demo-data:

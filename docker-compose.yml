@@ -1,0 +1,438 @@
+﻿version: '2.3'
+
+services:
+  #  nodeexporter:
+  #    image: prom/node-exporter:v0.14.0
+  #    ports:
+  #      - "9100:9100"
+  #    restart: always
+  #    labels:
+  #      container_group: monitoring
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.55.1
+    container_name: cadvisor
+    restart: unless-stopped
+    mem_limit: 256m
+    memswap_limit: 256m
+    ports:
+      - "8089:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    labels:
+      container_group: monitoring
+
+  grafana:
+    image: grafana/grafana:12.4.11
+    container_name: grafana
+    mem_limit: 256m
+    memswap_limit: 256m
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/homeassistant/.homeassistant/grafana:/var/lib/grafana
+      - /home/homeassistant/.homeassistant/grafanaDashboards/provisioning:/etc/grafana/provisioning:ro
+      - /home/homeassistant/.homeassistant/grafanaDashboards/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+      - GF_SERVER_DOMAIN=home.example.com
+      - GF_SERVER_ROOT_URL=https://home.example.com:599/grafana
+      # marcusolsson-dynamictext-panel: self-contained Grafana Arcade dashboards.
+      # yesoreyeram-infinity-datasource: queries the Home Assistant REST API for
+      # entities that aren't in Prometheus (media players, device_tracker GPS,
+      # image entities). Installed synchronously so the provisioned datasource
+      # works on first start.
+      # jdbranham-diagram-panel: used by Home Assistant.json and Topology.json.
+      # Was real undocumented drift before this line existed - manually
+      # installed once on this container's persistent /var/lib/grafana volume
+      # at some point, never declared here, so it only survived because that
+      # volume was never wiped. Confirmed live (2026-09-22, via the Grafana
+      # MCP get_plugin tool) it was sitting at v1.7.3 while latest is v1.10.4 -
+      # pinned to the version actually running rather than left to silently
+      # jump to latest on the next deploy, since this plugin's version
+      # determines which bundled mermaid version parses diagram panels (see
+      # grafanaDashboards/mermaid-validate's own header comment).
+      - GF_PLUGINS_PREINSTALL_SYNC=marcusolsson-dynamictext-panel,yesoreyeram-infinity-datasource,jdbranham-diagram-panel@1.7.3
+      # Offload panel/dashboard PNG rendering to the sidecar renderer service below.
+      - GF_RENDERING_SERVER_URL=http://grafana-image-renderer:8081/render
+      - GF_RENDERING_CALLBACK_URL=http://grafana:3000/grafana/
+      - GF_RENDERING_RENDERER_TOKEN=-
+    depends_on:
+      - mimir
+      - loki
+      - grafana-image-renderer
+    restart: always
+    labels:
+      container_group: monitoring
+
+  grafana-image-renderer:
+    image: grafana/grafana-image-renderer:v5.12.4
+    container_name: grafana-image-renderer
+    mem_limit: 384m
+    memswap_limit: 384m
+    environment:
+      - HTTP_PORT=8081
+      - RENDERING_MODE=default
+      - RENDERING_CLUSTERING_MODE=browser
+      - RENDERING_CLUSTERING_MAX_CONCURRENCY=2
+      - RENDERING_VERBOSE_LOGGING=false
+      - LOG_LEVEL=info
+    restart: always
+    labels:
+      container_group: monitoring
+
+  loki:
+    image: grafana/loki:3.7.8
+    container_name: loki
+    command: ["-config.file=/etc/loki/loki.yaml"]
+    ports:
+      - "3100:3100"
+    volumes:
+      - /home/homeassistant/.homeassistant/loki:/etc/loki:ro
+      - /home/homeassistant/.homeassistant/loki-data:/loki
+    restart: unless-stopped
+    labels:
+      container_group: monitoring
+
+  mimir:
+    image: grafana/mimir:3.2.1
+    container_name: mimir
+    # The Ubuntu VM only has ~5.7 GiB total, so this is a modest bump from 512m.
+    # Mimir was sitting at ~430 MiB and its ingester started timing out under
+    # pressure, which is what kicked off the multi-hour metrics gap. If the VM
+    # gets more RAM, raise this to ~1g. Bumped 700m -> 768m when the Alertmanager
+    # target was enabled (adds ~30-50 MiB) - watch container_memory_working_set.
+    mem_limit: 768m
+    memswap_limit: 768m
+    # Give the ingester time to flush its head to a block on stop before Docker
+    # SIGKILLs it - otherwise a deploy that recreates this container drops the
+    # last hours of metrics.
+    stop_grace_period: 120s
+    # -target=all runs the ruler but NOT the alertmanager - it has to be named
+    # explicitly. The ruler evaluates mimir/rules/**; the alertmanager routes the
+    # firing alerts (config loaded by mimirtool in the Deploy pipeline).
+    command: ["-target=all,alertmanager","-config.file=/etc/mimir/mimir.yaml"]
+    ports:
+      - "9009:8080"
+    volumes:
+      - /home/homeassistant/.homeassistant/mimir:/etc/mimir:ro
+      - /home/homeassistant/.homeassistant/mimir-data:/data
+    restart: unless-stopped
+    labels:
+      container_group: monitoring
+
+  portainer:
+    container_name: portainer
+    restart: always
+    image: portainer/portainer-ce:2.45.1
+    command:
+      - --base-url=/portainer
+      - --trusted-origins=https://home.example.com:9453,http://10.0.0.10:9000
+    volumes:
+      - /portainer:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "9000:9000"
+    labels:
+      container_group: monitoring
+  coder:
+    container_name: coder
+    restart: always
+    image: codercom/code-server:4.138.0-39
+    user: "1000:1000"
+    security_opt:
+      - seccomp=unconfined
+    volumes:
+      - /home/homeassistant/.homeassistant/coder-repo:/home/coder/project
+      - /home/homeassistant/.homeassistant/coder-config:/home/coder/.local/share/code-server
+      - /home/homeassistant/.homeassistant/coder-claude:/home/coder/.claude
+    ports:
+      - "8444:8080"
+    command: ["code-server","--bind-addr","0.0.0.0:8080","--auth","password","/home/coder/project"]
+    environment:
+      - PASSWORD=REDACTED}#
+    labels:
+      container_group: tools
+  nginx:
+    image: nginx:1.31.6
+    container_name: nginx
+    restart: always
+    volumes:
+      - /home/homeassistant/.homeassistant/nginx:/etc/nginx/
+      - /home/homeassistant/.homeassistant/nginx/logs:/var/log/nginx/
+      - /home/homeassistant/.homeassistant/Certificate:/Certificate/
+      - /home/homeassistant/.homeassistant/apache2/.htpasswd:REDACTED
+    ports:
+      - "599:599"
+      - "4438:4438"
+      - "4458:4458"
+      - "8458:8458"
+      - "7563:7563"
+      - "7460:7460"
+      - "7461:7461"
+      - "7462:7462"
+      - "9091:9091"
+      - "9453:9453"
+      - "9454:9454"
+      - "444:444"
+      - "9455:9455"
+      - "9456:9456"
+      - "9458:9458"
+    command: nginx -g "daemon off";
+    labels:
+      container_group: reverse-proxy
+  unifi-db:
+    image: mongo:8.3.11
+    container_name: unifi-db
+    restart: unless-stopped
+    # bind to loopback only so the host-network blackbox exporter can probe it
+    # (topology "UniFi DB" node) without exposing Mongo to the LAN.
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - /home/homeassistant/.homeassistant/unifi-db:/data/db
+      - /home/homeassistant/.homeassistant/unifi-db-init/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+
+  unifi-network-application:
+    image: linuxserver/unifi-network-application:10.4.57-ls133
+    container_name: unifi-network-application
+    mem_limit: 900m
+    memswap_limit: 900m
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - MONGO_USER=#{mongo_user}#
+      - MONGO_PASS=#{mongo_pass}#
+      - MONGO_HOST=unifi-db
+      - MONGO_PORT=27017
+      - MONGO_DBNAME=unifi
+      - MEM_LIMIT=700
+    volumes:
+      - /home/homeassistant/.homeassistant/unifi-controller:/config
+    ports:
+      - 3478:3478/udp
+      - 10001:10001/udp
+      - 8080:8080
+      - 8443:8443
+      - 8843:8843
+      - 8880:8880
+      - 6789:6789
+    depends_on:
+      - unifi-db
+    restart: unless-stopped
+    #plex:
+    #  container_name: plex
+    #  image: plexinc/pms-docker:1.18.8.2527-740d4c206
+    #  restart: unless-stopped
+    #  ports:
+    #    - 32400:32400/tcp
+    #    - 3005:3005/tcp
+    #    - 8324:8324/tcp
+    #    - 32469:32469/tcp
+    #    - 1900:1900/udp
+    #    - 32410:32410/udp
+    #    - 32412:32412/udp
+    #    - 32413:32413/udp
+    #    - 32414:32414/udp
+    #  environment:
+    #    - PLEX_UID=1000
+    #    - PLEX_GID=1000
+    #    - TZ=GB
+    #    - PLEX_CLAIM=claim-PSHQ8eUNasfs8aggtgBj
+    #    - ADVERTISE_IP=http://10.0.0.10:32400/
+    #networks:
+    #  physical:
+    #    ipv4_address: 10.0.0.211
+    #  hostname: plex
+    #  volumes:
+    #    - /home/homeassistant/.homeassistant/plex/config:/config
+    #    - /home/homeassistant/.homeassistant/plex/transcode/temp:/transcode
+    #    - /plex/films:/data/films
+    #    - /plex/tv:/data/tv
+  # plex-to-influx-extended:
+  #   restart: unless-stopped
+  #   container_name: plexdata
+  #   volumes:
+  #     - /home/homeassistant/.homeassistant/plex/metrics/config.ini:/plexdata/config.ini
+  #     - /etc/timezone:/etc/timezone:ro
+  #     - /etc/localtime:/etc/localtime:ro
+  #   image: kurzondax/plex-to-influx-extended
+  homeassistant:
+    container_name: home-assistant
+    image: homeassistant/home-assistant:2026.9.3
+    network_mode: host
+    restart: unless-stopped
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    healthcheck:
+      test: ["CMD", "curl", "-fsk", "https://localhost:8123/"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    environment:
+      - TZ=Europe/London
+    volumes:
+      - /home/homeassistant/.homeassistant/docker-home-assistant-config:/config
+      - /etc/localtime:/etc/localtime:ro
+    # No prometheus_scrape label here: HA already has its own dedicated scrape
+    # job in config.alloy (prometheus.scrape "home_assistant", scheme=https).
+    # The generic docker-label discovery scrape has no https override, so it
+    # hit http://127.0.0.1:8123 - which HA's HTTPS-only listener always
+    # refused - and produced a permanently-failing, redundant TargetDown.
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1884:1883"
+    volumes:
+      - /home/homeassistant/.homeassistant/mosquitto/config:/mosquitto/config
+      - /home/homeassistant/.homeassistant/mosquitto/data:/mosquitto/data
+      - /home/homeassistant/.homeassistant/mosquitto/log:/mosquitto/log
+
+  unpoller:
+    container_name: unpoller
+    image: ghcr.io/unpoller/unpoller:v5.2.8
+    restart: unless-stopped
+    ports:
+      - "9130:9130"
+    environment:
+      # Disable Influx output, enable Prometheus exporter endpoint
+      UP_INFLUXDB_DISABLE: "true"
+      UP_PROMETHEUS_HTTP_LISTEN: "0.0.0.0:9130"
+      UP_PROMETHEUS_NAMESPACE: "unifi"
+
+      # UniFi controller access (create a read-only user for this)
+      UP_UNIFI_DEFAULT_URL: "https://10.0.0.10:8443"
+      UP_UNIFI_DEFAULT_USER: "unifi-poller"
+      UP_UNIFI_DEFAULT_PASS: "#{UP_UNIFI_PASS}#"
+
+      # Collect the juicy bits
+      UP_UNIFI_DEFAULT_SAVE_SITES: "true"
+      UP_UNIFI_DEFAULT_SAVE_DPI: "true"
+      UP_UNIFI_DEFAULT_SAVE_EVENTS: "true"
+      UP_UNIFI_DEFAULT_SAVE_IDS: "true"
+      UP_UNIFI_DEFAULT_SAVE_ANOMALIES: "true"
+      UP_UNIFI_DEFAULT_SAVE_ALARMS: "true"
+
+      # If your controller cert is self-signed, keep verify off (default behavior)
+      # UP_UNIFI_DEFAULT_VERIFY_SSL: "false"
+
+  blackbox:
+    image: prom/blackbox-exporter:v0.28.0
+    container_name: blackbox
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /home/homeassistant/.homeassistant/blackbox:/etc/blackbox
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+    cap_add:
+      - NET_RAW
+    labels:
+      container_group: monitoring
+
+  adguard:
+    image: adguard/adguardhome:v0.107.79
+    container_name: adguard
+    restart: unless-stopped
+    # Memory is dominated by the in-memory filter engine (~150-250 bytes/rule).
+    # The blocklists had grown to 2.68M rules - mostly HaGeZi's Threat
+    # Intelligence Feeds at 2.1M - and AdGuard pegged 480 MiB. Trimmed to a
+    # curated ~400k-rule set (adguard/AdGuardHome.yaml, code-managed); steady
+    # state settles ~145-155 MiB (engine + 4 MiB DNS cache + in-memory query
+    # log + client tracking). 256m: ~1.6x headroom, comfortably clears the
+    # daily filter-refresh spike and the 90%-of-limit ContainerHighMemory
+    # threshold (~230 MiB). 224m was too close - a refresh spike would flap it.
+    mem_limit: 256m
+    memswap_limit: 256m
+    ports:
+      - "10.0.0.10:53:53/tcp"
+      - "10.0.0.10:53:53/udp"
+      - "3008:3000"    # Web UI / setup wizard (keep port 3000 during setup wizard)
+    volumes:
+      - /home/homeassistant/.homeassistant/adguard/work:/opt/adguardhome/work
+      - /home/homeassistant/.homeassistant/adguard/conf:/opt/adguardhome/conf
+    labels:
+      container_group: networking
+
+  adguard-exporter:
+    image: ebrianne/adguard-exporter:v1.14
+    container_name: adguard-exporter
+    restart: unless-stopped
+    ports:
+      - "9617:9617"
+    environment:
+      - adguard_protocol=http
+      - adguard_hostname=adguard
+      - adguard_port=3000
+      - adguard_username=#{adguard_username}#
+      - adguard_password=REDACTED}#
+      - port=9617
+      - interval=30s
+    depends_on:
+      - adguard
+    labels:
+      container_group: networking
+
+  mosquitto-exporter:
+    image: sapcc/mosquitto-exporter:0.8.0
+    container_name: mosquitto-exporter
+    restart: unless-stopped
+    ports:
+      - "9234:9234"
+    environment:
+      - BROKER_ENDPOINT=tcp://mosquitto:1883
+    labels:
+      container_group: monitoring
+
+  # MongoDB metrics for unifi-db. Bound to loopback only (like unifi-db itself).
+  # This unifi-db runs mongod WITHOUT authorization (getCmdLineOpts has no
+  # security block), so no exporter user is needed - set the pipeline variable
+  #   mongodb_exporter_uri = mongodb://unifi-db:27017
+  # If auth is ever enabled, create a read-only user and use
+  #   mongodb://exporter:<pw>@unifi-db:27017/admin
+  mongodb-exporter:
+    image: percona/mongodb_exporter:0.53.0
+    container_name: mongodb-exporter
+    restart: unless-stopped
+    # --collect-all also turns on collstats/indexstats/topmetrics (per
+    # collection/index) - measured at 8992 series for this one exporter,
+    # a big chunk of what pushed Mimir to its 150000 max_global_series_per_user
+    # ceiling and caused ingestion to start silently dropping samples
+    # stack-wide. diagnosticdata alone covers everything mimir/rules/mongodb.yaml
+    # and the MongoDB dashboard actually use (mongodb_up, connections, asserts,
+    # memory, op_counters, mongod_metrics_document_total).
+    command:
+      - "--collector.diagnosticdata"
+      - "--compatible-mode"
+    environment:
+      - MONGODB_URI=#{mongodb_exporter_uri}#
+    ports:
+      - "127.0.0.1:9216:9216"
+    depends_on:
+      - unifi-db
+    labels:
+      container_group: monitoring
+
+  # Prometheus metrics for the stock nginx reverse proxy (no metrics of its
+  # own). Reads the internal stub_status vhost added in
+  # nginx/sites-available/stub_status.conf (port 8081 on the compose network).
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:1.5.3
+    container_name: nginx-exporter
+    restart: unless-stopped
+    command:
+      - "--nginx.scrape-uri=http://nginx:8081/stub_status"
+    ports:
+      - "127.0.0.1:9113:9113"
+    depends_on:
+      - nginx
+    labels:
+      container_group: monitoring

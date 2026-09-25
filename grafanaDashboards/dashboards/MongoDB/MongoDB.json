@@ -1,0 +1,76 @@
+{
+  "uid": "mongodb-unifi",
+  "title": "MongoDB (unifi-db)",
+  "tags": ["mongodb", "unifi"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat", "title": "mongod up",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "mongodb_up" } ],
+      "fieldConfig": { "defaults": { "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } } ], "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Current connections",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "mongodb_connections{state=\"current\"}" } ],
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Uptime",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "mongodb_instance_uptime_seconds" } ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Resident memory",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "mongodb_memory{type=\"resident\"} * 1024 * 1024" } ],
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "options": { "colorMode": "none", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "timeseries", "title": "Operations/s",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(mongodb_op_counters_total[5m])", "legendFormat": "{{type}}" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Connections",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "mongodb_connections", "legendFormat": "{{state}}" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Asserts/s",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(mongodb_asserts_total[5m])", "legendFormat": "{{type}}" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Document ops/s",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(mongodb_mongod_metrics_document_total[5m])", "legendFormat": "{{state}}" }
+      ]
+    }
+  ]
+}

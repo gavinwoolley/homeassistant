@@ -1,0 +1,28 @@
+# Bakes the plugins the demo dashboards need directly into the image,
+# instead of installing them over the network on every container start
+# (GF_PLUGINS_PREINSTALL_SYNC, what the real stack and the plain
+# docker-compose.demo-observability.yml flow both still use - fine there,
+# since that install only costs a few seconds once per real deploy/local
+# run). For the Codespaces flow specifically, every second of first-boot
+# work matters, and this is a network fetch that's identical every single
+# time - baking it removes it entirely. Confirmed live (2026-09-22): all
+# three plugins install and load correctly with no GF_PLUGINS_PREINSTALL_SYNC
+# set at runtime.
+#
+# marcusolsson-dynamictext-panel and yesoreyeram-infinity-datasource are
+# unpinned - confirmed live these resolve to the exact same versions
+# (6.3.0, 4.0.0) the real production Grafana has installed right now
+# (queried live via the Grafana MCP get_plugin tool), since production's
+# own GF_PLUGINS_PREINSTALL_SYNC re-syncs both to latest on every real
+# deploy - "latest" and "production" are the same thing for these two.
+#
+# jdbranham-diagram-panel (Home Assistant.json and Topology.json both use
+# it) is different: production is pinned to v1.7.3 there too now (see
+# docker-compose.yml), since that plugin's version determines which
+# bundled mermaid version parses diagram panels (grafanaDashboards/
+# mermaid-validate's own header comment) - installing "latest" (v1.10.4)
+# here risked silently diverging from what production actually renders.
+FROM grafana/grafana:12.4.11
+RUN grafana cli plugins install marcusolsson-dynamictext-panel && \
+    grafana cli plugins install yesoreyeram-infinity-datasource && \
+    grafana cli plugins install jdbranham-diagram-panel 1.7.3

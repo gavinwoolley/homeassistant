@@ -1,0 +1,133 @@
+apiVersion: 1
+datasources:
+  - name: "Loki"
+    uid: "P8E80F9AEF21F6940"
+    type: "loki"
+    access: "proxy"
+    url: "http://loki:3100"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+  - name: "Mimir"
+    uid: "PAE45454D0EDB9216"
+    type: "prometheus"
+    access: "proxy"
+    url: "http://mimir:8080/prometheus"
+    basicAuth: false
+    withCredentials: false
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: "POST"
+      # Show the Mimir ruler's rules + firing alerts in Grafana's Alerting UI
+      # and route "manage silences" to the Mimir Alertmanager below. Source of
+      # truth stays the repo (mimir/rules, mimir/alertmanager) via mimirtool.
+      manageAlerts: true
+      alertmanagerUid: "mimir-alertmanager"
+  - name: "Mimir Alertmanager"
+    uid: "mimir-alertmanager"
+    type: "alertmanager"
+    access: "proxy"
+    url: "http://mimir:8080/alertmanager"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      implementation: "prometheus"
+      handleGrafanaManagedAlerts: false
+  - name: "Home Assistant"
+    uid: "homeassistant-api"
+    type: "yesoreyeram-infinity-datasource"
+    access: "proxy"
+    # Grafana runs in a container (not host networking); reach HA on the VM's LAN
+    # IP. HA serves HTTPS on 8123 with a cert for its external name, so hit it by
+    # IP with TLS verification skipped.
+    url: "https://10.0.0.10:8123/api"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      auth_method: "bearerToken"
+      tlsSkipVerify: true
+      allowedHosts:
+        - "https://10.0.0.10:8123"
+      customHealthCheckEnabled: true
+      customHealthCheckUrl: "https://10.0.0.10:8123/api/"
+    secureJsonData:
+      bearerToken: "#{ha_grafana_token}#"
+  - name: "GitHub"
+    uid: "github-infinity"
+    type: "yesoreyeram-infinity-datasource"
+    access: "proxy"
+    # Used by the "LGTM Versions / Releases" dashboard to check each
+    # component's latest GitHub release. Unauthenticated (60 req/hr per IP) -
+    # the dashboard's 5m refresh across grafana/loki/mimir is well under that,
+    # so no token is wired up here. Add secureJsonData.httpHeader1 with a
+    # "Authorization: Bearer <token>" pair (github.com PAT, no scopes needed)
+    # if that ever changes.
+    url: "https://api.github.com"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      allowedHosts:
+        - "https://api.github.com"
+  - name: "Plex Data"
+    uid: "000000008"
+    type: "influxdb"
+    access: "proxy"
+    url: "http://10.0.0.10:8086"
+    database: "plex_data"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+  - name: "Stackdriver"
+    uid: "000000003"
+    type: "stackdriver"
+    access: "proxy"
+    url: ""
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      authenticationType: "jwt"
+      clientEmail: "redacted@example.com"
+      defaultProject: "example-project-1"
+      tokenUri: "https://oauth2.googleapis.com/token"
+    secureJsonData:
+      privateKey: "__REPLACE_ME__"
+  - name: "Stackdriver-1"
+    uid: "000000004"
+    type: "stackdriver"
+    access: "proxy"
+    url: ""
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      authenticationType: "jwt"
+      clientEmail: "redacted@example.com"
+      defaultProject: "example-project-2"
+      tokenUri: "https://oauth2.googleapis.com/token"
+    secureJsonData:
+      privateKey: "__REPLACE_ME__"
+  - name: "Unifi"
+    uid: "000000010"
+    type: "influxdb"
+    access: "proxy"
+    url: "http://10.0.0.10:8086"
+    user: "unifipoller"
+    database: "unifi"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    secureJsonData:
+      password: "REDACTED"

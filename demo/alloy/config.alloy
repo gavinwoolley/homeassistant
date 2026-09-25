@@ -1,0 +1,34 @@
+// Demo-scoped Alloy config. Deliberately much smaller than the real
+// alloy/config.alloy: no discovery.docker / docker.sock mount here at all -
+// see demo/docker-compose.demo.yml's own comments on why no demo container
+// ever gets Docker-socket access ("isolated by construction" - full host
+// Docker visibility/control from a container anyone can hit locally). That
+// means no auto-discovered container log shipping in this demo: Loki still
+// runs (so the datasource exists and doesn't error), log panels just show
+// "no data", the same graceful degradation already accepted for signals
+// this single-instance demo has no source for (Unifi, MongoDB, Windows).
+//
+// Only real per-service scrape target: the demo Home Assistant instance's
+// own Prometheus endpoint.
+
+prometheus.scrape "home_assistant" {
+  targets         = [{"__address__" = "homeassistant-demo:8123"}]
+  metrics_path    = "/api/prometheus"
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "60s"
+  scheme          = "http"
+  job_name        = "home_assistant"
+}
+
+prometheus.scrape "alloy" {
+  targets         = [{"__address__" = "localhost:12345"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "alloy"
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://mimir-demo:8080/api/v1/push"
+  }
+}

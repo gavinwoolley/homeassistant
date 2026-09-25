@@ -1,0 +1,6339 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "#73BF69",
+        "limit": 100,
+        "matchAny": false,
+        "name": "Deploy",
+        "tags": [
+          "Deploy"
+        ],
+        "type": "tags"
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "#5794F2",
+        "limit": 100,
+        "matchAny": true,
+        "name": "System Events",
+        "tags": [
+          "Reboot",
+          "Service",
+          "Server"
+        ],
+        "type": "tags"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "row",
+      "id": 2,
+      "title": "Status",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "marcusolsson-dynamictext-panel",
+      "id": 3,
+      "title": "Time",
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 0,
+        "y": 1
+      },
+      "options": {
+        "content": "<div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%\">{{#each data}}{{#if (eq entity_id \"sensor.time\")}}<div style=\"order:1;font-size:72px;font-weight:700\">{{state}}</div>{{/if}}{{#if (eq entity_id \"sensor.custom_date\")}}<div style=\"order:2;font-size:22px;color:#aaaaaa;margin-top:4px\">{{state}}</div>{{/if}}{{/each}}</div>",
+        "defaultContent": "<em>no image</em>",
+        "editor": {
+          "format": "auto",
+          "language": "html"
+        },
+        "renderMode": "allRows",
+        "wrap": true,
+        "contentPartials": [],
+        "helpers": "",
+        "styles": "",
+        "externalStyles": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"sensor.time\" or $v.entity_id = \"sensor.custom_date\" })",
+          "columns": [
+            {
+              "selector": "entity_id",
+              "text": "entity_id",
+              "type": "string"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "marcusolsson-dynamictext-panel",
+      "id": 4,
+      "title": "Weather",
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 4,
+        "y": 1
+      },
+      "options": {
+        "content": "<div style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%\">{{#each data}}{{#if (eq entity_id \"sensor.outside_temperature\")}}<div style=\"order:1;font-size:64px;font-weight:700\">{{state}}<span style=\"font-size:28px\">&#8451;</span></div>{{/if}}{{#if (eq entity_id \"sensor.outside_condition\")}}<div style=\"order:2;font-size:22px;color:#aaaaaa;text-transform:capitalize;margin-top:4px\">{{state}}</div>{{/if}}{{/each}}</div>",
+        "defaultContent": "<em>no image</em>",
+        "editor": {
+          "format": "auto",
+          "language": "html"
+        },
+        "renderMode": "allRows",
+        "wrap": true,
+        "contentPartials": [],
+        "helpers": "",
+        "styles": "",
+        "externalStyles": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"sensor.outside_temperature\" or $v.entity_id = \"sensor.outside_condition\" })",
+          "columns": [
+            {
+              "selector": "entity_id",
+              "text": "entity_id",
+              "type": "string"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "marcusolsson-dynamictext-panel",
+      "id": 5,
+      "title": "Who's Home",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 1
+      },
+      "options": {
+        "content": "<style>.hs-home{border-color:#2ecc71 !important}.hs-not_home{border-color:#e74c3c !important}</style><div style=\"display:flex;flex-direction:column;align-items:center;width:76px;margin:2px\"><img class=\"hs-{{state}}\" src=\"/api/datasources/proxy/uid/ha-static-proxy{{image}}\" style=\"width:52px;height:52px;border-radius:50%;object-fit:cover;border:3px solid #888\" /><div style=\"margin-top:4px;font-size:12px;color:#dddddd;text-align:center;line-height:1.1\">{{name}}</div><div style=\"font-size:10px;text-transform:capitalize;color:#999999\">{{state}}</div></div>",
+        "defaultContent": "<em>no image</em>",
+        "editor": {
+          "format": "auto",
+          "language": "html"
+        },
+        "renderMode": "everyRow",
+        "wrap": true,
+        "contentPartials": [],
+        "helpers": "",
+        "styles": "flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; gap: 4px; & > div { border: none !important; margin: 0 !important; padding: 4px !important; }",
+        "externalStyles": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id in [\"person.homer_simpson\",\"person.marge_simpson\",\"person.lisa_simpson\",\"person.bart_simpson\",\"device_tracker.eleqqixh_dog\"] })",
+          "columns": [
+            {
+              "selector": "attributes.friendly_name",
+              "text": "name",
+              "type": "string"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            },
+            {
+              "selector": "attributes.entity_picture",
+              "text": "image",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "geomap",
+      "id": 6,
+      "title": "Family Map",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 1
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {
+        "view": {
+          "id": "fit",
+          "allLayers": true,
+          "padding": 20,
+          "maxZoom": 14,
+          "lat": 39.7817,
+          "lon": -89.6501,
+          "zoom": 14
+        },
+        "basemap": {
+          "type": "osm-standard",
+          "name": "Open Street Map"
+        },
+        "layers": [
+          {
+            "type": "markers",
+            "name": "Homer Simpson",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "config": {
+              "style": {
+                "size": {
+                  "fixed": 11
+                },
+                "color": {
+                  "fixed": "#2979FF"
+                },
+                "opacity": 0.9,
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "fixed": "Homer Simpson",
+                  "mode": "fixed",
+                  "fontSize": 11
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              },
+              "showLegend": true
+            },
+            "tooltip": true
+          },
+          {
+            "type": "markers",
+            "name": "Marge Simpson",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "B"
+            },
+            "config": {
+              "style": {
+                "size": {
+                  "fixed": 11
+                },
+                "color": {
+                  "fixed": "#FF1493"
+                },
+                "opacity": 0.9,
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "fixed": "Marge Simpson",
+                  "mode": "fixed",
+                  "fontSize": 11
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              },
+              "showLegend": true
+            },
+            "tooltip": true
+          },
+          {
+            "type": "markers",
+            "name": "Lisa Simpson",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "C"
+            },
+            "config": {
+              "style": {
+                "size": {
+                  "fixed": 11
+                },
+                "color": {
+                  "fixed": "#AA00FF"
+                },
+                "opacity": 0.9,
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "fixed": "Lisa Simpson",
+                  "mode": "fixed",
+                  "fontSize": 11
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              },
+              "showLegend": true
+            },
+            "tooltip": true
+          },
+          {
+            "type": "markers",
+            "name": "Bart Simpson",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "D"
+            },
+            "config": {
+              "style": {
+                "size": {
+                  "fixed": 11
+                },
+                "color": {
+                  "fixed": "#00E5FF"
+                },
+                "opacity": 0.9,
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "fixed": "Bart Simpson",
+                  "mode": "fixed",
+                  "fontSize": 11
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              },
+              "showLegend": true
+            },
+            "tooltip": true
+          },
+          {
+            "type": "markers",
+            "name": "Dog",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "E"
+            },
+            "config": {
+              "style": {
+                "size": {
+                  "fixed": 11
+                },
+                "color": {
+                  "fixed": "#00BFA5"
+                },
+                "opacity": 0.9,
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "fixed": "Dog",
+                  "mode": "fixed",
+                  "fontSize": 11
+                },
+                "textConfig": {
+                  "fontSize": 11,
+                  "offsetY": -16,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              },
+              "showLegend": true
+            },
+            "tooltip": true
+          },
+          {
+            "type": "route",
+            "name": "Homer Simpson trail",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "TA"
+            },
+            "config": {
+              "style": {
+                "color": {
+                  "fixed": "#2979FF"
+                },
+                "opacity": 0.75,
+                "lineWidth": 3,
+                "arrow": 1
+              }
+            },
+            "tooltip": false
+          },
+          {
+            "type": "route",
+            "name": "Marge Simpson trail",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "TB"
+            },
+            "config": {
+              "style": {
+                "color": {
+                  "fixed": "#FF1493"
+                },
+                "opacity": 0.75,
+                "lineWidth": 3,
+                "arrow": 1
+              }
+            },
+            "tooltip": false
+          },
+          {
+            "type": "route",
+            "name": "Lisa Simpson trail",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "TC"
+            },
+            "config": {
+              "style": {
+                "color": {
+                  "fixed": "#AA00FF"
+                },
+                "opacity": 0.75,
+                "lineWidth": 3,
+                "arrow": 1
+              }
+            },
+            "tooltip": false
+          },
+          {
+            "type": "route",
+            "name": "Dog trail",
+            "location": {
+              "mode": "coords",
+              "latitude": "latitude",
+              "longitude": "longitude"
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "TE"
+            },
+            "config": {
+              "style": {
+                "color": {
+                  "fixed": "#00BFA5"
+                },
+                "opacity": 0.75,
+                "lineWidth": 3,
+                "arrow": 1
+              }
+            },
+            "tooltip": false
+          }
+        ],
+        "controls": {
+          "showZoom": true,
+          "mouseWheelZoom": true,
+          "showAttribution": true
+        },
+        "tooltip": {
+          "mode": "details"
+        }
+      },
+      "description": "Markers = live position. Trail lines = movement over the dashboard time range, from HA state history.",
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.google_maps_104199578859638696260\" and $exists($v.attributes.latitude) })",
+          "columns": [
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "B",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.google_maps_146646711938998732988\" and $exists($v.attributes.latitude) })",
+          "columns": [
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "C",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.pixel_6_pro_lisa_simpson\" and $exists($v.attributes.latitude) })",
+          "columns": [
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "D",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"person.bart_simpson\" and $exists($v.attributes.latitude) })",
+          "columns": [
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "E",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.eleqqixh_dog\" and $exists($v.attributes.latitude) })",
+          "columns": [
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            },
+            {
+              "selector": "state",
+              "text": "state",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "TA",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/history/period/${__from:date:iso}",
+          "url_options": {
+            "method": "GET",
+            "params": [
+              {
+                "key": "filter_entity_id",
+                "value": "device_tracker.google_maps_104199578859638696260"
+              },
+              {
+                "key": "end_time",
+                "value": "${__to:date:iso}"
+              }
+            ]
+          },
+          "root_selector": "$[0]",
+          "columns": [
+            {
+              "selector": "last_changed",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "TB",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/history/period/${__from:date:iso}",
+          "url_options": {
+            "method": "GET",
+            "params": [
+              {
+                "key": "filter_entity_id",
+                "value": "device_tracker.google_maps_146646711938998732988"
+              },
+              {
+                "key": "end_time",
+                "value": "${__to:date:iso}"
+              }
+            ]
+          },
+          "root_selector": "$[0]",
+          "columns": [
+            {
+              "selector": "last_changed",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "TC",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/history/period/${__from:date:iso}",
+          "url_options": {
+            "method": "GET",
+            "params": [
+              {
+                "key": "filter_entity_id",
+                "value": "device_tracker.pixel_6_pro_lisa_simpson"
+              },
+              {
+                "key": "end_time",
+                "value": "${__to:date:iso}"
+              }
+            ]
+          },
+          "root_selector": "$[0]",
+          "columns": [
+            {
+              "selector": "last_changed",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "TE",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/history/period/${__from:date:iso}",
+          "url_options": {
+            "method": "GET",
+            "params": [
+              {
+                "key": "filter_entity_id",
+                "value": "device_tracker.eleqqixh_dog"
+              },
+              {
+                "key": "end_time",
+                "value": "${__to:date:iso}"
+              }
+            ]
+          },
+          "root_selector": "$[0]",
+          "columns": [
+            {
+              "selector": "last_changed",
+              "text": "time",
+              "type": "timestamp"
+            },
+            {
+              "selector": "attributes.latitude",
+              "text": "latitude",
+              "type": "number"
+            },
+            {
+              "selector": "attributes.longitude",
+              "text": "longitude",
+              "type": "number"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "marcusolsson-dynamictext-panel",
+      "id": 7,
+      "title": "Motion Right Now",
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "options": {
+        "content": "<span style=\"display:inline-block;margin:3px;padding:5px 12px;border-radius:12px;background:#e67e22;color:#000000;font-size:12px;font-weight:600\">{{name}}</span>",
+        "defaultContent": "<span style=\"color:#666\">No motion detected</span>",
+        "editor": {
+          "format": "auto",
+          "language": "html"
+        },
+        "renderMode": "everyRow",
+        "wrap": true,
+        "contentPartials": [],
+        "helpers": "",
+        "styles": "flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; gap: 4px; & > div { border: none !important; margin: 0 !important; padding: 4px !important; }",
+        "externalStyles": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ ($substringBefore($v.entity_id,\".\")=\"binary_sensor\") and ($contains($v.entity_id,\"motion\") or $contains($v.entity_id,\"occupancy\")) and $v.state=\"on\" })",
+          "columns": [
+            {
+              "selector": "attributes.friendly_name",
+              "text": "name",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "homeassistant-api"
+      },
+      "type": "marcusolsson-dynamictext-panel",
+      "id": 8,
+      "title": "Switched On Right Now",
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "options": {
+        "content": "<span style=\"display:inline-block;margin:3px;padding:5px 12px;border-radius:12px;background:#2ecc71;color:#000000;font-size:12px;font-weight:600\">{{name}}</span>",
+        "defaultContent": "<span style=\"color:#666\">Nothing switched on</span>",
+        "editor": {
+          "format": "auto",
+          "language": "html"
+        },
+        "renderMode": "everyRow",
+        "wrap": true,
+        "contentPartials": [],
+        "helpers": "",
+        "styles": "flex-direction: row !important; flex-wrap: wrap !important; align-items: flex-start !important; gap: 4px; & > div { border: none !important; margin: 0 !important; padding: 4px !important; }",
+        "externalStyles": []
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "refId": "A",
+          "type": "json",
+          "source": "url",
+          "format": "table",
+          "parser": "backend",
+          "url": "/states",
+          "url_options": {
+            "method": "GET",
+            "data": ""
+          },
+          "root_selector": "$filter($, function($v){ $v.entity_id in [\"switch.car_charger_socket_1\",\"switch.christmas_lights_front_socket_1\",\"switch.disco_ball_socket_1\",\"switch.door_number_light_socket\",\"switch.front_lights_switch_1\",\"switch.front_lights_switch_2\",\"switch.garden_lights_and_sound\",\"switch.garden_tree_and_path_switch_1\",\"switch.garden_tree_and_path_switch_2\",\"switch.heating_boost\",\"switch.lisa_simpson_fairy_lights_socket_1\",\"switch.marge_simpson_electric_blanket_socket\",\"switch.kitchen_counter_socket_1\",\"switch.patio_lights_socket_1\",\"switch.patio_switch_1\",\"switch.patio_switch_2\",\"switch.shed_light_socket_1\",\"switch.smart_plug_2_socket_1\",\"switch.smart_plug_3_socket_1\",\"switch.smart_plug_4_socket_1\",\"switch.smart_plug_5_socket_1\",\"switch.smart_plug_6_socket_1\",\"switch.smart_socket_5_socket\",\"switch.smoke_machine_socket_1\",\"switch.tree_house_light_socket\",\"light.bedroom_lamp\",\"light.lisa_simpson_dimmer_switch_light_1\",\"light.master_bedroom_dimmer_switch_light_1\",\"light.kitchen_island_plinth\",\"light.kitchen_plinths\",\"light.kitchen_sink_plinth\",\"light.kitchen_tall_units_plinth\",\"light.kitchen_under_stair_units_plinth\",\"light.kitchen_wall_units\",\"light.utility_units\",\"light.curtain_left\",\"light.curtain_right\"] and $v.state=\"on\" })",
+          "columns": [
+            {
+              "selector": "attributes.friendly_name",
+              "text": "name",
+              "type": "string"
+            }
+          ],
+          "filters": []
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
+      },
+      "type": "stat",
+      "id": 9,
+      "title": "Active Alerts",
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "homeassistant_sensor_state{entity=\"sensor.active_alerts\"} or vector(0)",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Firing",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
+      },
+      "type": "stat",
+      "id": 10,
+      "title": "Updates Available",
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "orange",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "sum(homeassistant_update_state) or vector(0)",
+          "instant": true,
+          "range": false,
+          "legendFormat": "Updates",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 17,
+      "title": "Climate & Environment",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 18,
+          "title": "Temperature",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 41
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=\"sensor.outside_temperature\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Outside",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_climate_current_temperature_celsius",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_climate_target_temperature_celsius",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}} target",
+              "refId": "C"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 19,
+          "title": "Humidity",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 41
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "humidity",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_humidity_percent{entity=\"sensor.home_homer_simpson_com_humidity\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Outside",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_humidity_percent{entity=\"sensor.lounge_humidity\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Lounge",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_humidity_percent{entity=\"sensor.p2s_22e8bj620203679_ams_1_humidity\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "P2S 3D Printer",
+              "refId": "C"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 20,
+      "title": "Home",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "state-timeline",
+          "id": 21,
+          "title": "Motion & Occupancy",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 50
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "fillOpacity": 80,
+                "lineWidth": 0,
+                "insertNulls": false
+              },
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "0": {
+                      "text": "clear",
+                      "color": "dark-green",
+                      "index": 0
+                    },
+                    "1": {
+                      "text": "motion",
+                      "color": "orange",
+                      "index": 1
+                    }
+                  }
+                }
+              ],
+              "color": {
+                "mode": "thresholds"
+              },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "dark-green",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "mergeValues": true,
+            "showValue": "never",
+            "alignValue": "left",
+            "rowHeight": 0.9,
+            "legend": {
+              "showLegend": false
+            },
+            "tooltip": {
+              "mode": "single",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_binary_sensor_state{entity=~\".*(motion|occupancy).*\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 22,
+          "title": "Power Usage",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 50
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "watt",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_power_w{entity!~\".*(battery|corrected).*\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_power_kw{entity!~\".*(battery|corrected).*\"} * 1000",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "bargauge",
+          "id": 23,
+          "title": "Battery Levels",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 58
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_10_pro_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Homer Simpson - Pixel 10",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_9_pro_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Marge Simpson - Pixel 9",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_6_pro_lisa_simpson_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Lisa Simpson - Pixel 6",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.dog_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Dog",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.oneplus_watch_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Homer Simpson - Watch",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.wt_11w_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Irrigation Valve",
+              "refId": "F"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 24,
+          "title": "Automations Triggered (1h)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 58
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "bars",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 70,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "increase(homeassistant_automation_triggered_count_total[1h])",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 43,
+      "title": "People & Presence",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 78
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "geomap",
+          "id": 40,
+          "title": "Where is everyone",
+          "gridPos": {
+            "h": 11,
+            "w": 14,
+            "x": 0,
+            "y": 79
+          },
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "options": {
+            "view": {
+              "id": "fit",
+              "allLayers": true,
+              "padding": 20,
+              "maxZoom": 14,
+              "lat": 39.7817,
+              "lon": -89.6501,
+              "zoom": 14
+            },
+            "basemap": {
+              "type": "osm-standard",
+              "name": "Open Street Map"
+            },
+            "layers": [
+              {
+                "type": "markers",
+                "name": "Homer Simpson",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "A"
+                },
+                "config": {
+                  "style": {
+                    "size": {
+                      "fixed": 11
+                    },
+                    "color": {
+                      "fixed": "#2979FF"
+                    },
+                    "opacity": 0.9,
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "text": {
+                      "fixed": "Homer Simpson",
+                      "mode": "fixed",
+                      "fontSize": 11
+                    },
+                    "textConfig": {
+                      "fontSize": 11,
+                      "offsetY": -16,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  },
+                  "showLegend": true
+                },
+                "tooltip": true
+              },
+              {
+                "type": "markers",
+                "name": "Marge Simpson",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "B"
+                },
+                "config": {
+                  "style": {
+                    "size": {
+                      "fixed": 11
+                    },
+                    "color": {
+                      "fixed": "#FF1493"
+                    },
+                    "opacity": 0.9,
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "text": {
+                      "fixed": "Marge Simpson",
+                      "mode": "fixed",
+                      "fontSize": 11
+                    },
+                    "textConfig": {
+                      "fontSize": 11,
+                      "offsetY": -16,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  },
+                  "showLegend": true
+                },
+                "tooltip": true
+              },
+              {
+                "type": "markers",
+                "name": "Lisa Simpson",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "C"
+                },
+                "config": {
+                  "style": {
+                    "size": {
+                      "fixed": 11
+                    },
+                    "color": {
+                      "fixed": "#AA00FF"
+                    },
+                    "opacity": 0.9,
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "text": {
+                      "fixed": "Lisa Simpson",
+                      "mode": "fixed",
+                      "fontSize": 11
+                    },
+                    "textConfig": {
+                      "fontSize": 11,
+                      "offsetY": -16,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  },
+                  "showLegend": true
+                },
+                "tooltip": true
+              },
+              {
+                "type": "markers",
+                "name": "Bart Simpson",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "D"
+                },
+                "config": {
+                  "style": {
+                    "size": {
+                      "fixed": 11
+                    },
+                    "color": {
+                      "fixed": "#00E5FF"
+                    },
+                    "opacity": 0.9,
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "text": {
+                      "fixed": "Bart Simpson",
+                      "mode": "fixed",
+                      "fontSize": 11
+                    },
+                    "textConfig": {
+                      "fontSize": 11,
+                      "offsetY": -16,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  },
+                  "showLegend": true
+                },
+                "tooltip": true
+              },
+              {
+                "type": "markers",
+                "name": "Dog",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "E"
+                },
+                "config": {
+                  "style": {
+                    "size": {
+                      "fixed": 11
+                    },
+                    "color": {
+                      "fixed": "#00BFA5"
+                    },
+                    "opacity": 0.9,
+                    "symbol": {
+                      "fixed": "img/icons/marker/circle.svg",
+                      "mode": "fixed"
+                    },
+                    "text": {
+                      "fixed": "Dog",
+                      "mode": "fixed",
+                      "fontSize": 11
+                    },
+                    "textConfig": {
+                      "fontSize": 11,
+                      "offsetY": -16,
+                      "textAlign": "center",
+                      "textBaseline": "middle"
+                    }
+                  },
+                  "showLegend": true
+                },
+                "tooltip": true
+              },
+              {
+                "type": "route",
+                "name": "Homer Simpson trail",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "TA"
+                },
+                "config": {
+                  "style": {
+                    "color": {
+                      "fixed": "#2979FF"
+                    },
+                    "opacity": 0.75,
+                    "lineWidth": 3,
+                    "arrow": 1
+                  }
+                },
+                "tooltip": false
+              },
+              {
+                "type": "route",
+                "name": "Marge Simpson trail",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "TB"
+                },
+                "config": {
+                  "style": {
+                    "color": {
+                      "fixed": "#FF1493"
+                    },
+                    "opacity": 0.75,
+                    "lineWidth": 3,
+                    "arrow": 1
+                  }
+                },
+                "tooltip": false
+              },
+              {
+                "type": "route",
+                "name": "Lisa Simpson trail",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "TC"
+                },
+                "config": {
+                  "style": {
+                    "color": {
+                      "fixed": "#AA00FF"
+                    },
+                    "opacity": 0.75,
+                    "lineWidth": 3,
+                    "arrow": 1
+                  }
+                },
+                "tooltip": false
+              },
+              {
+                "type": "route",
+                "name": "Dog trail",
+                "location": {
+                  "mode": "coords",
+                  "latitude": "latitude",
+                  "longitude": "longitude"
+                },
+                "filterData": {
+                  "id": "byRefId",
+                  "options": "TE"
+                },
+                "config": {
+                  "style": {
+                    "color": {
+                      "fixed": "#00BFA5"
+                    },
+                    "opacity": 0.75,
+                    "lineWidth": 3,
+                    "arrow": 1
+                  }
+                },
+                "tooltip": false
+              }
+            ],
+            "controls": {
+              "showZoom": true,
+              "mouseWheelZoom": true,
+              "showAttribution": true
+            },
+            "tooltip": {
+              "mode": "details"
+            }
+          },
+          "description": "Markers = live position. Trail lines = movement over the dashboard time range, from HA state history.",
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.google_maps_104199578859638696260\" and $exists($v.attributes.latitude) })",
+              "columns": [
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "state",
+                  "text": "state",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "B",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.google_maps_146646711938998732988\" and $exists($v.attributes.latitude) })",
+              "columns": [
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "state",
+                  "text": "state",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "C",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.pixel_6_pro_lisa_simpson\" and $exists($v.attributes.latitude) })",
+              "columns": [
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "state",
+                  "text": "state",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "D",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"person.bart_simpson\" and $exists($v.attributes.latitude) })",
+              "columns": [
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "state",
+                  "text": "state",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "E",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"device_tracker.eleqqixh_dog\" and $exists($v.attributes.latitude) })",
+              "columns": [
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "state",
+                  "text": "state",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "TA",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/history/period/${__from:date:iso}",
+              "url_options": {
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "filter_entity_id",
+                    "value": "device_tracker.google_maps_104199578859638696260"
+                  },
+                  {
+                    "key": "end_time",
+                    "value": "${__to:date:iso}"
+                  }
+                ]
+              },
+              "root_selector": "$[0]",
+              "columns": [
+                {
+                  "selector": "last_changed",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "TB",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/history/period/${__from:date:iso}",
+              "url_options": {
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "filter_entity_id",
+                    "value": "device_tracker.google_maps_146646711938998732988"
+                  },
+                  {
+                    "key": "end_time",
+                    "value": "${__to:date:iso}"
+                  }
+                ]
+              },
+              "root_selector": "$[0]",
+              "columns": [
+                {
+                  "selector": "last_changed",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "TC",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/history/period/${__from:date:iso}",
+              "url_options": {
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "filter_entity_id",
+                    "value": "device_tracker.pixel_6_pro_lisa_simpson"
+                  },
+                  {
+                    "key": "end_time",
+                    "value": "${__to:date:iso}"
+                  }
+                ]
+              },
+              "root_selector": "$[0]",
+              "columns": [
+                {
+                  "selector": "last_changed",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            },
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "TE",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/history/period/${__from:date:iso}",
+              "url_options": {
+                "method": "GET",
+                "params": [
+                  {
+                    "key": "filter_entity_id",
+                    "value": "device_tracker.eleqqixh_dog"
+                  },
+                  {
+                    "key": "end_time",
+                    "value": "${__to:date:iso}"
+                  }
+                ]
+              },
+              "root_selector": "$[0]",
+              "columns": [
+                {
+                  "selector": "last_changed",
+                  "text": "time",
+                  "type": "timestamp"
+                },
+                {
+                  "selector": "attributes.latitude",
+                  "text": "latitude",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.longitude",
+                  "text": "longitude",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 41,
+          "title": "Presence",
+          "gridPos": {
+            "h": 11,
+            "w": 10,
+            "x": 14,
+            "y": 79
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Person": 0,
+                  "Location": 1,
+                  "Since": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $substringBefore($v.entity_id, \".\") = \"person\" and $v.entity_id != \"person.homer_simpson\" })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Person",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "Location",
+                  "type": "string"
+                },
+                {
+                  "selector": "last_changed",
+                  "text": "Since",
+                  "type": "timestamp"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 42,
+          "title": "Batteries",
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_10_pro_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Homer Simpson - Pixel 10",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_9_pro_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Marge Simpson - Pixel 9",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.pixel_6_pro_lisa_simpson_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Lisa Simpson - Pixel 6",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.dog_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Dog",
+              "refId": "D"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.oneplus_watch_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Homer Simpson - Watch",
+              "refId": "E"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.wt_11w_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Irrigation Valve",
+              "refId": "F"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 45,
+      "title": "Media Players",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 79
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 44,
+          "title": "Now Playing",
+          "gridPos": {
+            "h": 9,
+            "w": 24,
+            "x": 0,
+            "y": 80
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Player": 0,
+                  "State": 1,
+                  "Title": 2,
+                  "Artist": 3,
+                  "App": 4,
+                  "Volume": 5
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $substringBefore($v.entity_id, \".\") = \"media_player\" and $v.state != \"unavailable\" and $v.state != \"off\" and $v.state != \"standby\" })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Player",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "State",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.media_title",
+                  "text": "Title",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.media_artist",
+                  "text": "Artist",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.app_name",
+                  "text": "App",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.volume_level",
+                  "text": "Volume",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 49,
+      "title": "Lighting & Switches",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 80
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 46,
+          "title": "Lights",
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 0,
+            "y": 81
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "ON",
+                      "color": "green",
+                      "index": 0
+                    },
+                    "0": {
+                      "text": "OFF",
+                      "color": "dark-red",
+                      "index": 1
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_light_brightness_percent{entity=~\"light.(bedroom_lamp|lisa_simpson_dimmer_switch_light_1|master_bedroom_dimmer_switch_light_1|kitchen_island_plinth|kitchen_plinths|kitchen_sink_plinth|kitchen_tall_units_plinth|kitchen_under_stair_units_plinth|kitchen_wall_units|utility_units|curtain_left|curtain_right)\"} > bool 0",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "bargauge",
+          "id": 47,
+          "title": "Brightness",
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 12,
+            "y": 81
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_light_brightness_percent{entity=~\"light.(bedroom_lamp|lisa_simpson_dimmer_switch_light_1|master_bedroom_dimmer_switch_light_1|kitchen_island_plinth|kitchen_plinths|kitchen_sink_plinth|kitchen_tall_units_plinth|kitchen_under_stair_units_plinth|kitchen_wall_units|utility_units|curtain_left|curtain_right)\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 48,
+          "title": "Switches & Sockets",
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 87
+          },
+          "fieldConfig": {
+            "defaults": {
+              "mappings": [
+                {
+                  "type": "value",
+                  "options": {
+                    "1": {
+                      "text": "ON",
+                      "color": "green",
+                      "index": 0
+                    },
+                    "0": {
+                      "text": "OFF",
+                      "color": "dark-red",
+                      "index": 1
+                    }
+                  }
+                }
+              ],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "background",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_switch_state{entity=~\"switch.(car_charger_socket_1|christmas_lights_front_socket_1|disco_ball_socket_1|door_number_light_socket|front_lights_switch_1|front_lights_switch_2|garden_lights_and_sound|garden_tree_and_path_switch_1|garden_tree_and_path_switch_2|heating_boost|lisa_simpson_fairy_lights_socket_1|marge_simpson_electric_blanket_socket|kitchen_counter_socket_1|patio_lights_socket_1|patio_switch_1|patio_switch_2|shed_light_socket_1|smart_plug_2_socket_1|smart_plug_3_socket_1|smart_plug_4_socket_1|smart_plug_5_socket_1|smart_plug_6_socket_1|smart_socket_5_socket|smoke_machine_socket_1|tree_house_light_socket)\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 54,
+      "title": "Climate & AC",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 81
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 50,
+          "title": "Air Conditioning",
+          "gridPos": {
+            "h": 9,
+            "w": 14,
+            "x": 0,
+            "y": 82
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Unit": 0,
+                  "Mode": 1,
+                  "Action": 2,
+                  "Current C": 3,
+                  "Target C": 4,
+                  "Fan": 5
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $substringBefore($v.entity_id, \".\") = \"climate\" })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Unit",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "Mode",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.hvac_action",
+                  "text": "Action",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.current_temperature",
+                  "text": "Current C",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.temperature",
+                  "text": "Target C",
+                  "type": "number"
+                },
+                {
+                  "selector": "attributes.fan_mode",
+                  "text": "Fan",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 51,
+          "title": "AC Cost Today",
+          "gridPos": {
+            "h": 9,
+            "w": 10,
+            "x": 14,
+            "y": 82
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyGBP",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 0.5
+                  },
+                  {
+                    "color": "orange",
+                    "value": 1.5
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_u0xa3{entity=~\"sensor.(bart_simpson_room_ac_cost_today|lisa_simpson_room_ac_cost_today|kitchen_ac_cost_today|master_bedroom_ac_cost_today|office_ac_cost_today|upstairs_ac_cost_today)\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 52,
+          "title": "Room vs Outside Temperature",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 91
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=\"sensor.outside_temperature\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Outside",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=~\"sensor.(bart_simpson_room_room_temperature|lisa_simpson_room_room_temperature|kitchen_room_temperature|master_bedroom_room_temperature|office_room_temperature|upstairs_room_temperature)\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 53,
+          "title": "Current vs Target (AC)",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 91
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_climate_current_temperature_celsius",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}} now",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_climate_target_temperature_celsius",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}} set",
+              "refId": "B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 58,
+      "title": "Energy & Cost",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 82
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 55,
+          "title": "Today so far",
+          "gridPos": {
+            "h": 5,
+            "w": 24,
+            "x": 0,
+            "y": 83
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "currencyGBP",
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "green",
+                    "value": null
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 3
+                  },
+                  {
+                    "color": "orange",
+                    "value": 6
+                  }
+                ]
+              }
+            },
+            "overrides": [
+              {
+                "matcher": {
+                  "id": "byFrameRefID",
+                  "options": "C"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "none"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 1
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byFrameRefID",
+                  "options": "D"
+                },
+                "properties": [
+                  {
+                    "id": "unit",
+                    "value": "kwatth"
+                  }
+                ]
+              }
+            ]
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_gbp{entity=\"sensor.elec_cost_day\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Electricity Cost Today",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_gbp{entity=\"sensor.gas_cost_day\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Gas Cost Today",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_p{entity=\"sensor.elec_price_now\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Elec Price (p/kWh)",
+              "refId": "C"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_energy_kwh{entity=\"sensor.gas_today\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Gas Used Today",
+              "refId": "D"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 56,
+          "title": "Live Power",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 88
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "watt",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_power_w{entity=~\"sensor.(electricity_power|smart_plug_[2-6]_power)\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 57,
+          "title": "Energy Today by Device",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 88
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "kwatth",
+              "custom": {
+                "drawStyle": "bars",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 60,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_energy_kwh{entity=~\"sensor.[a-z0-9_]+_daily\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 66,
+      "title": "Irrigation",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 83
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "marcusolsson-dynamictext-panel",
+          "id": 61,
+          "title": "Garden zones",
+          "gridPos": {
+            "h": 16,
+            "w": 12,
+            "x": 0,
+            "y": 84
+          },
+          "options": {
+            "renderMode": "everyRow",
+            "wrap": true,
+            "editor": {
+              "format": "html",
+              "language": "html"
+            },
+            "defaultContent": "waiting for valve states",
+            "content": "<div style=\"position:relative;width:100%;line-height:0\"><img src=\"https://maps.googleapis.com/maps/api/staticmap?center=39.7817,-89.6501&zoom=19&size=600x380&maptype=satellite&key=#{google_maps_api_key}#\" style=\"width:100%;border-radius:6px\"/><div class=\"z z1 s-{{z1}}\"></div><div class=\"z z2 s-{{z2}}\"></div><div class=\"z z3 s-{{z3}}\"></div><div class=\"zl zl1\">Zone 1</div><div class=\"zl zl2\">Zone 2</div><div class=\"zl zl3\">Zone 3</div><div class=\"lg\"><b style=\"color:#42a5f5\">&#9632;</b> Z1 {{z1}} &nbsp; <b style=\"color:#ef5350\">&#9632;</b> Z2 {{z2}} &nbsp; <b style=\"color:#ffee58\">&#9632;</b> Z3 {{z3}}</div></div>",
+            "styles": ".z{position:absolute;inset:0;transition:opacity .3s;mix-blend-mode:screen}.z1{background:#1e88e5;clip-path:polygon(71.7% 62.6%,92.7% 62.6%,93% 74.5%,71.3% 75.3%)}.z2{background:#e53935;clip-path:polygon(88.7% 56.6%,98.7% 56.6%,98.7% 63.2%,88.7% 63.2%)}.z3{background:#fdd835;clip-path:polygon(2.5% 25.8%,75% 49.5%,72.5% 63.2%,50.8% 66.3%,2.5% 37.4%)}.z.s-closed{opacity:.5}.z.s-open{opacity:1;mix-blend-mode:normal;box-shadow:0 0 0 2px #fff inset}.zl{position:absolute;transform:translate(-50%,-50%);font:700 12px system-ui;color:#fff;white-space:nowrap;pointer-events:none;letter-spacing:.02em;text-shadow:0 0 3px #000,0 0 4px #000,0 1px 2px #000}.zl1{left:82%;top:69%}.zl2{left:93%;top:60%}.zl3{left:34%;top:46%}.lg{position:absolute;left:6px;bottom:6px;font:600 11px system-ui;background:rgba(0,0,0,.65);color:#fff;padding:3px 7px;border-radius:4px;line-height:1.5}"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ {'z1': states('valve.wt_11w_zone_1'), 'z2': states('valve.wt_11w_zone_2'), 'z3': states('valve.wt_11w_zone_3')} | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "z1",
+                  "text": "z1",
+                  "type": "string"
+                },
+                {
+                  "selector": "z2",
+                  "text": "z2",
+                  "type": "string"
+                },
+                {
+                  "selector": "z3",
+                  "text": "z3",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 59,
+          "title": "Zones",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 84
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Zone": 0,
+                  "State": 1,
+                  "Unit": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id in [\"valve.wt_11w_zone_1\",\"valve.wt_11w_zone_2\",\"valve.wt_11w_zone_3\",\"number.wt_11w_zone_1_duration\",\"number.wt_11w_zone_2_duration\",\"number.wt_11w_zone_3_duration\"] })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Zone",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "State",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.unit_of_measurement",
+                  "text": "Unit",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 60,
+          "title": "Schedule",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 92
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Setting": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id in [\"input_boolean.irrigation_enabled\",\"input_boolean.irrigation_rain_sensor_enabled\",\"input_datetime.irrigation_start_time\",\"input_number.irrigation_rain_threshold\",\"sensor.home_homer_simpson_com_rain_intensity\",\"automation.irrigation_daily_schedule\"] })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Setting",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "bargauge",
+          "id": 62,
+          "title": "Zone Durations",
+          "gridPos": {
+            "h": 5,
+            "w": 12,
+            "x": 0,
+            "y": 100
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "min": 0,
+              "max": 30,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_number_state_min{entity=~\"number.wt_11w_zone_[1-3]_duration\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 63,
+          "title": "Valve Controller Battery",
+          "gridPos": {
+            "h": 5,
+            "w": 12,
+            "x": 12,
+            "y": 100
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.wt_11w_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Irrigation Valve",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "bargauge",
+          "id": 64,
+          "title": "Watering Today",
+          "gridPos": {
+            "h": 6,
+            "w": 24,
+            "x": 0,
+            "y": 105
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "min": 0,
+              "max": 15,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "label_replace(homeassistant_sensor_state{entity=~\"sensor.irrigation_zone_[1-3]_watering_today\"} * 60, \"z\", \"Zone $1\", \"entity\", \"sensor.irrigation_zone_(.+)_watering_today\")",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{z}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 65,
+          "title": "Rain Intensity",
+          "gridPos": {
+            "h": 7,
+            "w": 24,
+            "x": 0,
+            "y": 111
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "lengthmm",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 20,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_precipitation_intensity_mm_per_h{entity=\"sensor.home_homer_simpson_com_rain_intensity\"} or homeassistant_sensor_state{entity=\"sensor.home_homer_simpson_com_rain_intensity\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Rain",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_input_number_state_mm_per_h{entity=\"input_number.irrigation_rain_threshold\"} or homeassistant_input_number_state{entity=\"input_number.irrigation_rain_threshold\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Skip threshold",
+              "refId": "B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 70,
+      "title": "Mower",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 84
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "marcusolsson-dynamictext-panel",
+          "id": 69,
+          "title": "Mower Location",
+          "gridPos": {
+            "h": 14,
+            "w": 14,
+            "x": 0,
+            "y": 85
+          },
+          "options": {
+            "content": "<img style=\"width:100%;max-height:460px;object-fit:contain;border-radius:6px\" src=\"/api/datasources/proxy/uid/ha-static-proxy{{entity_picture}}\" />",
+            "defaultContent": "<em>no image</em>",
+            "editor": {
+              "format": "auto",
+              "language": "html"
+            },
+            "renderMode": "everyRow",
+            "wrap": true,
+            "contentPartials": [],
+            "helpers": "",
+            "styles": "",
+            "externalStyles": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"camera.maps_googleapis_com\" })",
+              "columns": [
+                {
+                  "selector": "attributes.entity_picture",
+                  "text": "entity_picture",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 67,
+          "title": "Mower",
+          "gridPos": {
+            "h": 5,
+            "w": 10,
+            "x": 14,
+            "y": 85
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Mower": 0,
+                  "Activity": 1,
+                  "Detail": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"lawn_mower.mower_demo\" })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Mower",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "Activity",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.status",
+                  "text": "Detail",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 68,
+          "title": "Status",
+          "gridPos": {
+            "h": 9,
+            "w": 10,
+            "x": 14,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'Activity', 'State': states('lawn_mower.mower_demo')},{'Item': 'State', 'State': states('sensor.mower_demo')},{'Item': 'Detailed', 'State': state_attr('lawn_mower.mower_demo','status')},{'Item': 'Connected', 'State': states('binary_sensor.mower_demo_connection')},{'Item': 'Error', 'State': states('binary_sensor.mower_demo_error')},{'Item': 'Connect expires', 'State': as_timestamp(states('sensor.mower_demo_connect_expiration')) | timestamp_custom('%d %b %Y', true)}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 79,
+      "title": "3D Printer",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 85
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "marcusolsson-dynamictext-panel",
+          "id": 71,
+          "title": "Printer",
+          "gridPos": {
+            "h": 12,
+            "w": 9,
+            "x": 0,
+            "y": 86
+          },
+          "options": {
+            "content": "<img style=\"width:100%;max-height:280px;object-fit:contain;border-radius:6px\" src=\"/api/datasources/proxy/uid/ha-static-proxy{{entity_picture}}\" />",
+            "defaultContent": "<em>no image</em>",
+            "editor": {
+              "format": "auto",
+              "language": "html"
+            },
+            "renderMode": "everyRow",
+            "wrap": true,
+            "contentPartials": [],
+            "helpers": "",
+            "styles": "",
+            "externalStyles": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"image.p2s_22e8bj620203679_cover_image\" })",
+              "columns": [
+                {
+                  "selector": "attributes.entity_picture",
+                  "text": "entity_picture",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 72,
+          "title": "Job",
+          "gridPos": {
+            "h": 12,
+            "w": 7,
+            "x": 9,
+            "y": 86
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'Task', 'State': states('sensor.p2s_22e8bj620203679_task_name')},{'Item': 'Print status', 'State': states('sensor.p2s_22e8bj620203679_print_status')},{'Item': 'Stage', 'State': states('sensor.p2s_22e8bj620203679_current_stage')},{'Item': 'Remaining', 'State': states('sensor.p2s_22e8bj620203679_remaining_time')},{'Item': 'Ends', 'State': states('sensor.p2s_22e8bj620203679_end_time')},{'Item': 'Online', 'State': states('binary_sensor.p2s_22e8bj620203679_online')},{'Item': 'HMS errors', 'State': states('binary_sensor.p2s_22e8bj620203679_hms_errors')}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "bargauge",
+          "id": 73,
+          "title": "Print Progress",
+          "gridPos": {
+            "h": 4,
+            "w": 8,
+            "x": 16,
+            "y": 86
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_percent{entity=\"sensor.p2s_22e8bj620203679_print_progress\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "progress",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 74,
+          "title": "Nozzle",
+          "gridPos": {
+            "h": 8,
+            "w": 3,
+            "x": 16,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "min": 0,
+              "max": 300,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 200
+                  },
+                  {
+                    "color": "red",
+                    "value": 280
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=\"sensor.p2s_22e8bj620203679_nozzle_temperature\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "nozzle",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 75,
+          "title": "Bed",
+          "gridPos": {
+            "h": 8,
+            "w": 3,
+            "x": 19,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "min": 0,
+              "max": 120,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 80
+                  },
+                  {
+                    "color": "red",
+                    "value": 110
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=\"sensor.p2s_22e8bj620203679_bed_temperature\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "bed",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 76,
+          "title": "Chamber",
+          "gridPos": {
+            "h": 8,
+            "w": 2,
+            "x": 22,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "min": 0,
+              "max": 70,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "blue",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=\"sensor.p2s_22e8bj620203679_chamber_temperature\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "chamber",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 77,
+          "title": "Temperatures",
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 98
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "celsius",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_temperature_celsius{entity=~\"sensor.p2s_22e8bj620203679_(nozzle|bed|chamber)_temperature\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 78,
+          "title": "AMS & Fans",
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 98
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'AMS humidity %', 'State': states('sensor.p2s_22e8bj620203679_ams_1_humidity')},{'Item': 'AMS temperature', 'State': states('sensor.p2s_22e8bj620203679_ams_1_temperature') ~ ' C'},{'Item': 'AMS drying', 'State': states('binary_sensor.p2s_22e8bj620203679_ams_1_drying')},{'Item': 'Cooling fan %', 'State': states('sensor.p2s_22e8bj620203679_cooling_fan_speed')},{'Item': 'Chamber fan %', 'State': states('sensor.p2s_22e8bj620203679_chamber_fan_speed')},{'Item': 'Wi-Fi signal', 'State': states('sensor.p2s_22e8bj620203679_wi_fi_signal') ~ ' dBm'},{'Item': 'Total usage', 'State': states('sensor.p2s_22e8bj620203679_total_usage')}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 85,
+      "title": "Dogs",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 86
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "gauge",
+          "id": 80,
+          "title": "Dog Battery",
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 87
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 15
+                  },
+                  {
+                    "color": "green",
+                    "value": 40
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true,
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_battery_percent{entity=\"sensor.dog_battery_level\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "Dog",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 81,
+          "title": "Activity",
+          "gridPos": {
+            "h": 6,
+            "w": 12,
+            "x": 6,
+            "y": 87
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_min{entity=~\"sensor.dog_(minutes_active|daily_goal|rest_time)\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 82,
+          "title": "Tracker",
+          "gridPos": {
+            "h": 6,
+            "w": 6,
+            "x": 18,
+            "y": 87
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'Status', 'State': states('sensor.dog_tracker_state')},{'Item': 'Charging', 'State': states('binary_sensor.dog_tracker_battery_charging')},{'Item': 'Power saving', 'State': states('binary_sensor.dog_tracker_power_saving')},{'Item': 'Live tracking', 'State': states('switch.dog_live_tracking')},{'Item': 'Buzzer', 'State': states('switch.dog_tracker_buzzer')},{'Item': 'LED', 'State': states('switch.dog_tracker_led')}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "stat",
+          "id": 83,
+          "title": "Sleep Today",
+          "gridPos": {
+            "h": 3,
+            "w": 24,
+            "x": 0,
+            "y": 93
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "mappings": [],
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "text",
+                    "value": null
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "none",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "textMode": "value_and_name",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_min{entity=~\"sensor.dog_(day|night)_sleep\"}",
+              "instant": true,
+              "range": false,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 84,
+          "title": "Sleep (7d)",
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 96
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "m",
+              "custom": {
+                "drawStyle": "bars",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 60,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_min{entity=\"sensor.dog_day_sleep\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Day sleep",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_min{entity=\"sensor.dog_night_sleep\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Night sleep",
+              "refId": "B"
+            }
+          ],
+          "timeFrom": "7d"
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 92,
+      "title": "Vacuums",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 87
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "bargauge",
+          "id": 86,
+          "title": "Vacuum Battery",
+          "gridPos": {
+            "h": 4,
+            "w": 12,
+            "x": 0,
+            "y": 88
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Vacuum": 0,
+                  "Battery": 1
+                }
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id in [\"sensor.lounge_battery\", \"sensor.hallway_battery\"] })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Vacuum",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "Battery",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 87,
+          "title": "Robots",
+          "gridPos": {
+            "h": 4,
+            "w": 12,
+            "x": 12,
+            "y": 88
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Vacuum": 0,
+                  "State": 1,
+                  "Battery": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Vacuum': 'Lounge', 'State': states('vacuum.lounge'), 'Battery': states('sensor.lounge_battery') | int(0)},{'Vacuum': 'Hallway', 'State': states('vacuum.hallway'), 'Battery': states('sensor.hallway_battery') | int(0)}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Vacuum",
+                  "text": "Vacuum",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                },
+                {
+                  "selector": "Battery",
+                  "text": "Battery",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "bargauge",
+          "id": 88,
+          "title": "Consumables Remaining",
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 0,
+            "y": 92
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent",
+              "min": 0,
+              "max": 100,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {
+                    "color": "red",
+                    "value": null
+                  },
+                  {
+                    "color": "orange",
+                    "value": 20
+                  },
+                  {
+                    "color": "yellow",
+                    "value": 40
+                  },
+                  {
+                    "color": "green",
+                    "value": 60
+                  }
+                ]
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "lcd",
+            "orientation": "horizontal",
+            "valueMode": "color",
+            "showUnfilled": true,
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": true
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Part": 0,
+                  "Life": 1
+                }
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id in [\"sensor.hallway_filter_lifespan\",\"sensor.hallway_main_brush_lifespan\",\"sensor.hallway_side_brush_lifespan\",\"sensor.lounge_filter_lifespan\",\"sensor.lounge_main_brush_lifespan\",\"sensor.lounge_side_brush_lifespan\"] })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Part",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "Life",
+                  "type": "number"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 89,
+          "title": "Cleaning",
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 92
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1,
+                  "Unit": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id in [\"sensor.hallway_area_cleaned\",\"sensor.hallway_cleaning_duration\",\"sensor.lounge_area_cleaned\",\"sensor.lounge_cleaning_duration\"] })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "State",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.unit_of_measurement",
+                  "text": "Unit",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "marcusolsson-dynamictext-panel",
+          "id": 90,
+          "title": "Lounge Map",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 99
+          },
+          "options": {
+            "content": "<img style=\"width:100%;max-height:220px;object-fit:contain\" src=\"/api/datasources/proxy/uid/ha-static-proxy{{entity_picture}}\" />",
+            "defaultContent": "<em>no image</em>",
+            "editor": {
+              "format": "auto",
+              "language": "html"
+            },
+            "renderMode": "everyRow",
+            "wrap": true,
+            "contentPartials": [],
+            "helpers": "",
+            "styles": "",
+            "externalStyles": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"image.lounge_map\" })",
+              "columns": [
+                {
+                  "selector": "attributes.entity_picture",
+                  "text": "entity_picture",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "marcusolsson-dynamictext-panel",
+          "id": 91,
+          "title": "Hallway Map",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 99
+          },
+          "options": {
+            "content": "<img style=\"width:100%;max-height:220px;object-fit:contain\" src=\"/api/datasources/proxy/uid/ha-static-proxy{{entity_picture}}\" />",
+            "defaultContent": "<em>no image</em>",
+            "editor": {
+              "format": "auto",
+              "language": "html"
+            },
+            "renderMode": "everyRow",
+            "wrap": true,
+            "contentPartials": [],
+            "helpers": "",
+            "styles": "",
+            "externalStyles": []
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ $v.entity_id = \"image.hallway_map\" })",
+              "columns": [
+                {
+                  "selector": "attributes.entity_picture",
+                  "text": "entity_picture",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 96,
+      "title": "Builds & Releases",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 88
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 93,
+          "title": "Versions",
+          "gridPos": {
+            "h": 5,
+            "w": 24,
+            "x": 0,
+            "y": 89
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'HA current', 'State': states('sensor.current_version_2')},{'Item': 'HA latest', 'State': states('sensor.ha_latest_version')},{'Item': 'Config build', 'State': states('sensor.azure_devops_build_number')},{'Item': 'Docker build', 'State': states('sensor.azure_devops_docker_build_number')},{'Item': 'Renovate PRs', 'State': states('sensor.renovate_open_prs')}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 94,
+          "title": "Latest Deploys",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 94
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Item": 0,
+                  "State": 1
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{{ [{'Item': 'Config build', 'State': states('sensor.azure_devops_build_number')},{'Item': 'Config built', 'State': states('sensor.azure_devops_date_of_build')},{'Item': 'Config commit', 'State': states('sensor.azure_devops_commit_message')},{'Item': 'Docker build', 'State': states('sensor.azure_devops_docker_build_number')},{'Item': 'Docker built', 'State': states('sensor.azure_devops_docker_date_of_build')},{'Item': 'Docker commit', 'State': states('sensor.azure_devops_docker_commit_message')}] | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Item",
+                  "text": "Item",
+                  "type": "string"
+                },
+                {
+                  "selector": "State",
+                  "text": "State",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "type": "annolist",
+          "id": 95,
+          "title": "Deploy Timeline",
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 94
+          },
+          "options": {
+            "onlyFromThisDashboard": false,
+            "onlyInTimeRange": false,
+            "tags": [
+              "Deploy"
+            ],
+            "limit": 20,
+            "showTags": true,
+            "showUser": false,
+            "showTime": true,
+            "navigateToPanel": false,
+            "navigateBefore": "6h",
+            "navigateAfter": "6h"
+          }
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 99,
+      "title": "Pixel Health",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 89
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 97,
+          "title": "Pixel 10 Pro & Watch",
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 0,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Metric": 0,
+                  "State": 1,
+                  "Unit": 2
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/states",
+              "url_options": {
+                "method": "GET",
+                "data": ""
+              },
+              "root_selector": "$filter($, function($v){ ($substringBefore($v.entity_id, \"pixel_10_pro\") != $v.entity_id and $substringBefore($v.entity_id,\".\") = \"sensor\") or $v.entity_id = \"sensor.oneplus_watch_battery_level\" })",
+              "columns": [
+                {
+                  "selector": "attributes.friendly_name",
+                  "text": "Metric",
+                  "type": "string"
+                },
+                {
+                  "selector": "state",
+                  "text": "State",
+                  "type": "string"
+                },
+                {
+                  "selector": "attributes.unit_of_measurement",
+                  "text": "Unit",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "type": "timeseries",
+          "id": 98,
+          "title": "Steps & Heart Rate (7d)",
+          "gridPos": {
+            "h": 10,
+            "w": 12,
+            "x": 12,
+            "y": 90
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineInterpolation": "smooth",
+                "lineWidth": 1,
+                "fillOpacity": 0,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none"
+                }
+              },
+              "color": {
+                "mode": "palette-classic"
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "displayMode": "table",
+              "placement": "bottom",
+              "calcs": [
+                "mean",
+                "max",
+                "last"
+              ],
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_steps{entity=\"sensor.pixel_10_pro_daily_steps\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "Steps",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "PAE45454D0EDB9216"
+              },
+              "editorMode": "code",
+              "expr": "homeassistant_sensor_unit_bpm{entity=~\"sensor.pixel_10_pro_(heart_rate|resting_heart_rate)\"}",
+              "instant": false,
+              "range": true,
+              "legendFormat": "{{friendly_name}}",
+              "refId": "B"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "row",
+      "id": 101,
+      "title": "Bins",
+      "collapsed": true,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 90
+      },
+      "panels": [
+        {
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "homeassistant-api"
+          },
+          "type": "table",
+          "id": 100,
+          "title": "Upcoming Bin Collections",
+          "gridPos": {
+            "h": 12,
+            "w": 24,
+            "x": 0,
+            "y": 91
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "align": "auto",
+                "filterable": true,
+                "cellOptions": {
+                  "type": "auto"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "options": {
+            "showHeader": true,
+            "cellHeight": "sm",
+            "footer": {
+              "show": false
+            }
+          },
+          "transformations": [
+            {
+              "id": "organize",
+              "options": {
+                "indexByName": {
+                  "Date": 0,
+                  "🔵 Recycling": 1,
+                  "🟢 Garden": 2,
+                  "⚫ Refuse": 3,
+                  "🟠 Food": 4
+                },
+                "renameByName": {},
+                "excludeByName": {}
+              }
+            }
+          ],
+          "targets": [
+            {
+              "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "homeassistant-api"
+              },
+              "refId": "A",
+              "type": "json",
+              "source": "url",
+              "format": "table",
+              "parser": "backend",
+              "url": "/template",
+              "url_options": {
+                "method": "POST",
+                "body_type": "raw",
+                "body_content_type": "application/json",
+                "data": "{\"template\": \"{%- set anchor = as_timestamp(strptime('2026-06-08','%Y-%m-%d')) -%}{%- set secs = 604800 -%}{%- set dtm = (7 - now().weekday()) % 7 -%}{%- set first = (today_at() | as_timestamp) + dtm * 86400 -%}{%- set ns = namespace(items=[]) -%}{%- for i in range(13) -%}{%- set t = first + i * secs -%}{%- set w = ((t - anchor) / secs) | int -%}{%- set ns.items = ns.items + [{'Date': t | timestamp_custom('%a %d %b'), 'Recycling': ('YES' if w % 2 == 0 else '-'), 'Garden': ('YES' if w % 2 == 0 else '-'), 'Refuse': ('YES' if w % 3 == 0 else '-'), 'Food': 'YES'}] -%}{%- endfor -%}{{ ns.items | tojson }}\"}"
+              },
+              "root_selector": "",
+              "columns": [
+                {
+                  "selector": "Date",
+                  "text": "Date",
+                  "type": "string"
+                },
+                {
+                  "selector": "Recycling",
+                  "text": "🔵 Recycling",
+                  "type": "string"
+                },
+                {
+                  "selector": "Garden",
+                  "text": "🟢 Garden",
+                  "type": "string"
+                },
+                {
+                  "selector": "Refuse",
+                  "text": "⚫ Refuse",
+                  "type": "string"
+                },
+                {
+                  "selector": "Food",
+                  "text": "🟠 Food",
+                  "type": "string"
+                }
+              ],
+              "filters": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "home-assistant"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Home Assistant",
+  "uid": "oVTa8pdWk",
+  "weekStart": ""
+}

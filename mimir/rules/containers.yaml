@@ -1,0 +1,54 @@
+# Docker container alerts via cAdvisor, job="cadvisor". Container id in `name`.
+namespace: containers
+groups:
+  - name: containers
+    rules:
+      # A container in the critical set has not reported to cAdvisor for 5m
+      # (stopped, crashed, or removed). Edit the regex as the stack changes.
+      - alert: ContainerDown
+        expr: |
+          time() - max by (name) (
+            container_last_seen{name=~"grafana|mimir|loki|nginx|mosquitto|adguard|adguard-exporter|unifi-db|unifi-network-application|unpoller|blackbox|home-assistant|mongodb-exporter|nginx-exporter"}
+          ) > 300
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Container {{ $labels.name }} is not running"
+          description: "cAdvisor has not seen {{ $labels.name }} for over 5 minutes."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=containerdown"
+
+      - alert: ContainerRestartLoop
+        expr: changes(container_start_time_seconds{name!=""}[15m]) > 3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} is restarting repeatedly"
+          description: "{{ $value | printf \"%.0f\" }} restarts in 15 minutes."
+
+      # $value must come from the LEFT side of an `and` (PromQL returns the
+      # left operand's values for series present in both sides) - it was
+      # backwards before, so $value was container_spec_memory_limit_bytes
+      # (raw byte count) rather than the ratio, rendering as nonsense like
+      # "4.719e+10%". The right side is just the divide-by-zero guard for
+      # containers with no mem_limit set (container_spec_memory_limit_bytes
+      # == 0 makes the ratio +Inf, which is > 0.9 and would alert forever).
+      #
+      # Uses working_set_bytes, not usage_bytes: usage_bytes includes
+      # reclaimable page cache, which the kernel evicts under pressure before
+      # an OOM kill ever happens. Checked against home-assistant's own
+      # history: 80% of its usage_bytes>90% episodes were cache noise that
+      # working_set never crossed 90% for - working_set is what's actually
+      # close to what the OOM killer weighs against the cgroup limit.
+      - alert: ContainerHighMemory
+        expr: |
+          (container_memory_working_set_bytes / container_spec_memory_limit_bytes) > 0.9
+          and container_spec_memory_limit_bytes{name!=""} > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Container {{ $labels.name }} near its memory limit"
+          description: "{{ $value | humanizePercentage }} of its mem_limit in working-set use for 15 minutes - an OOM kill is likely. This host is RAM-constrained overall, so check what else is using memory before just raising this container's limit."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=containerhighmemory"

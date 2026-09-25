@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A node-graph-themed Asteroids game where an on-call trace probe resolves drifting incident services.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A node-graph-themed Asteroids game where an on-call trace probe resolves drifting incident services.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana Node Graph-oids\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); header.append(title,status); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 105px)',minHeight:'420px',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, dead=false; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);root.replaceChildren()};\nconst canvas=document.createElement('canvas'), ctx=canvas.getContext('2d'); canvas.width=800;canvas.height=500;Object.assign(canvas.style,{width:'100%',height:'100%',maxWidth:'900px',objectFit:'contain',imageRendering:'pixelated'});stage.appendChild(canvas);var arcadeMuteButton=document.createElement('button');let arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';function renderArcadeMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.borderColor=arcadeMuted?'#777d86':'#5794f2';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});stage.appendChild(arcadeMuteButton);arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderArcadeMute()});renderArcadeMute();function arcadeTone(freq=440,duration=.07,wave='square'){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const oscillator=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();oscillator.type=wave;oscillator.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.045,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);oscillator.connect(gain).connect(arcadeAudio.destination);oscillator.start();oscillator.stop(arcadeAudio.currentTime+duration+.02)}catch(_){/* Sound is optional when browser policy blocks audio. */}}\nfunction bg(){ctx.fillStyle='#0b0c0e';ctx.fillRect(0,0,800,500);ctx.strokeStyle='rgba(255,255,255,.045)';for(let x=0;x<800;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,500);ctx.stroke()}for(let y=0;y<500;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke()}}\nconst flows=[['Grafana Core','Loki datasource','Query Frontend','Loki Querier','Loki Ingester','Object Storage'],['Alloy / Promtail','Loki Distributor','Loki Ingester','Object Storage'],['Grafana Core','Mimir datasource','Query Frontend','Mimir Querier','Store Gateway','Object Storage'],['Prometheus / Alloy','Mimir Distributor','Mimir Ingester','Object Storage'],['Grafana Core','Tempo datasource','Query Frontend','Tempo Querier','Tempo Ingester','Object Storage'],['OTel Collector','Tempo Distributor','Tempo Ingester','Object Storage'],['Kubernetes API','Grafana Alerting','Alertmanager','On-call Engineer']];let ship={x:400,y:440,a:-1.57,vx:0,vy:0},rocks=[],shots=[],score=0,lives=3,invulnerable=0,gameOver=false,keys={};function makeRocks(){let chosen=[],seen=new Set(),nodes=[];while(nodes.length<10){chosen.push(flows[Math.random()*flows.length|0]);chosen.flat().forEach(n=>{if(!seen.has(n)){seen.add(n);let i=nodes.length;nodes.push({x:75+(i%5)*162,y:65+(i/5|0)*120,vx:(Math.random()-.5)*.28,vy:(Math.random()-.5)*.28,r:26+Math.random()*16,n,state:Math.random()<.35?'INCIDENT':'DEGRADED'})}})}return nodes}function resetShip(){ship={x:400,y:440,a:-1.57,vx:0,vy:0};invulnerable=240}function restart(){rocks=makeRocks();shots=[];score=0;lives=3;gameOver=false;resetShip();state('RUNNING - LEFT/RIGHT TURN, UP THRUST, SPACE RESOLVE')}rocks=makeRocks();metric('nodes_resolved_total','0');metric('oncall_lives','3');metric('high_score',localStorage.getItem('arcade-asteroids')||'0');metric('active_incident_nodes','7');metric('service_graph_health','DEGRADED');state('NODE GRAPH-OIDS - LEFT/RIGHT TURN, UP THRUST, SPACE RESOLVE');root.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key==='r'||e.key==='R')restart();if(e.key===' '&&!gameOver)shots.push({x:ship.x,y:ship.y,vx:Math.cos(ship.a)*7,vy:Math.sin(ship.a)*7});arcadeTone(500,.04);e.preventDefault()});root.addEventListener('keyup',e=>keys[e.key]=false);function f(){if(!root.isConnected){cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }return}if(!gameOver){if(keys.ArrowLeft)ship.a-=.045;if(keys.ArrowRight)ship.a+=.045;if(keys.ArrowUp){ship.vx+=Math.cos(ship.a)*.09;ship.vy+=Math.sin(ship.a)*.09}ship.vx*=.985;ship.vy*=.985;let shipSpeed=Math.hypot(ship.vx,ship.vy);if(shipSpeed>3.6){ship.vx=ship.vx/shipSpeed*3.6;ship.vy=ship.vy/shipSpeed*3.6}ship.x=(ship.x+ship.vx+800)%800;ship.y=(ship.y+ship.vy+500)%500;shots.forEach(s=>{s.x+=s.vx;s.y+=s.vy});rocks=rocks.filter(r=>{r.x=(r.x+r.vx+800)%800;r.y=(r.y+r.vy+500)%500;let hit=shots.some(s=>Math.hypot(s.x-r.x,s.y-r.y)<r.r);if(hit){score+=10;arcadeTone(780,.09,'sine')};return !hit});if(!rocks.length)rocks=makeRocks();if(invulnerable>0)invulnerable--;else if(rocks.some(r=>Math.hypot(ship.x-r.x,ship.y-r.y)<r.r+7)){lives--;arcadeTone(110,.2,'sawtooth');if(lives<=0){gameOver=true;state('ALL LIVES EXHAUSTED - PRESS R','#f2495c')}else{resetShip();state('SHIP LOST - '+lives+' LIVES REMAIN','#ff9830')}}}set('nodes_resolved_total',score);set('oncall_lives',lives);set('active_incident_nodes',rocks.length);set('service_graph_health',rocks.length>6?'DEGRADED':'HEALTHY');let h=Math.max(+localStorage.getItem('arcade-asteroids')||0,score);localStorage.setItem('arcade-asteroids',h);set('high_score',h);bg();ctx.save();ctx.translate(ship.x,ship.y);ctx.rotate(ship.a);ctx.strokeStyle=invulnerable&&Math.floor(invulnerable/8)%2?'#ff9830':'#73bf69';ctx.beginPath();ctx.moveTo(18,0);ctx.lineTo(-12,-11);ctx.lineTo(-8,0);ctx.lineTo(-12,11);ctx.closePath();ctx.stroke();ctx.restore();ctx.strokeStyle='rgba(159,167,179,.35)';ctx.lineWidth=1;rocks.forEach((r,i)=>{let q=rocks[(i+1)%rocks.length];ctx.beginPath();ctx.moveTo(r.x,r.y);ctx.lineTo(q.x,q.y);ctx.stroke()});rocks.forEach(r=>{ctx.fillStyle=r.state==='INCIDENT'?'#f2495c':'#e0b400';ctx.beginPath();ctx.arc(r.x,r.y,r.r,0,7);ctx.fill();ctx.fillStyle='#f5f7ff';ctx.font=(r.r>35?'9px':'8px')+' monospace';ctx.textAlign='center';let words=r.n.split(' '),line1=words.slice(0,2).join(' '),line2=words.slice(2).join(' ');if(line1.length>14)line1=line1.slice(0,13)+'?';if(line2.length>14)line2=line2.slice(0,13)+'?';ctx.fillText(line1,r.x,r.y-3);if(line2)ctx.fillText(line2,r.x,r.y+9);ctx.textAlign='left'});ctx.fillStyle='#ff9830';shots.forEach(s=>ctx.fillRect(s.x,s.y,3,3));if(gameOver){ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(0,0,800,500);ctx.fillStyle='#f2495c';ctx.font='700 28px monospace';ctx.textAlign='center';ctx.fillText('INCIDENT RESPONSE FAILED',400,235);ctx.fillStyle='#d8d9da';ctx.font='16px monospace';ctx.fillText('Press R to restart',400,270);ctx.textAlign='left'}raf=requestAnimationFrame(f)}f();",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Node Graph-oids",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Node Graph-oids",
+  "uid": "grafana-asteroids",
+  "version": 2,
+  "weekStart": ""
+}

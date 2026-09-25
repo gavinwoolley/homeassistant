@@ -1,0 +1,88 @@
+{
+  "uid": "mosquitto-broker",
+  "title": "Mosquitto",
+  "tags": ["mqtt", "mosquitto"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat", "title": "Broker up",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "up{job=\"mosquitto\"}" } ],
+      "fieldConfig": { "defaults": { "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } } ], "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Clients connected",
+      "gridPos": { "h": 4, "w": 5, "x": 4, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "broker_clients_connected" } ],
+      "options": { "colorMode": "value", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Subscriptions",
+      "gridPos": { "h": 4, "w": 5, "x": 9, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "broker_subscriptions_count" } ],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Retained messages",
+      "gridPos": { "h": 4, "w": 5, "x": 14, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "broker_retained_messages_count" } ],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat", "title": "Uptime",
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [ { "refId": "A", "expr": "broker_uptime" } ],
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "options": { "colorMode": "none", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "timeseries", "title": "Message throughput (msg/s)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(broker_publish_messages_received[5m])", "legendFormat": "received" },
+        { "refId": "B", "expr": "rate(broker_publish_messages_sent[5m])", "legendFormat": "sent" },
+        { "refId": "C", "expr": "rate(broker_publish_messages_dropped[5m])", "legendFormat": "dropped" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Bytes/s",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "rate(broker_bytes_received[5m])", "legendFormat": "in" },
+        { "refId": "B", "expr": "rate(broker_bytes_sent[5m])", "legendFormat": "out" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "Bps" } }
+    },
+    {
+      "type": "timeseries", "title": "Clients",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "broker_clients_connected", "legendFormat": "connected" },
+        { "refId": "B", "expr": "broker_clients_total", "legendFormat": "total" },
+        { "refId": "C", "expr": "broker_clients_maximum", "legendFormat": "max" }
+      ]
+    },
+    {
+      "type": "timeseries", "title": "Stored messages",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "broker_messages_stored", "legendFormat": "stored" }
+      ]
+    }
+  ]
+}

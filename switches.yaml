@@ -1,0 +1,98 @@
+# External IP sensor (moved from deprecated sensor platform: command_line)
+- sensor:
+    name: "Current IP"
+    unique_id: current_ip
+    command: "curl -s http://checkip.amazonaws.com"
+    scan_interval: 180
+
+# Renovate open PRs - written by azure-pipelines-renovate.yml each run
+- sensor:
+    name: "Renovate Open PRs"
+    unique_id: renovate_open_prs
+    command: "cat /config/renovate_prs.json 2>/dev/null || echo '{\"count\":0,\"prs\":[]}'"
+    value_template: "{{ value_json.count }}"
+    json_attributes_path: "$"
+    json_attributes:
+      - prs
+    scan_interval: 300
+
+# Camera PTZ Switches - Bart Simpson Room Camera
+- switch:
+    name: "Bart Simpson Room Camera Left"
+    unique_id: bart_simpson_room_camera_left
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=0"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera Right"
+    unique_id: bart_simpson_room_camera_right
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=1"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera Up"
+    unique_id: bart_simpson_room_camera_up
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=2"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera Down"
+    unique_id: bart_simpson_room_camera_down
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=3"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera PTZ1"
+    unique_id: bart_simpson_room_camera_ptz1
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=8"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera PTZ2"
+    unique_id: bart_simpson_room_camera_ptz2
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=9"'
+    command_off: 'true'
+- switch:
+    name: "Bart Simpson Room Camera PTZ3"
+    unique_id: bart_simpson_room_camera_ptz3
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Lisa SimpsonBackRoom/pos=10"'
+    command_off: 'true'
+
+# Camera PTZ Switches - Dogs Camera
+- switch:
+    name: "Dogs Camera Left"
+    unique_id: dogs_camera_left
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=0"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera Right"
+    unique_id: dogs_camera_right
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=1"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera Up"
+    unique_id: dogs_camera_up
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=2"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera Down"
+    unique_id: dogs_camera_down
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=3"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera PTZ1"
+    unique_id: dogs_camera_ptz1
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=8"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera PTZ2"
+    unique_id: dogs_camera_ptz2
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=9"'
+    command_off: 'true'
+- switch:
+    name: "Dogs Camera PTZ3"
+    unique_id: dogs_camera_ptz3
+    command_on: 'curl -k "http://10.0.0.250:81/cam/Dogs/pos=10"'
+    command_off: 'true'
+
+# System Controls
+- switch:
+    name: "Reboot System"
+    unique_id: reboot_system
+    command_on: '/home/homeassistant/.homeassistant/scripts/reboot_home_assistant.sh'
+    command_off: 'true'

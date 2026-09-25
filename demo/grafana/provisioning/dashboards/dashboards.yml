@@ -1,0 +1,15 @@
+apiVersion: 1
+
+providers:
+  - name: Demo Dashboards
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      # Same convention as the real grafanaDashboards/provisioning/dashboards -
+      # mirrors the sanitized dashboards/ subfolders (Games, Alloy, ...) as
+      # Grafana folders.
+      foldersFromFilesStructure: true

@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A playable incident-response memory game with four Grafana-style status tiles, sequence levels, attempts, and high score.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A playable incident-response memory game with four Grafana-style status tiles, sequence levels, attempts, and high score.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana Simon\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); header.append(title,status); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 105px)',minHeight:'420px',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, dead=false; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);root.replaceChildren()};\nconst pad=document.createElement('div');Object.assign(pad.style,{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',width:'min(90vw,520px)',aspectRatio:'1'});stage.appendChild(pad);const audioToggle=document.createElement('button');Object.assign(audioToggle.style,{position:'absolute',right:'12px',bottom:'12px',padding:'7px 9px',border:'1px solid #5794f2',borderRadius:'3px',background:'#111217',color:'#d8d9da',font:'700 11px Roboto Mono,monospace',cursor:'pointer'});stage.appendChild(audioToggle);let seq=[],input=[],level=0,attempts=0,best=+localStorage.getItem('arcade-simon')||0,locked=true,colors=['#5794f2','#73bf69','#ff9830','#f2495c'];metric('level','0');metric('attempts','0');metric('high_score',best);metric('incident_sequence','READY');state('CLICK TO START');let bs=[];let audio;let muted=localStorage.getItem('arcade-simon-muted')!=='false';function renderAudioToggle(){audioToggle.textContent=muted?'AUDIO: OFF':'AUDIO: ON';audioToggle.style.borderColor=muted?'#777d86':'#5794f2';audioToggle.style.color=muted?'#9fa7b3':'#d8d9da'}audioToggle.addEventListener('click',e=>{e.stopPropagation();muted=!muted;localStorage.setItem('arcade-simon-muted',String(muted));if(muted&&audio)audio.suspend();if(!muted&&audio)audio.resume();renderAudioToggle();root.focus({preventScroll:true})});renderAudioToggle();const notes=[261.63,329.63,392.00,523.25];function tone(i){if(muted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!audio)audio=new Audio();if(audio.state==='suspended')audio.resume();const osc=audio.createOscillator(),gain=audio.createGain();osc.type='sine';osc.frequency.value=notes[i];gain.gain.setValueAtTime(.0001,audio.currentTime);gain.gain.exponentialRampToValueAtTime(.075,audio.currentTime+.015);gain.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.28);osc.connect(gain).connect(audio.destination);osc.start();osc.stop(audio.currentTime+.30)}catch(_){/* Audio is optional if the browser blocks it. */}}colors.forEach((c,i)=>{let b=document.createElement('button');Object.assign(b.style,{border:'2px solid #34373d',background:c,opacity:'.65'});b.onclick=()=>hit(i);pad.appendChild(b);bs.push(b)});function flash(i){bs[i].style.opacity='1';tone(i);setTimeout(()=>bs[i].style.opacity='.65',300)}function play(){locked=true;state('OBSERVE');seq.forEach((x,i)=>setTimeout(()=>flash(x),i*550+400));setTimeout(()=>{locked=false;input=[];state('YOUR TURN')},seq.length*550+600)}function next(){seq.push(Math.random()*4|0);level++;set('level',level);set('incident_sequence','STEP '+level);play()}function hit(i){if(!seq.length){next();return}if(locked)return;flash(i);input.push(i);if(i!==seq[input.length-1]){attempts++;set('attempts',attempts);state('RUNBOOK FAILED','#f2495c');seq=[];level=0;setTimeout(next,700);return}if(input.length===seq.length){best=Math.max(best,level);localStorage.setItem('arcade-simon',best);set('high_score',best);setTimeout(next,500)}}",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Simon",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Simon",
+  "uid": "grafana-simon",
+  "version": 2,
+  "weekStart": ""
+}

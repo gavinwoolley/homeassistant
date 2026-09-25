@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A playable Space Invaders-style game about defending an ingester from toxic observability labels and cardinality pressure.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A playable Space Invaders-style game about defending an ingester from toxic observability labels and cardinality pressure.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 27,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana Cardinality Invaders\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); header.append(title,status); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 105px)',minHeight:'420px',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, dead=false; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);root.replaceChildren()};\nconst canvas=document.createElement('canvas'), ctx=canvas.getContext('2d'); canvas.width=800;canvas.height=500;Object.assign(canvas.style,{width:'100%',height:'auto',maxWidth:'1100px',maxHeight:'100%',aspectRatio:'8 / 5',objectFit:'contain',imageRendering:'pixelated'});stage.appendChild(canvas);var arcadeMuteButton=document.createElement('button');let arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';function renderArcadeMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.borderColor=arcadeMuted?'#777d86':'#5794f2';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});stage.appendChild(arcadeMuteButton);arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderArcadeMute()});renderArcadeMute();function arcadeTone(freq=440,duration=.07,wave='square'){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const oscillator=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();oscillator.type=wave;oscillator.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.045,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);oscillator.connect(gain).connect(arcadeAudio.destination);oscillator.start();oscillator.stop(arcadeAudio.currentTime+duration+.02)}catch(_){/* Sound is optional when browser policy blocks audio. */}}\nfunction bg(){ctx.fillStyle='#0b0c0e';ctx.fillRect(0,0,800,500);ctx.strokeStyle='rgba(255,255,255,.045)';for(let x=0;x<800;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,500);ctx.stroke()}for(let y=0;y<500;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke()}}\nlet ship=380,shots=[],enemyShots=[],enemies=[],score=0,wave=0,lives=3,fireTick=0,formationDir=1,gameOver=false,keys={};const labels=['session_id','request_id','user_id','trace_id','pod_uid','container_id','build_sha','customer_id'];function deploy(){wave++;let bonus=Math.min(2,(wave-1)/2|0);for(let row=0;row<5;row++)for(let col=0;col<7;col++){let i=row*7+col,n=labels[i%labels.length],hp=1+(i%3===2?1:0)+Math.min(1,bonus);enemies.push({x:82+col*106+(row%2?0:12),y:54+row*39,n,hp,maxHp:hp,row})}}function restart(){ship=380;shots=[];enemyShots=[];enemies=[];score=0;wave=0;lives=3;fireTick=0;formationDir=1;gameOver=false;deploy();state('ARROWS MOVE - SPACE RELABEL - INVASION ACTIVE')}deploy();metric('active_series','120000');metric('series_dropped_total','0');metric('invading_labels','35');metric('cardinality_pressure','HIGH');metric('ingester_health','HEALTHY (3)');state('ARROWS MOVE - SPACE RELABEL - INVASION ACTIVE');root.addEventListener('keydown',e=>{keys[e.key]=true;if((e.key==='r'||e.key==='R')&&gameOver)restart();if(e.key===' '&&!gameOver){shots.push({x:ship+18,y:430});arcadeTone(520,.035)}e.preventDefault()});root.addEventListener('keyup',e=>keys[e.key]=false);function f(){if(!root.isConnected){cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }return}if(!gameOver){if(keys.ArrowLeft)ship=Math.max(0,ship-8);if(keys.ArrowRight)ship=Math.min(760,ship+8);let speed=.30+Math.min(.24,wave*.03),drop=enemies.some(z=>(formationDir>0&&z.x>752)||(formationDir<0&&z.x<48));if(drop)formationDir*=-1;enemies.forEach(z=>{z.x+=formationDir*speed;z.y+=.18+wave*.014;if(drop)z.y+=12});fireTick++;if(fireTick>26&&enemies.length){let count=wave>2?2:1;for(let i=0;i<count;i++){let z=enemies[Math.random()*enemies.length|0];enemyShots.push({x:z.x,y:z.y+15})}fireTick=0}shots.forEach(s=>s.y-=12);enemyShots.forEach(s=>s.y+=5);let remaining=[];shots.filter(s=>s.y>0).forEach(s=>{let target=enemies.find(z=>Math.abs(s.x-z.x)<46&&Math.abs(s.y-z.y)<20);if(target){target.hp--;arcadeTone(target.hp===0?760:310,target.hp===0?.09:.035,target.hp===0?'sine':'square');if(target.hp===0)score++}else remaining.push(s)});shots=remaining;enemyShots=enemyShots.filter(s=>s.y<500);if(enemyShots.some(s=>Math.abs(s.x-(ship+20))<22&&Math.abs(s.y-455)<20)){lives--;arcadeTone(120,.2,'sawtooth');enemyShots=[];ship=380;if(lives<=0){lives=0;gameOver=true;state('INGESTER DOWN - PRESS R','#f2495c')}else state('INGESTER HIT - '+lives+' LIVES REMAIN','#ff9830')}enemies=enemies.filter(z=>z.hp>0);if(!enemies.length){state('WAVE '+wave+' CONTAINED - FASTER INCOMING LOAD');deploy()}if(enemies.some(z=>z.y>430)){gameOver=true;state('ACTIVE SERIES LIMIT EXCEEDED - PRESS R','#f2495c')}set('series_dropped_total',score);set('active_series',Math.max(0,120000-score*1000));set('invading_labels',enemies.length);set('cardinality_pressure',enemies.length>14?'CRITICAL':enemies.length>6?'HIGH':'CONTAINED');set('ingester_health',(lives===3?'HEALTHY':lives?'DEGRADED':'DOWN')+' ('+lives+')')}bg();ctx.save();ctx.translate(ship+20,458);ctx.fillStyle='#73bf69';ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(18,12);ctx.lineTo(7,9);ctx.lineTo(0,15);ctx.lineTo(-7,9);ctx.lineTo(-18,12);ctx.closePath();ctx.fill();ctx.fillStyle='#d8f2d3';ctx.fillRect(-4,-5,8,7);ctx.restore();ctx.fillStyle='#ffeb3b';shots.forEach(s=>ctx.fillRect(s.x,s.y,3,14));ctx.fillStyle='#f2495c';enemyShots.forEach(s=>ctx.fillRect(s.x,s.y,4,12));enemies.forEach(z=>{let color=z.hp===1?(z.row<2?'#f2495c':'#b877d9'):'#ff9830',x=z.x,y=z.y,variant=z.row%3;ctx.fillStyle=color;ctx.fillRect(x-31,y-11,62,19);ctx.fillRect(x-39,y-5,78,10);if(variant===0){ctx.fillRect(x-25,y+8,13,8);ctx.fillRect(x+12,y+8,13,8)}else if(variant===1){ctx.fillRect(x-32,y+7,17,7);ctx.fillRect(x+15,y+7,17,7)}else{ctx.fillRect(x-20,y+8,40,7)}ctx.fillStyle='#0b0c0e';ctx.fillRect(x-18,y-5,6,6);ctx.fillRect(x+12,y-5,6,6);ctx.fillStyle='#f5f7ff';ctx.font='9px monospace';ctx.textAlign='center';ctx.fillText(z.n,x,y+2);ctx.textAlign='left';if(z.hp>1){ctx.fillStyle='#f5f7ff';ctx.font='9px monospace';ctx.fillText('x'+z.hp,x+34,y-11)}});if(gameOver){ctx.fillStyle='rgba(0,0,0,.42)';ctx.fillRect(0,0,800,500);ctx.fillStyle='#f2495c';ctx.font='700 24px monospace';ctx.textAlign='center';ctx.fillText('INGESTER OVERWHELMED',400,235);ctx.fillStyle='#d8d9da';ctx.font='16px monospace';ctx.fillText('Press R to restart',400,270);ctx.textAlign='left'}raf=requestAnimationFrame(f)}f();",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Cardinality Invaders",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Cardinality Invaders",
+  "uid": "grafana-cardinality-invaders",
+  "version": 2,
+  "weekStart": ""
+}

@@ -1,0 +1,108 @@
+multitenancy_enabled: false
+
+server:
+  http_listen_port: 8080
+
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /data
+
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/blocks
+  bucket_store:
+    # Load EVERY block, including recent ones. The default (10h) makes the
+    # store-gateway skip blocks whose maxTime is within the last 10h - but a
+    # compacted block that straddles the `now - query_store_after` boundary
+    # (e.g. a 12:00-16:00 block once "now - 10h" passes 12:00) is then still
+    # wanted by the querier for its older portion while the store-gateway
+    # has deliberately not loaded it => err-mimir-store-consistency-check-failed,
+    # which fails the whole query. This happened daily for a ~10h window.
+    # Matching query_store_after to ignore_blocks_within only works for
+    # blocks that fall entirely on one side of the boundary. This dataset is
+    # tiny (~37k series/block, a 16 KB index-header each) so loading the lot
+    # costs a few MB - Mimir sits at ~330/768 MiB with plenty of headroom.
+    ignore_blocks_within: 0
+  tsdb:
+    # Persist the ingester WAL/head on the bind-mounted volume so a container
+    # restart (deploy, `docker restart mimir`, OOM) replays instead of starting
+    # empty and losing the last hours of data.
+    dir: /data/tsdb
+    retention_period: 25h
+    # Cut the in-memory head to a block on graceful shutdown so the last <2h of
+    # samples are persisted, not just left in the WAL.
+    flush_blocks_on_shutdown: true
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/rules
+
+alertmanager_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/alertmanager
+
+ingester:
+  ring:
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+    # Single-node: come back ACTIVE immediately and keep our ring tokens across
+    # restarts instead of churning the ring.
+    unregister_on_shutdown: false
+    min_ready_duration: 0s
+
+querier:
+  # Serve the last 10h from the ingester (its WAL is persistent, so this is
+  # reliable across restarts) and older data from the store-gateway, which
+  # now loads every block (see bucket_store.ignore_blocks_within above), so
+  # there is no block the querier can ask for that the store-gateway is
+  # missing. Keeping this at 10h (rather than dropping it near 0) keeps
+  # recent queries off the store-gateway entirely and avoids any
+  # mid-upload block race for the newest blocks.
+  query_store_after: 10h
+
+limits:
+  max_label_names_per_series: 60
+  compactor_blocks_retention_period: 4d
+  ingestion_rate: 50000
+  ingestion_burst_size: 1000000
+  # Tolerate samples that arrive slightly late (e.g. Alloy WAL replay after a
+  # Mimir blip) instead of rejecting them.
+  out_of_order_time_window: 1h
+  # Default 150000 was hit exactly (err-mimir-max-series-per-user), silently
+  # dropping samples stack-wide. windows_exporter's service/task/process
+  # collectors (~49500 series) and mongodb_exporter's diagnosticdata firehose
+  # (~4500) were the two biggest single contributors - both now trimmed at
+  # the Alloy relabel stage (config.alloy). This is headroom on top of that
+  # trim, not a substitute for it - each series costs ingester memory and
+  # this host is RAM-constrained (see mimir_metric_gaps).
+  max_global_series_per_user: 200000
+
+compactor: {}
+
+# --------------------------------------------------------------------------
+# Ruler - evaluates the alerting rules loaded by `mimirtool rules load`
+# (mimir/rules/**) in the Deploy pipeline. Fires to the in-process
+# Alertmanager below.
+# --------------------------------------------------------------------------
+ruler:
+  # Same process, Mimir's HTTP port inside the container is 8080.
+  alertmanager_url: http://localhost:8080/alertmanager
+  # Scratch dir for rule-group evaluation - default /rules is read-only here.
+  rule_path: /data/ruler-tmp
+
+# --------------------------------------------------------------------------
+# Alertmanager - requires `-target=all,alertmanager` (see docker-compose.yml).
+# Routing/receivers/templates are loaded by `mimirtool alertmanager load`
+# from mimir/alertmanager/. Until that runs the AM reports "not found" for
+# the tenant, which is expected on a first boot.
+# --------------------------------------------------------------------------
+alertmanager:
+  # Used only for links inside notifications; resolves via the nginx
+  # location /alertmanager/ proxy on :599.
+  external_url: https://home.example.com:599/alertmanager

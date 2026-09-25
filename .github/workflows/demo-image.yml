@@ -1,0 +1,215 @@
+name: Publish demo image
+
+# Builds two images and pushes both to GHCR:
+#
+# 1. The demo/ Home Assistant dashboard, fully self-contained (onboarding
+#    done, all cameras set up, http config settled - `docker run` on a
+#    clean machine just shows the dashboard, no setup steps).
+#    demo/tools/bake_demo_image.sh does the actual work: build -> spin up a
+#    throwaway container -> drive onboarding + camera setup against it live
+#    -> docker commit the result.
+# 2. A Grafana image with the two plugins the demo dashboards need
+#    (marcusolsson-dynamictext-panel, yesoreyeram-infinity-datasource)
+#    baked in via demo/Dockerfile.grafana, instead of installed over the
+#    network on every container start - see that file's own comment for
+#    why this one specifically is worth baking.
+#
+# Both run on GitHub's own runner, which already has a usable Docker
+# daemon - no extra setup beyond Python for the HA onboarding script.
+
+on:
+  # No `paths: demo/**` filter - confirmed live (2026-09-16) that it's
+  # unreliable here specifically: publish/sanitize.py's git_publish() does a
+  # fresh `git init` + orphan commit + `git push --force` on every publish
+  # (the mirror deliberately carries no history of its own), so every push
+  # to this repo has ZERO shared git history with whatever was here before.
+  # GitHub's paths filter diffs old-SHA -> new-SHA to decide whether to
+  # fire; with no common ancestor, that diff is unreliable - it fired for
+  # one push and silently skipped the next two in a row, with no error, no
+  # indication anything was wrong. So this always fires - but each job below
+  # gates its own expensive work behind a content-hash comparison against
+  # the already-published image instead (see each job's own "Check whether
+  # the published image already matches this content" step), which doesn't
+  # depend on git history at all. Confirmed live (2026-09-16 through
+  # 2026-09-25): without that gate, every publish re-ran the full multi-
+  # minute bake regardless of whether demo/ actually changed, which is what
+  # made this workflow noticeably slower once the paths: filter came out.
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/homeassistant-demo
+  GRAFANA_IMAGE: ghcr.io/${{ github.repository_owner }}/homeassistant-demo-grafana
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install aiohttp
+        run: pip install --quiet aiohttp pyyaml
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Same shared version identifier publish/sanitize.py's
+      # apply_demo_image_version() stamped into devcontainer.json/
+      # docker-compose.codespaces.yml as __DEMO_IMAGE_VERSION__ - parsed
+      # back out of THIS commit's own message (git_publish's "Sanitized
+      # public mirror - version <x> (source <sha>)") rather than passed in
+      # directly, since this workflow only ever reacts to a plain
+      # `git push` with no custom inputs from the private repo's own
+      # pipeline. Normally a real semantic version (Azure DevOps's
+      # $(Build.BuildNumber) - see azure-pipelines-publish.yml) rather than
+      # a hash, requested directly (2026-09-25) so the published image tag
+      # actually means something on its own. Confirmed live (2026-09-23):
+      # a Codespace pinned to `:latest` alone showed entity_ids that have
+      # never existed anywhere in this repo's history - no way to tell a
+      # stale cached layer apart from a genuinely fresh pull when the tag
+      # string never changes. Tagging (and pushing) a second, unique tag
+      # alongside `:latest` gives devcontainer.json something to pin to
+      # that's guaranteed to mean "exactly this source", not "whatever
+      # GHCR/Codespaces happened to have cached under that name".
+      - name: Derive the shared image version from this commit's message
+        id: version
+        run: |
+          VERSION=$(git log -1 --format=%s | grep -oP 'version \K\S+' || true)
+          if [ -z "$VERSION" ]; then
+            echo "No 'version <x>' found in commit message - falling back to this commit's own sha (still unique, just not a real version number)."
+            VERSION="${GITHUB_SHA:0:12}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # No `paths: demo/**` trigger filter (see the `on:` block above for
+      # why that's unreliable here) means every publish reaches this job,
+      # even ones that never touch demo/ - and the actual bake below is
+      # genuinely slow (live container boot + onboarding + two fixed
+      # settle sleeps, several minutes). Skipping git-diff entirely and
+      # asking the already-published image directly "does your content
+      # match what's checked out right now" sidesteps the no-common-
+      # ancestor problem that broke `paths:` in the first place, since it
+      # never looks at git history at all.
+      - name: Hash the demo/ tree (everything demo/Dockerfile COPIES in)
+        id: hash
+        run: |
+          # -z/-0/sort -z throughout: demo/grafana/dashboards/Home Assistant.json
+          # has a space in its filename - a plain newline-delimited xargs splits
+          # it into two nonexistent paths and sha256sum errors on both, silently
+          # computing a hash that never actually covered that file's content.
+          HASH=$(git ls-files -z demo | sort -z | xargs -0 sha256sum | sha256sum | cut -d' ' -f1)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      # `imagetools inspect` reads the manifest/config straight from the
+      # registry - no `docker pull`, so no layer bytes move to the runner
+      # just to check a label. Not live-tested against a real GHCR image
+      # (no registry access this session); if the format/field ever comes
+      # back unexpected, PREV ends up empty and this falls back to a full
+      # rebuild below, same as "image doesn't exist yet" - fails open,
+      # never silently stale.
+      - name: Check whether the published image already matches this content
+        id: check
+        run: |
+          PREV=$(docker buildx imagetools inspect "$IMAGE:latest" --format '{{json .Image.Config.Labels}}' 2>/dev/null | jq -r '."demo.content_hash" // empty' 2>/dev/null || true)
+          echo "Previous content hash: ${PREV:-<none>}"
+          echo "Current content hash:  ${{ steps.hash.outputs.hash }}"
+          if [ -n "$PREV" ] && [ "$PREV" = "${{ steps.hash.outputs.hash }}" ]; then
+            echo "unchanged=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "unchanged=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bake the demo image (build, onboard, seed cameras, commit)
+        if: steps.check.outputs.unchanged == 'false'
+        env:
+          DEMO_CONTENT_HASH: ${{ steps.hash.outputs.hash }}
+        run: bash demo/tools/bake_demo_image.sh "$IMAGE:${{ steps.version.outputs.version }}"
+
+      - name: Tag :latest and push both (fresh bake)
+        if: steps.check.outputs.unchanged == 'false'
+        run: |
+          docker tag "$IMAGE:${{ steps.version.outputs.version }}" "$IMAGE:latest"
+          docker push "$IMAGE:${{ steps.version.outputs.version }}"
+          docker push "$IMAGE:latest"
+
+      # demo/ unchanged: point the new version tag at the existing manifest
+      # digest via the registry API - no pull, no re-upload, no local image
+      # at all. :latest is untouched since it's already correct.
+      - name: demo/ unchanged - point the version tag at the existing image
+        if: steps.check.outputs.unchanged == 'true'
+        run: docker buildx imagetools create --tag "$IMAGE:${{ steps.version.outputs.version }}" "$IMAGE:latest"
+
+  build-and-push-grafana:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive the shared image version from this commit's message
+        id: version
+        run: |
+          VERSION=$(git log -1 --format=%s | grep -oP 'version \K\S+' || true)
+          if [ -z "$VERSION" ]; then
+            VERSION="${GITHUB_SHA:0:12}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Same reasoning as the HA image job above - demo/Dockerfile.grafana
+      # has no COPY instructions at all (just pinned plugin installs), so
+      # its own file content is the entire build input; nothing else under
+      # demo/ can affect this image.
+      - name: Hash demo/Dockerfile.grafana (this image's entire build input)
+        id: hash
+        run: |
+          HASH=$(sha256sum demo/Dockerfile.grafana | cut -d' ' -f1)
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether the published image already matches this content
+        id: check
+        run: |
+          PREV=$(docker buildx imagetools inspect "$GRAFANA_IMAGE:latest" --format '{{json .Image.Config.Labels}}' 2>/dev/null | jq -r '."demo.content_hash" // empty' 2>/dev/null || true)
+          echo "Previous content hash: ${PREV:-<none>}"
+          echo "Current content hash:  ${{ steps.hash.outputs.hash }}"
+          if [ -n "$PREV" ] && [ "$PREV" = "${{ steps.hash.outputs.hash }}" ]; then
+            echo "unchanged=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "unchanged=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the plugin-baked Grafana image
+        if: steps.check.outputs.unchanged == 'false'
+        run: |
+          docker build -f demo/Dockerfile.grafana \
+            --label "demo.content_hash=${{ steps.hash.outputs.hash }}" \
+            -t "$GRAFANA_IMAGE:${{ steps.version.outputs.version }}" \
+            -t "$GRAFANA_IMAGE:latest" \
+            demo
+
+      - name: Push (fresh build)
+        if: steps.check.outputs.unchanged == 'false'
+        run: |
+          docker push "$GRAFANA_IMAGE:${{ steps.version.outputs.version }}"
+          docker push "$GRAFANA_IMAGE:latest"
+
+      - name: Dockerfile.grafana unchanged - point the version tag at the existing image
+        if: steps.check.outputs.unchanged == 'true'
+        run: docker buildx imagetools create --tag "$GRAFANA_IMAGE:${{ steps.version.outputs.version }}" "$GRAFANA_IMAGE:latest"

@@ -1,0 +1,565 @@
+logging {
+  level  = "info"
+  format = "logfmt"
+  write_to  = [loki.process.logs_integrations_integrations_alloy_health.receiver]
+}
+
+loki.process "logs_integrations_integrations_alloy_health" {
+  forward_to = [loki.relabel.logs_integrations_integrations_alloy_health.receiver]
+  stage.regex {
+    expression = "(level=(?P<log_level>[\\s]*debug|warn|info|error))"
+  }
+  stage.labels {
+    values = {
+      level = "log_level",
+    }
+  }
+}
+
+loki.relabel "logs_integrations_integrations_alloy_health" {
+  forward_to = [loki.write.loki.receiver]
+  rule {
+    replacement = constants.hostname
+    target_label  = "instance"
+  }
+  rule {
+    target_label = "job"
+    replacement  = "integrations/alloy"
+  }
+}
+
+// --------------------------------------------
+// Host Metrics -> Mimir
+// --------------------------------------------
+prometheus.exporter.unix "host" {}
+
+prometheus.scrape "host" {
+  targets         = prometheus.exporter.unix.host.targets
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  // prometheus.exporter.unix targets already carry job="integrations/unix"
+  // and instance=<hostname>; job_name here is just the scrape-config name and
+  // does NOT override that. All Linux hosts standardise on integrations/unix.
+  job_name        = "integrations/unix"
+}
+
+// --------------------------------------------
+// cAdvisor - Docker Container Resource Metrics
+// --------------------------------------------
+prometheus.scrape "cadvisor" {
+  targets         = [{"__address__" = "localhost:8089"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "cadvisor"
+}
+
+// --------------------------------------------
+// Unpoller - Unifi Metrics
+// --------------------------------------------
+prometheus.scrape "unpoller" {
+  targets         = [{"__address__" = "localhost:9130"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "unifi"
+}
+
+// --------------------------------------------
+// Home Assistant Metrics
+// Requires: prometheus: in HA configuration.yaml
+// and a Long Lived Access Token from HA profile page
+// --------------------------------------------
+prometheus.scrape "home_assistant" {
+  targets         = [{"__address__" = "home.example.com:8123"}]
+  metrics_path    = "/api/prometheus"
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "60s"
+  scheme          = "https"
+  job_name        = "home_assistant"
+}
+
+// --------------------------------------------
+// Mimir Remote Write
+// --------------------------------------------
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = "http://localhost:9009/api/v1/push"
+  }
+  // Keep un-acked samples in the WAL for up to 24h so a Mimir restart / outage
+  // (deploy, config reload, OOM) is backfilled instead of leaving a permanent
+  // gap. Default max_keepalive_time is only 8h.
+  wal {
+    truncate_frequency = "2h"
+    min_keepalive_time = "5m"
+    max_keepalive_time = "24h"
+  }
+}
+
+// --------------------------------------------
+// Docker Container Logs -> Loki
+// --------------------------------------------
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_logs" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "container"
+    regex         = "/(.+)"
+    replacement   = "$1"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_image"]
+    target_label  = "image"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_label_container_group"]
+    target_label  = "group"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_state"]
+    target_label  = "state"
+  }
+}
+
+loki.source.docker "containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.docker_logs.output
+  forward_to = [loki.write.loki.receiver]
+  labels = {
+    job      = "docker",
+    instance = env("HOSTNAME"),
+  }
+}
+
+// --------------------------------------------
+// Host Journal Logs -> Loki
+// --------------------------------------------
+
+loki.source.journal "host_journal" {
+  max_age  = "1h"
+  matches  = "_TRANSPORT=kernel PRIORITY=3"
+  forward_to = [loki.write.loki.receiver]
+  labels = {
+    job      = "journal",
+    instance = env("HOSTNAME"),
+  }
+}
+
+//-----------------------------------------------
+// Loki Write
+// --------------------------------------------
+loki.write "loki" {
+  endpoint {
+    url = "http://localhost:3100/loki/api/v1/push"
+  }
+}
+
+// --------------------------------------------
+// Docker containers with prometheus_scrape=true label
+// --------------------------------------------
+discovery.docker "metrics" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_metrics" {
+  targets = discovery.docker.metrics.targets
+
+  rule {
+    action        = "keep"
+    source_labels = ["__meta_docker_container_label_prometheus_scrape"]
+    regex         = "true"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_label_prometheus_path"]
+    target_label  = "__metrics_path__"
+    regex         = "(.+)"
+    replacement   = "$1"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_label_prometheus_port"]
+    target_label  = "__address__"
+    regex         = "(.+)"
+    replacement   = "127.0.0.1:$1"
+  }
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_name"]
+    target_label  = "container"
+    regex         = "/(.+)"
+    replacement   = "$1"
+  }
+}
+
+prometheus.scrape "docker_containers" {
+  targets         = discovery.relabel.docker_metrics.output
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "docker_containers"
+}
+
+// --------------------------------------------
+// Alloy Self Metrics
+// --------------------------------------------
+prometheus.scrape "alloy" {
+  targets         = [{"__address__" = "localhost:12345"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "alloy"
+}
+
+// --------------------------------------------
+// Alloy Self Logs
+// --------------------------------------------
+loki.source.journal "alloy_journal" {
+  forward_to = [loki.write.loki.receiver]
+  matches    = "_SYSTEMD_UNIT=alloy.service"
+  labels = {
+    job      = "alloy",
+    instance = env("HOSTNAME"),
+  }
+}
+
+prometheus.scrape "grafana" {
+  targets      = [{"__address__" = "home.example.com:599"}]
+  metrics_path = "/grafana/metrics"
+  scheme       = "https"
+  forward_to   = [prometheus.remote_write.mimir.receiver]
+  job_name     = "grafana"
+  tls_config {
+    insecure_skip_verify = true
+  }
+}
+
+local.file_match "nginx_logs" {
+  path_targets = [
+    {"__path__" = "/home/homeassistant/.homeassistant/nginx/logs/access.log", "job" = "nginx_access"},
+    {"__path__" = "/home/homeassistant/.homeassistant/nginx/logs/error.log", "job" = "nginx_error"},
+  ]
+}
+
+loki.source.file "nginx_logs" {
+  targets    = local.file_match.nginx_logs.targets
+  forward_to = [loki.write.loki.receiver]
+}
+
+// --------------------------------------------
+// AdGuard Exporter
+// --------------------------------------------
+prometheus.scrape "adguard" {
+  targets         = [{"__address__" = "localhost:9617"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "adguard"
+}
+
+// --------------------------------------------
+// Mosquitto Exporter
+// --------------------------------------------
+prometheus.scrape "mosquitto" {
+  targets         = [{"__address__" = "localhost:9234"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "mosquitto"
+}
+
+// --------------------------------------------
+// MongoDB Exporter (unifi-db) - percona/mongodb_exporter, loopback-published
+// --------------------------------------------
+prometheus.scrape "mongodb" {
+  // 127.0.0.1, not localhost: the container publishes only on the IPv4
+  // loopback, and blackbox_exporter's probes to "localhost" prefer IPv6
+  // ([::1]) with no listener there - confirmed failing probe_success=0
+  // despite the exporter answering fine on IPv4.
+  targets         = [{"__address__" = "127.0.0.1:9216"}]
+  forward_to      = [prometheus.relabel.mongodb.receiver]
+  scrape_interval = "30s"
+  job_name        = "mongodb"
+}
+
+// --collector.diagnosticdata (docker-compose.yml) is the minimum needed to get
+// any metrics out of mongodb_exporter, but it also emits ~4500 series of
+// connPoolStats histogram buckets and per-cursor/op detail nobody looks at -
+// measured contributing heavily toward Mimir's 150000 max_global_series_per_user
+// ceiling. Keep only what mimir/rules/mongodb.yaml and the MongoDB dashboard
+// actually use.
+prometheus.relabel "mongodb" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  rule {
+    action        = "keep"
+    source_labels = ["__name__"]
+    regex         = "mongodb_up|mongodb_connections|mongodb_asserts_total|mongodb_memory|mongodb_op_counters_total|mongodb_mongod_metrics_document_total|mongodb_instance_uptime_seconds|up|scrape_.*"
+  }
+}
+
+// --------------------------------------------
+// nginx Exporter - nginx/nginx-prometheus-exporter, loopback-published
+// --------------------------------------------
+prometheus.scrape "nginx" {
+  // See the 127.0.0.1-vs-localhost comment on the mongodb scrape above.
+  targets         = [{"__address__" = "127.0.0.1:9113"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "nginx"
+}
+
+// --------------------------------------------
+// Mimir Self Metrics
+// --------------------------------------------
+prometheus.scrape "mimir" {
+  targets         = [{"__address__" = "localhost:9009"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "mimir"
+  metrics_path    = "/metrics"
+}
+
+// --------------------------------------------
+// Loki Self Metrics
+// --------------------------------------------
+prometheus.scrape "loki" {
+  targets         = [{"__address__" = "localhost:3100"}]
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "30s"
+  job_name        = "loki"
+  metrics_path    = "/metrics"
+}
+
+// --------------------------------------------
+// Blackbox - HTTP checks
+// --------------------------------------------
+prometheus.scrape "blackbox_http" {
+  targets = [
+    // External
+    // Bare "/" on :599 has no nginx location and 404s (only /grafana/, /alertmanager/
+    // etc are served) - probe a path that actually returns 2xx.
+    {"__address__" = "localhost:9115", "__param_target" = "https://home.example.com:599/grafana/login", "__param_module" = "http_2xx", "target" = "nginx_external", "env" = "external"},
+    {"__address__" = "localhost:9115", "__param_target" = "https://home.example.com:8123", "__param_module" = "http_401", "target" = "ha_external", "env" = "external"},
+
+    // Internal - Core stack
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:3000", "__param_module" = "http_2xx", "target" = "grafana"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:9009/ready", "__param_module" = "http_2xx", "target" = "mimir"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:3100/ready", "__param_module" = "http_2xx", "target" = "loki"},
+    // HA's :8123 listener is HTTPS-only (self-signed cert) - a plain http://
+    // target gets the TCP connection accepted then torn down by HA's TLS
+    // layer, which blackbox reports as a probe failure. http_401 already sets
+    // tls_config.insecure_skip_verify.
+    {"__address__" = "localhost:9115", "__param_target" = "https://localhost:8123", "__param_module" = "http_401", "target" = "home_assistant"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:9000", "__param_module" = "http_2xx", "target" = "portainer"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:8444", "__param_module" = "http_2xx", "target" = "coder"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:8089/healthz", "__param_module" = "http_2xx", "target" = "cadvisor"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:9130/metrics", "__param_module" = "http_2xx", "target" = "unpoller"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:9234/metrics", "__param_module" = "http_2xx", "target" = "mosquitto_exporter"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:3008", "__param_module" = "http_2xx", "target" = "adguard"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:9617/metrics", "__param_module" = "http_2xx", "target" = "adguard_exporter"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://127.0.0.1:9216/metrics", "__param_module" = "http_2xx", "target" = "mongodb_exporter"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://127.0.0.1:9113/metrics", "__param_module" = "http_2xx", "target" = "nginx_exporter"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:12345/-/ready", "__param_module" = "http_2xx", "target" = "alloy"},
+
+    // Unifi controller
+    {"__address__" = "localhost:9115", "__param_target" = "https://localhost:8443", "__param_module" = "http_2xx", "target" = "unifi_controller"},
+    {"__address__" = "localhost:9115", "__param_target" = "http://localhost:8080/status", "__param_module" = "http_2xx", "target" = "unifi_inform"},
+
+    // SSL cert checks
+    // Bare "/" 404s - see the nginx_external comment above.
+    {"__address__" = "localhost:9115", "__param_target" = "https://home.example.com:599/grafana/login", "__param_module" = "http_2xx", "target" = "ssl_home", "env" = "ssl"},
+  ]
+  metrics_path    = "/probe"
+  forward_to      = [prometheus.relabel.blackbox_http.receiver]
+  scrape_interval = "60s"
+  job_name        = "blackbox_http"
+}
+
+prometheus.relabel "blackbox_http" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  rule {
+    source_labels = ["target"]
+    target_label  = "instance"
+  }
+}
+
+// --------------------------------------------
+// Blackbox - TCP port checks
+// --------------------------------------------
+prometheus.scrape "blackbox_tcp" {
+  targets = [
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:3000", "__param_module" = "tcp_connect", "target" = "grafana"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:9009", "__param_module" = "tcp_connect", "target" = "mimir"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:3100", "__param_module" = "tcp_connect", "target" = "loki"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:8123", "__param_module" = "tcp_connect", "target" = "home_assistant"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:9000", "__param_module" = "tcp_connect", "target" = "portainer"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:1884", "__param_module" = "tcp_connect", "target" = "mosquitto"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:8443", "__param_module" = "tcp_connect", "target" = "unifi_https"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:8080", "__param_module" = "tcp_connect", "target" = "unifi_http"},
+    // 127.0.0.1, not localhost - see the comment on the mongodb scrape target
+    // further up; unifi-db also publishes IPv4-loopback only.
+    {"__address__" = "localhost:9115", "__param_target" = "127.0.0.1:27017", "__param_module" = "tcp_connect", "target" = "unifi_db"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:8444", "__param_module" = "tcp_connect", "target" = "coder"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:3008", "__param_module" = "tcp_connect", "target" = "adguard"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:9617", "__param_module" = "tcp_connect", "target" = "adguard_exporter"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:599", "__param_module" = "tcp_connect", "target" = "nginx_599"},
+    {"__address__" = "localhost:9115", "__param_target" = "localhost:444", "__param_module" = "tcp_connect", "target" = "nginx_444"},
+  ]
+  metrics_path    = "/probe"
+  forward_to      = [prometheus.relabel.blackbox_tcp.receiver]
+  scrape_interval = "60s"
+  job_name        = "blackbox_tcp"
+}
+
+prometheus.relabel "blackbox_tcp" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  rule {
+    source_labels = ["target"]
+    target_label  = "instance"
+  }
+}
+
+// --------------------------------------------
+// Blackbox - ICMP ping checks
+// --------------------------------------------
+prometheus.scrape "blackbox_icmp" {
+  targets = [
+    // Infrastructure
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.10",  "__param_module" = "icmp", "target" = "this_host"},
+    {"__address__" = "localhost:9115", "__param_target" = "8.8.8.8",        "__param_module" = "icmp", "target" = "google_dns"},
+    {"__address__" = "localhost:9115", "__param_target" = "1.1.1.1",        "__param_module" = "icmp", "target" = "cloudflare_dns"},
+
+    // Servers & devices - mirrors HA ping binary_sensors
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.73",   "__param_module" = "icmp", "target" = "server_1"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.212",  "__param_module" = "icmp", "target" = "server_2"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.222",   "__param_module" = "icmp", "target" = "server_3"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.254",   "__param_module" = "icmp", "target" = "plex"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.250",   "__param_module" = "icmp", "target" = "blue_iris"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.236", "__param_module" = "icmp", "target" = "firewall"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.66", "__param_module" = "icmp", "target" = "hp_switch"},
+
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.39",  "__param_module" = "icmp", "target" = "lounge_tv"},
+    // WiFi APs (legacy)
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.194",  "__param_module" = "icmp", "target" = "u6_pro_hallway"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.112",  "__param_module" = "icmp", "target" = "ac_lite_lounge"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.138",  "__param_module" = "icmp", "target" = "unifi_ap"},
+
+    // WiFi APs
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.243",  "__param_module" = "icmp", "target" = "uap_garden"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.134",  "__param_module" = "icmp", "target" = "uap_drive"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.95",  "__param_module" = "icmp", "target" = "u7_kitchen"},
+    {"__address__" = "localhost:9115", "__param_target" = "10.0.0.66",  "__param_module" = "icmp", "target" = "u7_lite_office"},
+
+    // Cameras
+    {"__address__" = "localhost:9115", "__param_target" = "camera9.homer_simpson.com",  "__param_module" = "icmp", "target" = "camera_front"},
+    {"__address__" = "localhost:9115", "__param_target" = "camera11.homer_simpson.com", "__param_module" = "icmp", "target" = "camera_shed_lower"},
+    {"__address__" = "localhost:9115", "__param_target" = "camera14.homer_simpson.com", "__param_module" = "icmp", "target" = "camera_patio"},
+    {"__address__" = "localhost:9115", "__param_target" = "camera15.homer_simpson.com", "__param_module" = "icmp", "target" = "camera_garden_upper"},
+    {"__address__" = "localhost:9115", "__param_target" = "camera18.homer_simpson.com", "__param_module" = "icmp", "target" = "camera_bart_simpson_room"},
+    {"__address__" = "localhost:9115", "__param_target" = "camera21.homer_simpson.com", "__param_module" = "icmp", "target" = "camera_shed_upper"},
+  ]
+  metrics_path    = "/probe"
+  forward_to      = [prometheus.relabel.blackbox_icmp.receiver]
+  scrape_interval = "30s"
+  job_name        = "blackbox_icmp"
+}
+
+prometheus.relabel "blackbox_icmp" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  rule {
+    source_labels = ["target"]
+    target_label  = "instance"
+  }
+}
+
+// --------------------------------------------
+// Node Exporter - Remote Linux Hosts
+// --------------------------------------------
+// Raw node_exporter endpoints (no job label of their own), so the "job"
+// target label is set explicitly to match the integrations/unix label that
+// prometheus.exporter.unix emits for the local host. Keep all Linux hosts
+// on one job name.
+prometheus.scrape "node_exporter" {
+  targets = [
+    {"__address__" = "homer_simpson-hp-laptop:9100", "instance" = "dev-linux", "job" = "integrations/unix"},
+  ]
+  forward_to      = [prometheus.relabel.node_exporter.receiver]
+  scrape_interval = "30s"
+  job_name        = "integrations/unix"
+}
+
+// dev-linux is a laptop VM that goes up and down - tag it so the Alertmanager
+// routes its alerts to the low-priority "transient" receiver instead of paging.
+prometheus.relabel "node_exporter" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  rule {
+    source_labels = ["instance"]
+    regex         = "dev-linux"
+    target_label  = "tier"
+    replacement   = "transient"
+  }
+}
+
+// --------------------------------------------
+// Windows Exporter - VM Host Metrics
+// --------------------------------------------
+prometheus.scrape "windows" {
+  targets = [
+    {"__address__" = "homer_simpson-hp-laptop:9182", "server" = "homer_simpson-hp-laptop"},
+    {"__address__" = "server1:9182",         "server" = "server1"},
+    {"__address__" = "server2:9182",         "server" = "server2"},
+    {"__address__" = "server3:9182",         "server" = "server3"},
+    {"__address__" = "blueiris:9182",        "server" = "blueiris"},
+    {"__address__" = "plex01:9182",          "server" = "plex01"},
+  ]
+  forward_to      = [prometheus.relabel.windows.receiver]
+  scrape_interval = "30s"
+  job_name        = "windows"
+}
+
+prometheus.relabel "windows" {
+  forward_to = [prometheus.remote_write.mimir.receiver]
+
+  rule {
+    source_labels = ["server"]
+    target_label  = "instance"
+  }
+
+  // Laptop that's frequently powered off - route its alerts to the
+  // low-priority "transient" receiver in the Alertmanager, not the pager.
+  // (homer_simpson-laptop was decommissioned and its scrape target removed above -
+  // homer_simpson-hp-laptop is the only one left.)
+  rule {
+    source_labels = ["server"]
+    regex         = "homer_simpson-hp-laptop"
+    target_label  = "tier"
+    replacement   = "transient"
+  }
+
+  // windows_service_*/scheduled_task_*/process_* are one series per Windows
+  // service/task/process - hundreds of each x7 hosts. Measured at ~49500 of
+  // the ~58700 total windows_* series, itself the largest single contributor
+  // to Mimir hitting its 150000 max_global_series_per_user ceiling (confirmed
+  // via err-mimir-max-series-per-user rejections). None of it is used except
+  // windows_service_state for the 2 services WindowsServiceNotRunning
+  // actually watches - tag those, then drop the rest of these 3 families.
+  rule {
+    action        = "replace"
+    source_labels = ["__name__", "name"]
+    regex         = "windows_service_state;(blueiris|plexmediaserver)"
+    target_label  = "__keep_series__"
+    replacement   = "yes"
+  }
+  rule {
+    action        = "drop"
+    source_labels = ["__name__", "__keep_series__"]
+    regex         = "(windows_service_.*|windows_scheduled_task_.*|windows_process_.*);"
+  }
+  rule {
+    action = "labeldrop"
+    regex  = "__keep_series__"
+  }
+}

@@ -1,0 +1,126 @@
+version: '2.3'  # matches demo/docker-compose.demo.yml
+
+# Optional add-on to demo/docker-compose.demo.yml - brings up Grafana fed by
+# Mimir/Alloy alongside the demo Home Assistant instance, provisioned with a
+# curated, sanitized subset of this repo's dashboard catalogue (Home
+# Assistant + Games only - see demo/README.md, run
+# demo/tools/build_demo_dashboards.py first, it's committed but should be
+# regenerated after a real change to either of those).
+#
+# No Loki here - confirmed live (2026-09-22) it could never receive real
+# data anyway (Alloy has no docker.sock access in this demo - see below -
+# so there's nothing to ship logs from regardless of whether Loki itself
+# runs), and dropping it let the dashboard catalogue also get pruned down
+# to only what can show real data here (see demo/tools/
+# build_demo_dashboards.py's own comment for the fuller reasoning: most of
+# the full catalogue - AdGuard/Mosquitto/MongoDB/UniFi/cAdvisor/
+# node-exporter/windows-exporter/LGTM Stats/Topology - showed "No data"
+# forever regardless, since none of those services exist in this demo).
+#
+# This file is purely a local convenience for anyone trying the repo out -
+# it's never brought up by azure-pipelines-docker.yml and never runs
+# alongside the real stack. Run both files together:
+#   docker compose -f demo/docker-compose.demo.yml -f demo/docker-compose.demo-observability.yml up
+#
+# No container here gets /var/run/docker.sock - see demo/alloy/config.alloy's
+# own comment for why (same "isolated by construction" rule
+# demo/docker-compose.demo.yml already documents for the base file).
+
+services:
+  mimir-demo:
+    image: grafana/mimir:3.2.1
+    container_name: mimir-demo
+    mem_limit: 384m
+    memswap_limit: 384m
+    networks:
+      - demo-isolated
+    # alertmanager needs naming explicitly (same as production) - some
+    # provisioned dashboards reference the "Mimir Alertmanager" datasource,
+    # and without this target that endpoint 404s and those panels show a
+    # datasource error instead of gracefully empty.
+    command: ["-target=all,alertmanager", "-config.file=/etc/mimir/mimir.yaml"]
+    volumes:
+      - ./mimir:/etc/mimir:ro
+      - mimir-demo-data:/data
+    restart: unless-stopped
+
+  alloy-demo:
+    image: grafana/alloy:v1.19.2
+    container_name: alloy-demo
+    mem_limit: 192m
+    memswap_limit: 192m
+    networks:
+      - demo-isolated
+    command:
+      - "run"
+      - "/etc/alloy/config.alloy"
+      - "--storage.path=/var/lib/alloy/data"
+    volumes:
+      - ./alloy:/etc/alloy:ro
+    restart: unless-stopped
+    depends_on:
+      - mimir-demo
+      - homeassistant-demo
+
+  grafana-demo:
+    image: grafana/grafana:12.4.11
+    container_name: grafana-demo
+    # 256m OOM-killed this container back when it provisioned the FULL
+    # grafanaDashboards/dashboards/ catalogue (confirmed live 2026-09-22).
+    # Now that the catalogue's curated down to just Home Assistant + Games,
+    # 256m is comfortably enough again - confirmed live, settles around
+    # 125MiB/256MiB (~49%) at steady state.
+    mem_limit: 256m
+    memswap_limit: 256m
+    networks:
+      - demo-isolated
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-demo-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # Curated (Home Assistant + Games only), sanitized, built by
+      # demo/tools/build_demo_dashboards.py - committed, see demo/README.md.
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    environment:
+      - GF_SERVER_SERVE_FROM_SUB_PATH=false
+      # No login wall - this is a public-facing demo instance, anyone
+      # opening the URL should land straight in the dashboards.
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      # jdbranham-diagram-panel pinned to 1.7.3, matching production
+      # (docker-compose.yml) - see demo/Dockerfile.grafana's comment for why.
+      - GF_PLUGINS_PREINSTALL_SYNC=marcusolsson-dynamictext-panel,yesoreyeram-infinity-datasource,jdbranham-diagram-panel@1.7.3
+      # Deliberately NOT setting GF_PLUGINS_PREINSTALL_DISABLED here, despite
+      # Grafana 12.4 also auto-installing four unwanted default apps
+      # (Explore Traces, Metrics Drilldown, Log Explore, Pyroscope) this demo
+      # has no use for - confirmed live (2026-09-24), with two isolated
+      # single-container tests, that PREINSTALL_DISABLED is a blanket kill
+      # switch for the WHOLE preinstall subsystem, not just Grafana's own
+      # default list: with it set, GF_PLUGINS_PREINSTALL_SYNC above never
+      # installs anything either (no yesoreyeram-infinity-datasource, ever -
+      # 8+ minutes and counting in a full stack test), silently breaking
+      # every panel that needs it (which is most of this dashboard). Setting
+      # GF_PLUGINS_PREINSTALL= (empty) instead doesn't help either - tested,
+      # the four default apps still install regardless. The four extra apps
+      # are a real but minor cost (a few more seconds and MB on first boot);
+      # a Grafana that never gets its actual datasource plugin is not.
+      # Fixed, known admin credentials for this throwaway instance only -
+      # demo/tools/setup_demo_grafana_token.py uses them to PATCH the "Home
+      # Assistant" datasource's token live over Grafana's own HTTP API once
+      # the demo HA instance has onboarded. Anonymous access above is
+      # Viewer-only and can't do this itself.
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=demo
+      # Without this, Grafana's own "/" lands on its generic empty home
+      # page (dashboard search), not on anything this demo actually shows
+      # off. Confirmed live via /api/dashboards/home that this resolves to
+      # the real "Home Assistant" dashboard (uid oVTa8pdWk) once set.
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/Home Assistant.json
+    restart: unless-stopped
+    depends_on:
+      - mimir-demo
+
+volumes:
+  mimir-demo-data:
+  grafana-demo-data:

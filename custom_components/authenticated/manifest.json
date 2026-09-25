@@ -1,0 +1,11 @@
+{
+  "domain": "authenticated",
+  "name": "Authenticated",
+  "documentation": "https://github.com/custom-components/authenticated",
+  "dependencies": [],
+  "codeowners": [
+    "@ludeeus"
+  ],
+  "requirements": [],
+  "version": "1.0.0"
+}

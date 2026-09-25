@@ -1,0 +1,26 @@
+name: HA config check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check_config:
+    runs-on: ubuntu-latest
+    # Real integrations (cloud accounts, physical devices) aren't reachable
+    # from here, so some warnings are expected - this is checking the config
+    # actually parses and every reference resolves, not that every
+    # integration can reach its backend. Tighten once that's been true for a
+    # while.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: homeassistant --script check_config
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/config" \
+            homeassistant/home-assistant:stable \
+            python -m homeassistant --script check_config --config /config

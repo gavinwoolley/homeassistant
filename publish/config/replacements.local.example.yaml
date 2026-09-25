@@ -1,0 +1,132 @@
+# Skeleton for publish/replacements.local.yaml (gitignored - never commit the
+# filled-in version, it holds real PII). This example file is committed, so
+# it must never hold real values itself - every value below is a placeholder,
+# not the actual data (see publish/README.md for why: a leaky "example" file
+# would defeat the point of gitignoring the real one).
+#
+# Copy this file to publish/replacements.local.yaml and fill in the real
+# values on the left. Keys are matched exact-string, longest key first.
+# "names" gets a leading word-boundary only (catches names glued to the next
+# word - "SomeoneBackRoom", "Smiths"); every other section keeps both
+# boundaries (they're common substrings of unrelated identifiers, e.g. "Home"
+# inside "homeassistant", and need strict isolation). This pass runs BEFORE
+# the regex pass in redaction-rules.yaml.
+#
+# CI (azure-pipelines-publish.yml) pulls this from an Azure DevOps Secure
+# File rather than this repo - see publish/README.md.
+
+names:
+  # People - the Simpsons mapping already in use. Left side is a real first
+  # name/nickname, right side is who they become in the mirror.
+  # PLACEHOLDER SHAPE ONLY - every key below is a generic stand-in, not an
+  # actual name (a filled-in copy of this file holding your real names is
+  # exactly the kind of thing this whole tool exists to keep out of git -
+  # confirmed live 2026-09-16 that an earlier draft of this example
+  # committed the real household's actual first names as its "example"
+  # values, defeating the point).
+  RealFirstName1: Homer Simpson
+  RealNicknameForPerson1: Homer Simpson
+  RealFirstName2: Marge Simpson
+  RealNicknameForPerson2: Marge Simpson
+  RealFirstName3: Bart Simpson
+  RealFirstName4: Lisa Simpson
+  RealPetName: Santa's Little Helper
+  RealFirstName5: Patty Bouvier
+  RealFirstName6: Comic Book Guy
+  RealFirstName7: Barney Gumble
+  RealRelationTerm1: Abraham Simpson
+  RealRelationTerm2: Mona Simpson
+  RealFirstName8: Ned Flanders
+
+emails:
+  # Full email addresses first (longest-key-first handles the ordering
+  # automatically as long as every real address you use is listed here) -
+  # the generic email_address regex rule is the backstop for anything missed.
+  # PLACEHOLDER SHAPE ONLY - replace with your real addresses:
+  someone1980@example-mail.test: homer@example.com
+  someone.alt@example-mail.test: homer.alt@example.com
+  someone1980+person2@example-mail.test: marge@example.com
+  someone1980+pet@example-mail.test: pet@example.com
+  someone1980+child@example-mail.test: lisa@example.com
+  someone.household@example-mail.test: household@example.com
+
+domain:
+  # PLACEHOLDER SHAPE ONLY:
+  home.example-real-domain.test: home.example.com
+  example-org.visualstudio.com/example-user: dev.azure.com/example
+  dev.azure.com/example-real-user: dev.azure.com/example
+
+zones:
+  # Zone/place names - friendly labels only, coordinates are handled by the
+  # regex rules (redaction-rules.yaml), not here. PLACEHOLDER SHAPE ONLY.
+  #
+  # "Home"/"Work"/"School" are deliberately NOT listed as an example here:
+  # they're the 3 most common, generic zone names in HA - basically every
+  # install has a "Home" zone - so they're too short and too likely to
+  # collide with an ordinary English word or product name ("Home
+  # Assistant") elsewhere in the config. See publish/README.md for the full
+  # reasoning. Every OTHER zone name is a genuine proper noun (a business,
+  # a landmark, or a first name + "'s"/"s" for a friend/relative's address)
+  # and does need a decoy - go through every "name:" under your own
+  # `zone:` platform block and add one for each, not just the ones that
+  # happen to break something visibly if missed.
+  RealRelationZone: Mona's House
+  RealFriendZoneApartment: Patty & Selma's Apartment
+  RealSwimmingVenue: Springfield Community Pool
+  RealParkName: Springfield Park
+  RealSupermarket1: Kwik-E-Mart
+  RealSupermarket2: Kwik-E-Mart
+  RealSupermarket3: Kwik-E-Mart
+  RealSupermarket4: Kwik-E-Mart
+  RealPubName1: Moe's Tavern
+  RealPubName2: Flaming Moe's
+  RealArcadeName: Noiseland Video Arcade
+  RealIceRinkName: Springfield Ice Arena
+  RealGymName: Springfield Gymnastics
+  RealSchoolAlias: Springfield Elementary
+  RealFriendSurname1: Carl's House
+  RealFriendSurname2: Lenny's House
+  RealFriendFirstName1's: Agnes Skinner's House
+  RealHospitalName: Springfield General Hospital
+  RealRetailParkName: Springfield Mall
+
+misc:
+  # Anything else with no safe regex shape: vehicle reg, Wi-Fi SSID/PSK, GCP
+  # project slugs, known secret literals worth a belt-and-braces exact match
+  # even though a regex rule should also catch them. PLACEHOLDER SHAPE ONLY:
+  AB12REAL: AB12CDE
+  Real-Wifi-SSID-Here: DemoCam-Net
+  example-gcp-project-real-1: example-project-1
+  example-gcp-project-real-2: example-project-2
+  RealRecurringPasswordFragment: REDACTED_PASSWORD
+  # A CalDAV/ICS calendar or Google Maps device_tracker entity_id is often
+  # derived by slugifying the account email or feed URL, not just a display
+  # name - "names:"/"emails:" above only redact the short name/address
+  # match, leaving the rest of the slug (email local-part continuation, a
+  # real surname, a school's domain, a private feed token) glued on
+  # afterward. Go through configuration.yaml/known_devices.yaml/
+  # ui-lovelace.yaml for every calendar./device_tracker.google_maps_*
+  # entity_id shaped like a slugified email or URL and add the FULL real
+  # slug here (longer than any names:/emails: key, so it's matched whole).
+  # PLACEHOLDER SHAPE ONLY:
+  realaccountnamehere_reale_mailtest: household_calendar
+  reallocalpartrealdomain_test: homer_simpson_google_maps
+
+# Coordinates appear bare (no "latitude:"/"longitude:" field name to key on)
+# in a couple of places - a static-map URL, a JS comment/default. Each entry
+# here is ACTIVELY replaced (regex \bPREFIX\d*\b -> decoy, run alongside the
+# regex pass) as well as feeding Gate B, unlike leftover_backstop_prefixes
+# below which is detection-only. PLACEHOLDER SHAPE ONLY:
+coord_literal_backstops:
+  - prefix: "00.00"
+    decoy: "39.7817"
+  - prefix: "-0.00"
+    decoy: "-89.6501"
+
+# Leftover-scan-only backstop: values used to build the Gate B blocklist but
+# NOT actively replaced (the regex rules in redaction-rules.yaml already do
+# the actual replacing for these - the full dotted-quad for IPs - this list
+# only exists so Gate B independently confirms they're really gone).
+# PLACEHOLDER SHAPE ONLY:
+leftover_backstop_prefixes:
+  - "10.0.69"

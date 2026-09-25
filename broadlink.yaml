@@ -1,0 +1,170 @@
+platform: broadlink
+host: 10.0.0.121
+mac: '2e:8f:64:7b:38:65'
+timeout: 45
+switches:
+# Projector Screen
+  projector_screen_up:
+    friendly_name: "Projector Screen Up"
+    command_on: 'eAkyAAYQBp0GEBAGBhAQBgYQEAUGEBAFBhAGEBAGEAYGEBAGBhAQBhAFEAYGEAYQBhAGEAYQAAAAAAAA'
+    command_off: 'eAYyAAUQDwYFEAYQEAUQBgUQEAYFEA8GBhAFEA8GDwYGEAYQBRAFEAadBhAQBgYQDwYFEBAGAAAAAAAA'
+  projector_screen_down:
+    friendly_name: "Projector Screen Down"
+    command_on: 'eAkyAAUQEAYFEBAGBhAQBgYQEAYFEAUQDwYQBgYQDwYFEBAGBRAFEAYQBRAGEAYQDwYPBgaeAAAAAAAA'
+    command_off: 'eAYyAAUQDwYFEAYQEAUQBgUQEAYFEA8GBhAFEA8GDwYGEAYQBRAFEAadBhAQBgYQDwYFEBAGAAAAAAAA'
+# Toshiba Projector Lounge
+  projector_power:
+    friendly_name: "Projector Power"
+    command_on: 'JgBYAAABJ5MTNxM3EzYTEhMSEzcTNhM3ExITNxMSEjcTEhMSExITEhMSEzYTEhMSEzcTEhMSExITNhMSEzcTNxMSEjcTNxM2EwAFHAABJ0kTAAxOAAEnShMADQU='
+  projector_input:
+    friendly_name: "Projector Input"
+    command_on: 'JgBQAAABJpQTNxI3EzcTEhITEjgSNxI4EhMSNxITEjgSExITEhMSExITEhMROBEUETkRFBAVEBUQORE5ERQROBEUETkRORA5EQAFHgABJUwRAA0FAAAAAAAAAAA='
+# Sound Bar
+  sound_bar_power:
+    friendly_name: "Sound Bar Power Switch"
+    command_on: 'JgBgAAABQJYUEhU3FBMVEhQTFBMTExUSEzkVEhM5EzkTORM4FDgUOBQ4FDgUOBQTFDgUExM5FBMTFBMTFBMUOBQTFDgVEhQ4EwAFFAABQEwTAAxYAAFBSxQADFgAAUBLFAANBQAAAAAAAAAA'
+    command_off: 'JgBgAAABQJYUEhU3FBMVEhQTFBMTExUSEzkVEhM5EzkTORM4FDgUOBQ4FDgUOBQTFDgUExM5FBMTFBMTFBMUOBQTFDgVEhQ4EwAFFAABQEwTAAxYAAFBSxQADFgAAUBLFAANBQAAAAAAAAAA'
+  sound_bar_mute:
+    friendly_name: "Sound Bar Mute"
+    command_on: 'JgBQAAABMJQRFRE6ERQSFBEVERQSFBEVEToRFBI5EToROhE6EToROhE6ERQSFBE6EToRFREUERURFRE5EjkSFBEVEToRORI5EgAFFgABL0kSAA0FAAAAAAAAAAA='
+    command_off: 'JgBQAAABMJQRFRE6ERQSFBEVERQSFBEVEToRFBI5EToROhE6EToROhE6ERQSFBE6EToRFREUERURFRE5EjkSFBEVEToRORI5EgAFFgABL0kSAA0FAAAAAAAAAAA='
+  sound_bar_volume_up:
+    friendly_name: "Sound Bar Volume Up"
+    command_on: 'JgBQAAABLpUTExM4EhQSExMTEhQSExMTEjkSFBI4EzgTOBI5EjkSORI5EhQSOBM4ExMTExIUEhMTExI5EhMTExI5EjkSORI5EgAFFQABLksSAA0FAAAAAAAAAAA='
+  sound_bar_volume_down:
+    friendly_name: "Sound Bar Volume Down"
+    command_on: 'JgBQAAABLpYSFBI5EhMTExIUEhMTExIUEjkSExM4EzgTOBI5EzgSORI5EjkSORI5EhQSExM4EhQSFBITExMSFBI4EzgTExM4EgAFFgABLksSAA0FAAAAAAAAAAA='
+  sound_bar_back:
+    friendly_name: "Sound Bar Back"
+    command_on: 'JgBQAAABLZcSFBI4ExMTExIUEhMTExIUEjgTExM4EjkTOBM4EjkSORI5EjkSFBITEzgSFBI5EhMTExMTEjkSOBMTEzgSFBI5EgAFFQABLksSAA0FAAAAAAAAAAA='
+  sound_bar_forward:
+    friendly_name: "Sound Bar Forward"
+    command_on: 'JgBQAAABL5USFBI4ExMTExIUEhMTExIUEjkTEhM4EjkSORI5FDcSORMTEhQTEhMTEjkSFBITExMTOBI5EToSORMTEjkSORI5EgAFFQABL0sSAA0FAAAAAAAAAAA='
+  sound_bar_input:
+    friendly_name: "Sound Bar Input"
+    command_on: 'JgBQAAABLZYSExM4EhQSFBITExMSExMTEjkSFBI4EzgTOBI5EjkSORIUEjkSOBMTEzgSFBI5EhMTOBMTEhQSOBMTEzgSFBI5EgAFFQABLksTAA0FAAAAAAAAAAA='
+  sound_bar_equalizer:
+    friendly_name: "Sound Bar Equalizer"
+    command_on: 'JgBQAAABLpUTExM4EhQSFBITExMSFBITEzgSFBI5EjkSORI5EjgTOBMTExMSORIUEjgTExMTEhQSOBM4ExMTOBIUEjkSORI5EgAFFQABLUwSAA0FAAAAAAAAAAA='
+  sound_bar_bass_down:
+    friendly_name: "Sound Bar Bass Down"
+    command_on: 'JgBQAAABLZYSFBI5EhQSExMTEhQSExMTEzgSFBI5EjgTOBM4EzgTOBMTEzgSORI5EhQSExM4EhQSORITExMSFBI5EjgTExM4EgAFFQABLUwSAA0FAAAAAAAAAAA='
+  sound_bar_bass_up:
+    friendly_name: "Sound Bar Bass Up"
+    command_on: 'JgBYAAABLpYSFBI5EhQSExMTEhQSExMTEjkSFBI4EjkTOBM4EzgSORIUEhQSOBM4ExMTExIUEhMTOBI5EhQSExM4EjkSORI5EwAFFAABL0kTAAxdAAEtTBIADQU='
+# Bush TV
+  bush_tv_on:
+    friendly_name: "TV Power"
+    command_on: 'JgAwABsgOB8bHxsfGx8bPDgfGzwbHzgfGwALpRsfOR8bHxsfGx8bPDgfGzwbHzgfGwANBQAAAAAAAAAA'
+    command_off: 'JgAwABsgOB8bHxsfGx8bPDgfGzwbHzgfGwALpRsfOR8bHxsfGx8bPDgfGzwbHzgfGwANBQAAAAAAAAAA'
+  bush_tv_vol:
+    friendly_name: "TV Volume"
+    command_on: 'JgBIABsgOB8bHxsfGx8bPDg8OB8bHxsfGwALpRwfOB8bHxsfGx8bPDg8OB8bHxsgGwALpRsfOB8bHxsgGx8bOzk7OCAbHxsfGwANBQ=='
+    command_off: 'JgBIAB0dHB46HhweHB4cOjo6Oh4cHhw7HAALhh4dHR06HR4cHh0dOTs5OxweHR05HgALhR4cHh06HR0dHhweOTo6Oh0eHB45HQANBQ=='
+  bush_tv_chan:
+    friendly_name: "TV Channel"
+    command_on: 'JgAaABsgOB8bHxsfGx8bPBsfOB8bIBsfGx8bAA0FAAAAAAAAAAAAAAAAAAA='
+    command_off: 'JgA0AB4dHR06HR4cHhweOR0dOx0dHR0dHTodAAuFHh0dHTodHR0eHB45HR07HR0dHR0dOR4ADQUAAAAA'
+  bush_tv_mute:
+    friendly_name: "TV Mute"
+    command_on: 'JgAwABweHB46HhweHB4cOzkeHDscHjk7HAALhxweHB85HhweHB4cOzkeHDscHjk7HAANBQAAAAAAAAAA'
+    command_off: 'JgAwABweHB46HhweHB4cOzkeHDscHjk7HAALhxweHB85HhweHB4cOzkeHDscHjk7HAANBQAAAAAAAAAA'
+  bush_tv_chan_1:
+    friendly_name: "TV Channel 1"
+    command_on: 'JgAaABweOh4cHhweHB4cOzkeHB4cHhweHDscAA0FAAAAAAAAAAAAAAAAAAA='
+  bush_tv_chan_2:
+    friendly_name: "TV Channel 2"
+    command_on: 'JgAwAB0dHh06HR0dHR0dOjodHR0dHR45OgALox0eHR05Hh0dHR0dOjodHR0eHR05OwANBQAAAAAAAAAA'
+  bush_tv_chan_3:
+    friendly_name: "TV Channel 3"
+    command_on: 'JgA0AB0dOh0eHB4cHhweOTscHh0dHR05Hh0dAAuGHR07HB4cHh0dHR05Ox0dHR0dHTkeHR0ADQUAAAAA'
+  bush_tv_chan_4:
+    friendly_name: "TV Channel 4"
+    command_on: 'JgAYAB0dOx0dHR0dHR0dOTsdHR0dOjodHQANBQ=='
+  bush_tv_chan_5:
+    friendly_name: "TV Channel 5"
+    command_on: 'JgAwAB4dHR06HR4cHhweOTscHh0dOTs5HgALhR4dHR06HR4cHhweOTscHhweOTs5HgANBQAAAAAAAAAAJgAwABweHB46HhweHB4cOzkeHDscHjk7HAALhxweHB85HhweHB4cOzkeHDscHjk7HAANBQAAAAAAAAAA'
+  bush_tv_chan_6:
+    friendly_name: "TV Channel 6"
+    command_on: 'JgAYABsfOB8bIBsfGx8bOzkfGx8bOxsgOAANBQ=='
+  bush_tv_chan_7:
+    friendly_name: "TV Channel 7"
+    command_on: 'JgAaAB0dHR07HR0dHR0dOTsdHR0dOh0dHR0eAA0FAAAAAAAAAAAAAAAAAAA='
+  bush_tv_chan_8:
+    friendly_name: "TV Channel 8"
+    command_on: 'JgAwAB4dOh0dHR0dHhweOTscHjk7HB4cHgALoh4dOh0dHR0dHhweOTscHjk7HB4cHgANBQAAAAAAAAAA'
+  bush_tv_chan_9:
+    friendly_name: "TV Channel 9"
+    command_on: 'JgAwAB4dHR06HR0dHhweOTodHjk7HB45HQALhh0dHhw7HR0dHR0dOjodHTo6HR06HQANBQAAAAAAAAAA'
+  bush_tv_chan_0:
+    friendly_name: "TV Channel 0"
+    command_on: 'JgA0AB0dOxweHR0dHR0dOTsdHR0dHR0dHR0dAAujHR07HR0dHR0dHR06Oh0dHR4cHhweHB4ADQUAAAAA'
+  bush_tv_input_switch:
+    friendly_name: "TV Input Switch"
+    command_on: 'JgAwAB4dHR06HR0dHhweOR0dOxweOR0dOwALoh0dHhw7HR0dHR0dOR4dOh0eOR0dOwANBQAAAAAAAAAA'
+  bush_tv_pause:
+    friendly_name: "TV Pause"
+    command_on: 'JgA0ABsfOB8bHxsfHB8bOxsfGyA4HxsfGzwbAAuIGx84HxsfGx8bHxs8Gx8bIDgfGx8bPBsADQUAAAAA'
+  bush_tv_play:
+    friendly_name: "TV Play"
+    command_on: 'JgAwABsgGx84HxsfGx8bPDg8Gx84IBs7GwALiRsfGx84IBsfGx8bOzk7GyA4Hxs8GwANBQAAAAAAAAAA'
+  bush_tv_subtitles:
+    friendly_name: "TV Subtitles"
+    command_on: 'JgA0AB4dHR07HB4dHR0dOTs5HhweHR0dHR0eAAuFHR0dHTsdHR0dHR06OjkeHR0dHR0eHR0ADQUAAAAA'
+  bush_tv_recall:
+    friendly_name: "TV Recall Channel"
+    command_on: 'JgAwAB4dOh0dHR0dHhweOR0dOxweHR05OwALoh4cOx0dHR0dHR0dOh0dOxweHB45OwANBQAAAAAAAAAA'
+  bush_tv_rewind:
+    friendly_name: "TV Rewind"
+    command_on: 'JgAwABsfOR8bHxsfGx8bOzk7GyA4PBsfGwALiBwfOB8bHxsfGx8bPDg8Gx85OxsgGwANBQAAAAAAAAAA'
+  bush_tv_forward:
+    friendly_name: "TV Forward"
+    command_on: 'JgAwABsfGx84IBsfGx8bOzk7GyAbHzgfGwALpRsfGyA4HxsfGx8bPDg8Gx8bHzggGwANBQAAAAAAAAAA'
+  bush_tv_menu:
+    friendly_name: "TV Menu"
+    command_on: 'JgAaAB0dHhw7HR0dHR0dOh0dHR07HB4cHh0dAA0FAAAAAAAAAAAAAAAAAAA='
+  bush_tv_back:
+    friendly_name: "TV Back"
+    command_on: 'JgAsAB0dHR07HB4dHR0dOTsdHTk7OTsAC6IdHR4cOx0dHR0dHTk7HR06Ojk7AA0FAAAAAAAAAAAAAAAA'
+  bush_tv_exit:
+    friendly_name: "TV Exit"
+    command_on: 'JgAwABweOR8cHhweHB4cOh4dOh0dOjo6HQALhh0dOxweHB4dHR0dOR4dOh0dOjo6HQANBQAAAAAAAAAA'
+  bush_tv_guide:
+    friendly_name: "TV Guide"
+    command_on: 'JgA0AB0dHhw7HR0dHR0dOh0dOjodHR0dHh0dAAuFHh0dHTscHhweHR05Hhw7OR4dHR0dHR4ADQUAAAAA'
+  bush_tv_input:
+    friendly_name: "TV Input"
+    command_on: 'JgA0AB0dHR46HR0dHR0dOh0dHR0dHTsdHR0dAAuiHhweHTodHR0eHB45HR0eHB4dOh0dHR4ADQUAAAAA'
+# Bedroom TV Control
+  bedroom_tv_up:
+    friendly_name: "Bedroom TV Up"
+    command_on: 'eAgyAAkIGBgJCBgYCQgYGAgIGBgJCBgYCBgIGAkIGAgYCBgJGAgYCBgI8QgYGAkIGBgICBgYAAAAAAAA'
+  bedroom_tv_down:
+    friendly_name: "Bedroom TV Down"
+    command_on: 'eC8yAAkYGAkIGBgICRgZCAkYGAkIGBgICBgYCAkYGAgIGBgICBgJGBgIGAgIGAgYCBgJGAnxAAAAAAAA'
+# Air Con Unit
+  aircon_power:
+    friendly_name: "Aircon Power"
+    command_on: 'JgBQAAABJZcRExEVEBUQFBEVEDkRFRAVEDoQOhE5ETkQOhEUEDoRORAVETkRFBEUEBUQFREUEBUQOhAVEDoQOhE5ETkQOhE6EAAFJAABKEoTAA0FAAAAAAAAAAA='
+  aircon_mode:
+    friendly_name: "Aircon Mode"
+    command_on: 'JgBQAAABJpYQFhETEhMQFhETEjkRExITEDoSORE4EDoSORETEjkROQ86EhQQFRE5EBURExIUEBURFBE5ETkQFRE5EDoSOBE5EAAFJAABJk0RAA0FAAAAAAAAAAA='
+  aircon_colder:
+    friendly_name: "Aircon Colder"
+    command_on: 'JgBQAAABJpcQFRETERUQFRAUEToQFRAVEDoRORE5EDoQOhEUETkRORA6ERQQFRAVETkRFBEUEBURFBE5ETkQOhEUEDoROhA5EAAFJQABJU0QAA0FAAAAAAAAAAA='
+  aircon_warmer:
+    friendly_name: "Aircon Warmer"
+    command_on: 'JgBQAAABJpYRFRAUERUPFhAUEToRExEVEDkROhE5EDkROhAUEToQOhAVEDoQFRA6EBUQFREUEBUQOhAVEDoQFRA6EDoRORE5EAAFJQABJU0RAA0FAAAAAAAAAAA='
+  aircon_fan_speed:
+    friendly_name: "Aircon Fan Speed"
+    command_on: 'JgBQAAABJZcRExEVEBUQFBEVEDkRFRAVEDoQORE6ETkQOhAVEDoQOhEUETkRFBE5ETkQFRAVERQQOhEUEDoRFBAVETkQOhE5EQAFJAABJkwRAA0FAAAAAAAAAAA='
+  aircon_timer:
+    friendly_name: "Aircon Timer"
+    command_on: 'JgBIAAABJpYQFhAUERUQFRAUEToRExEVEDkROhE5EDoQOhEUEDoRORA6ERQQFRA6EDoRFBAVEBURFBA6ETkRFBEUEDoRORE5EAANBQ=='
+# Candle Light
+  candle_on:
+    friendly_name: "Candle On"
+    command_on: 'JgBQAAABJpcSExITEhQQFRITERQSFBAVEjcRORE5ETgSOBI4ETgRORE5ERQRFBIUERQRFBITEhQRFBA5ETkRORE4EjgRORE4EgAFJQABJ0sSAA0FAAAAAAAAAAA='
+  candle_off:
+    friendly_name: "Candle Off"
+    command_on: 'JgBIAAABJ5cSExIUERQRFBEVEhMSFBITETkRORI4ETgRORE5ETkROBI4EhMSFBI3ERUSExEUEhMRFRE4EjgRFBE5ETkROBI4EgANBQ=='

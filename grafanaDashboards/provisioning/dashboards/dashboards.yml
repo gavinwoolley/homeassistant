@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: HomeAssistant Dashboards
+    orgId: 1
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /var/lib/grafana/dashboards
+      # Mirror dashboard directories from this repository in Grafana.
+      # In particular, dashboards/Games becomes the Games folder.
+      foldersFromFilesStructure: true

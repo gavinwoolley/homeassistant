@@ -1,0 +1,3135 @@
+homeassistant:
+  # Name of the location where Home Assistant is running.
+  name: home.example.com
+  # Location required to calculate the time the sun rises and sets
+  latitude: 39.7588
+  longitude: -89.6213
+  # Impacts weather/sunrise data (altitude above sea level in meters)
+  elevation: 180
+  # metric for Metric, imperial for Imperial
+  unit_system: metric
+  # Pick yours from here: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+  time_zone: Europe/London
+  customize: !include customize.yaml
+  external_url: https://home.example.com:8123
+  internal_url: https://home.example.com:8123
+  allowlist_external_dirs:
+    - /config
+    - /config/www/alerts
+  auth_providers:
+    - type: homeassistant
+    - type: trusted_networks
+      trusted_networks:
+        - 10.0.0.0/24
+  auth_mfa_modules:
+    - type: totp
+      name: Authenticator app
+    - type: notify
+      message: "OTP Code for HA Dashboard {}"
+
+# sensor:
+#   - platform: authenticated
+#     enable_notification: true
+
+prometheus:
+  requires_auth: false
+  filter:
+    include_domains:
+      - sensor
+      - alarm_control_panel
+      - automation
+      - binary_sensor
+      - climate
+      - cover
+      - counter
+      - device_tracker
+      - fan
+      - humidifier
+      - input_boolean
+      - input_number
+      - light
+      - lock
+      - number
+      - person
+      - sensor
+      - switch
+      - update
+      - valve
+
+file:
+
+wake_on_lan:
+
+default_config:
+
+stream:
+
+my:
+
+system_health:
+
+media_source:
+
+script: !include scripts.yaml
+automation: !include automations.yaml
+command_line: !include switches.yaml
+
+light:
+  - platform: group
+    name: Kitchen Plinths
+    entities:
+      - light.kitchen_island_plinth
+      - light.kitchen_tall_units_plinth
+      - light.kitchen_under_stair_units_plinth
+      - light.kitchen_sink_plinth
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+# dashboard-overview switched from storage-mode (edited via the UI, only
+# living in .storage/lovelace.dashboard_overview) to yaml-mode, reading
+# straight from ui-lovelace.yaml in this repo - so a git-committed change
+# is genuinely live after a deploy + restart, no more manual copy/paste
+# into the UI's raw config editor. Same url_path, so every existing link
+# (WhatsApp, Alertmanager annotations, cast entries, the home banner) is
+# unaffected. TEST: if HA logs a url_path conflict with the pre-existing
+# storage dashboard on restart, that dashboard needs deleting via
+# Settings -> Dashboards first - see BackupConfig/lovelace-migration-*/
+# for the pre-migration storage-mode backup.
+lovelace:
+  dashboards:
+    dashboard-overview:
+      mode: yaml
+      filename: ui-lovelace.yaml
+      title: Overview
+      icon: mdi:home-account
+      show_in_sidebar: true
+
+# Enables configuration UI
+config:
+
+mobile_app:
+
+conversation:
+
+template:
+  - switch:
+      # Heating Boost
+      - name: "Heating Boost"
+        unique_id: heating_boost
+        icon: mdi:fire
+        state: "{{ is_state('input_boolean.heating_boost', 'on') }}"
+        turn_on:
+          - service: script.heating_boost_on
+        turn_off:
+          - service: script.heating_boost_off
+
+      # Kids Internet Block - blocks a set of kids' devices at the UniFi
+      # controller for the window picked in input_select.kids_block_duration.
+      - name: "Kids Internet Block"
+        unique_id: kids_internet_block
+        icon: mdi:wifi-cancel
+        state: "{{ is_state('input_boolean.kids_internet_blocked', 'on') }}"
+        turn_on:
+          - service: script.kids_internet_block
+        turn_off:
+          - service: script.kids_internet_restore
+
+      # Homer Simpson Laptop Wake (mirrors the real plug's state; on turns the
+      # plug on and sends a WOL packet 10s later)
+      - name: "Homer Simpson Laptop Wake"
+        unique_id: homer_simpson_laptop_wake
+        icon: mdi:laptop
+        state: "{{ is_state('switch.smart_plug_6_socket_1', 'on') }}"
+        turn_on:
+          - service: script.homer_simpson_laptop_wake_full
+        turn_off:
+          - service: switch.turn_off
+            target:
+              entity_id: switch.smart_plug_6_socket_1
+
+      # Homer Simpson Laptop WOL-only (for waking from hibernate/sleep, where the
+      # plug is already on - scripts don't expose a stable on/off state
+      # for Google, so this pulses a helper boolean as its backing state)
+      - name: "Homer Simpson Laptop WOL"
+        unique_id: homer_simpson_laptop_wol
+        icon: mdi:lan-connect
+        state: "{{ is_state('input_boolean.homer_simpson_laptop_wol_pulse', 'on') }}"
+        turn_on:
+          - service: script.homer_simpson_laptop_wol_only
+        turn_off:
+          - service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.homer_simpson_laptop_wol_pulse
+
+      # Kitchen Plinth Presets (for Google Assistant - scripts don't expose
+      # a stable on/off state, so these wrap them in a real toggle)
+      - name: "Plinth Warm"
+        unique_id: plinth_warm
+        icon: mdi:thermometer-low
+        state: "{{ states('input_select.plinth_active_mode') == 'Warm' }}"
+        turn_on:
+          - service: script.plinth_warm_white
+        turn_off:
+          - service: script.plinth_off
+      - name: "Plinth Cool"
+        unique_id: plinth_cool
+        icon: mdi:thermometer-high
+        state: "{{ states('input_select.plinth_active_mode') == 'Cool' }}"
+        turn_on:
+          - service: script.plinth_cool_white
+        turn_off:
+          - service: script.plinth_off
+      - name: "Plinth Audio"
+        unique_id: plinth_audio
+        icon: mdi:music-note
+        state: "{{ states('input_select.plinth_active_mode') == 'Audio' }}"
+        turn_on:
+          - service: script.plinth_audio_reactive
+        turn_off:
+          - service: script.plinth_off
+
+      # Kitchen Wall Units Presets (for Google Assistant, same reasoning)
+      - name: "Wall Units Warm"
+        unique_id: wall_units_warm
+        icon: mdi:thermometer-low
+        state: "{{ states('input_select.wall_units_active_mode') == 'Warm' }}"
+        turn_on:
+          - service: script.wall_units_warm_white
+        turn_off:
+          - service: script.wall_units_off
+      - name: "Wall Units Cool"
+        unique_id: wall_units_cool
+        icon: mdi:thermometer-high
+        state: "{{ states('input_select.wall_units_active_mode') == 'Cool' }}"
+        turn_on:
+          - service: script.wall_units_cool_white
+        turn_off:
+          - service: script.wall_units_off
+
+      # Bart Simpson Motion Kitchen Display
+      - name: "Bart Simpson Motion Kitchen Display"
+        unique_id: bart_simpson_motion_kitchen_display
+        state: "{{ is_state('automation.bart_simpson_room_motion_camera_image_on_kitchen_display', 'on') }}"
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id: automation.bart_simpson_room_motion_camera_image_on_kitchen_display
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id: automation.bart_simpson_room_motion_camera_image_on_kitchen_display
+
+      # Bart Simpson Motion Bedroom Display
+      - name: "Bart Simpson Motion Bedroom Display"
+        unique_id: bart_simpson_motion_bedroom_display
+        state: "{{ is_state('automation.bart_simpson_room_motion_camera_image_on_bedroom_display', 'on') }}"
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id: automation.bart_simpson_room_motion_camera_image_on_bedroom_display
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id: automation.bart_simpson_room_motion_camera_image_on_bedroom_display
+      # All Motion Automations
+      - name: "All Motion Automations"
+        unique_id: all_motion_automations
+        # image_processing conditions removed from state check (re-enable by adding back as 'and' lines):
+        # and is_state("automation.front_motion_image_processing", "on")
+        # and is_state("automation.garden_shed_upper_motion_image_processing", "on")
+        # and is_state("automation.garden_shed_lower_motion_image_processing", "on")
+        # and is_state("automation.patio_outdoor_motion_image_processing", "on")
+        # and is_state("automation.garden_upper_motion_image_processing", "on")
+        state: >-
+          {% if is_state("automation.dogs_motion", "on")
+            and is_state("automation.front_motion", "on")
+            and is_state("automation.garden_shed_upper_motion", "on")
+            and is_state("automation.garden_shed_lower_motion", "on")
+            and is_state("automation.bart_simpson_room_motion", "on")
+            and is_state("automation.patio_outdoor_motion", "on")
+            and is_state("automation.garden_upper_motion", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.dogs_motion
+                - automation.front_motion
+                # - automation.front_motion_image_processing
+                - automation.garden_shed_upper_motion
+                # - automation.garden_shed_upper_motion_image_processing
+                - automation.garden_shed_lower_motion
+                # - automation.garden_shed_lower_motion_image_processing
+                - automation.bart_simpson_room_motion
+                - automation.patio_outdoor_motion
+                # - automation.patio_outdoor_motion_image_processing
+                - automation.garden_upper_motion
+                # - automation.garden_upper_motion_image_processing
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.dogs_motion
+                - automation.front_motion
+                # - automation.front_motion_image_processing
+                - automation.garden_shed_upper_motion
+                # - automation.garden_shed_upper_motion_image_processing
+                - automation.garden_shed_lower_motion
+                # - automation.garden_shed_lower_motion_image_processing
+                - automation.bart_simpson_room_motion
+                - automation.patio_outdoor_motion
+                # - automation.patio_outdoor_motion_image_processing
+                - automation.garden_upper_motion
+                # - automation.garden_upper_motion_image_processing
+
+      # External Motion Automations
+      - name: "External Motion Automations"
+        unique_id: external_motion_automations
+        # image_processing conditions removed from state check (re-enable by adding back as 'and' lines):
+        # and is_state("automation.front_motion_image_processing", "on")
+        # and is_state("automation.garden_shed_upper_motion_image_processing", "on")
+        # and is_state("automation.garden_shed_lower_motion_image_processing", "on")
+        # and is_state("automation.patio_outdoor_motion_image_processing", "on")
+        # and is_state("automation.garden_upper_motion_image_processing", "on")
+        state: >-
+          {% if is_state("automation.front_motion", "on")
+            and is_state("automation.garden_shed_upper_motion", "on")
+            and is_state("automation.garden_shed_lower_motion", "on")
+            and is_state("automation.patio_outdoor_motion", "on")
+            and is_state("automation.garden_upper_motion", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.front_motion
+                # - automation.front_motion_image_processing
+                - automation.garden_shed_upper_motion
+                # - automation.garden_shed_upper_motion_image_processing
+                - automation.garden_shed_lower_motion
+                # - automation.garden_shed_lower_motion_image_processing
+                - automation.patio_outdoor_motion
+                # - automation.patio_outdoor_motion_image_processing
+                - automation.garden_upper_motion
+                # - automation.garden_upper_motion_image_processing
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.front_motion
+                # - automation.front_motion_image_processing
+                - automation.garden_shed_upper_motion
+                # - automation.garden_shed_upper_motion_image_processing
+                - automation.garden_shed_lower_motion
+                # - automation.garden_shed_lower_motion_image_processing
+                - automation.patio_outdoor_motion
+                # - automation.patio_outdoor_motion_image_processing
+                - automation.garden_upper_motion
+                # - automation.garden_upper_motion_image_processing
+
+      # Internal Motion Automations
+      - name: "Internal Motion Automations"
+        unique_id: internal_motion_automations
+        state: >-
+          {% if is_state("automation.dogs_motion", "on")
+            and is_state("automation.bart_simpson_room_motion", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.dogs_motion
+                - automation.bart_simpson_room_motion
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.dogs_motion
+                - automation.bart_simpson_room_motion
+
+      # Motion Detected Lights On
+      - name: "Motion Automation Lights"
+        unique_id: motion_automation_lights
+        state: >-
+          {% if is_state("automation.garden_shed_upper_motion_lamp_on", "on")
+            and is_state("automation.garden_upper_motion_lamp_on", "on")
+            and is_state("automation.front_motion_lamp_on", "on")
+            and is_state("automation.patio_outdoor_motion_lamp_on", "on")
+            and is_state("automation.garden_shed_lower_motion_lamp_on", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_lamp_on
+                - automation.garden_upper_motion_lamp_on
+                - automation.front_motion_lamp_on
+                - automation.patio_outdoor_motion_lamp_on
+                - automation.garden_shed_lower_motion_lamp_on
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_lamp_on
+                - automation.garden_upper_motion_lamp_on
+                - automation.front_motion_lamp_on
+                - automation.patio_outdoor_motion_lamp_on
+                - automation.garden_shed_lower_motion_lamp_on
+
+      # Bedroom Display Motion Automations
+      - name: "Bedroom Display Motion Automations"
+        unique_id: bedroom_display_motion_automations
+        state: >-
+          {% if is_state("automation.garden_shed_upper_motion_camera_image_on_bedroom_display", "on")
+            and is_state("automation.garden_upper_motion_camera_image_on_bedroom_display", "on")
+            and is_state("automation.front_motion_camera_image_on_bedroom_display", "on")
+            and is_state("automation.patio_outdoor_motion_camera_image_on_bedroom_display", "on")
+            and is_state("automation.garden_shed_lower_motion_camera_image_on_bedroom_display", "on")
+            and is_state("automation.dogs_motion_camera_image_on_bedroom_display", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_camera_image_on_bedroom_display
+                - automation.garden_upper_motion_camera_image_on_bedroom_display
+                - automation.front_motion_camera_image_on_bedroom_display
+                - automation.patio_outdoor_motion_camera_image_on_bedroom_display
+                - automation.garden_shed_lower_motion_camera_image_on_bedroom_display
+                - automation.bart_simpson_room_motion_camera_image_on_bedroom_display
+                - automation.dogs_motion_camera_image_on_bedroom_display
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_camera_image_on_bedroom_display
+                - automation.garden_upper_motion_camera_image_on_bedroom_display
+                - automation.front_motion_camera_image_on_bedroom_display
+                - automation.patio_outdoor_motion_camera_image_on_bedroom_display
+                - automation.garden_shed_lower_motion_camera_image_on_bedroom_display
+                - automation.bart_simpson_room_motion_camera_image_on_bedroom_display
+                - automation.dogs_motion_camera_image_on_bedroom_display
+
+      # Kitchen Display Motion Automations
+      - name: "Kitchen Display Motion Automations"
+        unique_id: kitchen_display_motion_automations
+        state: >-
+          {% if is_state("automation.garden_shed_upper_motion_camera_image_on_kitchen_display", "on")
+            and is_state("automation.garden_upper_motion_camera_image_on_kitchen_display", "on")
+            and is_state("automation.front_motion_camera_image_on_kitchen_display", "on")
+            and is_state("automation.patio_outdoor_motion_camera_image_on_kitchen_display", "on")
+            and is_state("automation.garden_shed_lower_motion_camera_image_on_kitchen_display", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_camera_image_on_kitchen_display
+                - automation.garden_upper_motion_camera_image_on_kitchen_display
+                - automation.front_motion_camera_image_on_kitchen_display
+                - automation.patio_outdoor_motion_camera_image_on_kitchen_display
+                - automation.garden_shed_lower_motion_camera_image_on_kitchen_display
+                - automation.bart_simpson_room_motion_camera_image_on_kitchen_display
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_camera_image_on_kitchen_display
+                - automation.garden_upper_motion_camera_image_on_kitchen_display
+                - automation.front_motion_camera_image_on_kitchen_display
+                - automation.patio_outdoor_motion_camera_image_on_kitchen_display
+                - automation.garden_shed_lower_motion_camera_image_on_kitchen_display
+                - automation.bart_simpson_room_motion_camera_image_on_kitchen_display
+
+      # Motion Detected Garden Lights and Sound
+      - name: "Garden Lights and Sound"
+        unique_id: garden_lights_and_sound
+        state: >-
+          {% if is_state("automation.garden_shed_upper_motion_lights_and_sound", "on")
+            and is_state("automation.garden_upper_motion_lights_and_sound", "on")
+            and is_state("automation.garden_shed_lower_motion_lights_and_sound", "on") %}
+            on
+          {% else %}
+            off
+          {% endif %}
+        turn_on:
+          - service: automation.turn_on
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_lights_and_sound
+                - automation.garden_upper_motion_lights_and_sound
+                - automation.garden_shed_lower_motion_lights_and_sound
+        turn_off:
+          - service: automation.turn_off
+            target:
+              entity_id:
+                - automation.garden_shed_upper_motion_lights_and_sound
+                - automation.garden_upper_motion_lights_and_sound
+                - automation.garden_shed_lower_motion_lights_and_sound
+
+  - sensor:
+    - name: custom_date
+      state: >-
+        {% set day = ['Mon','Tue','Wed','Thur','Fri','Sat','Sun'][now().weekday()] %}
+        {{ day + ' ' + now().strftime('%d %b, %Y')}}
+
+    - name: heating_time_am_on
+      state: >-
+        {{ "%0.02d:%0.02d" | format(states("input_number.heating_hour_am_on") | int, states("input_number.heating_minute_am_on") | int) }}
+
+    - name: heating_time_am_off
+      state: >-
+        {{ "%0.02d:%0.02d" | format(states("input_number.heating_hour_am_off") | int, states("input_number.heating_minute_am_off") | int) }}
+
+    - name: heating_time_pm_on
+      state: >-
+        {{ "%0.02d:%0.02d" | format(states("input_number.heating_hour_pm_on") | int, states("input_number.heating_minute_pm_on") | int) }}
+
+    - name: heating_time_pm_off
+      state: >-
+        {{ "%0.02d:%0.02d" | format(states("input_number.heating_hour_pm_off") | int, states("input_number.heating_minute_pm_off") | int) }}
+
+    - name: blueiris
+      state: '{{ states.binary_sensor.blueiris.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.blueiris", "on") and "round_trip_time_avg" in states.binary_sensor.blueiris.attributes }}'
+      unit_of_measurement: ms
+
+    - name: dc01
+      state: '{{ states.binary_sensor.dc01.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.dc01", "on") and "round_trip_time_avg" in states.binary_sensor.dc01.attributes }}'
+      unit_of_measurement: ms
+
+    - name: desktop01
+      state: '{{ states.binary_sensor.desktop01.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.desktop01", "on") and "round_trip_time_avg" in states.binary_sensor.desktop01.attributes }}'
+      unit_of_measurement: ms
+
+    - name: firewall
+      state: '{{ states.binary_sensor.firewall.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.firewall", "on") and "round_trip_time_avg" in states.binary_sensor.firewall.attributes }}'
+      unit_of_measurement: ms
+
+    - name: plex01
+      state: '{{ states.binary_sensor.plex01.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.plex01", "on") and "round_trip_time_avg" in states.binary_sensor.plex01.attributes }}'
+      unit_of_measurement: ms
+
+    - name: server1
+      state: '{{ states.binary_sensor.server_1.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.server_1", "on") and "round_trip_time_avg" in states.binary_sensor.server_1.attributes }}'
+      unit_of_measurement: ms
+
+    - name: server2
+      state: '{{ states.binary_sensor.server_2.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.server_2", "on") and "round_trip_time_avg" in states.binary_sensor.server_2.attributes }}'
+      unit_of_measurement: ms
+
+    - name: server3
+      state: '{{ states.binary_sensor.server_3.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.server_3", "on") and "round_trip_time_avg" in states.binary_sensor.server_3.attributes }}'
+      unit_of_measurement: ms
+
+    - name: hp_switch
+      state: '{{ states.binary_sensor.hp_switch.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.hp_switch", "on") and "round_trip_time_avg" in states.binary_sensor.hp_switch.attributes }}'
+      unit_of_measurement: ms
+
+    - name: wifi
+      state: '{{ states.binary_sensor.unifi_ap.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.unifi_ap", "on") and "round_trip_time_avg" in states.binary_sensor.unifi_ap.attributes }}'
+      unit_of_measurement: ms
+
+    - name: wifi2
+      state: '{{ states.binary_sensor.unifi_mesh.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.unifi_mesh", "on") and "round_trip_time_avg" in states.binary_sensor.unifi_mesh.attributes }}'
+      unit_of_measurement: ms
+
+    - name: wifi3
+      state: '{{ states.binary_sensor.unifi_ap_2.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.unifi_ap_2", "on") and "round_trip_time_avg" in states.binary_sensor.unifi_ap_2.attributes }}'
+      unit_of_measurement: ms
+
+    - name: wifi4
+      state: '{{ states.binary_sensor.unifi_ap_ac_2.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.unifi_ap_ac_2", "on") and "round_trip_time_avg" in states.binary_sensor.unifi_ap_ac_2.attributes }}'
+      unit_of_measurement: ms
+
+    - name: google
+      state: '{{ states.binary_sensor.google_dns.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.google_dns", "on") and "round_trip_time_avg" in states.binary_sensor.google_dns.attributes }}'
+      unit_of_measurement: ms
+
+    - name: garden_upper_camera
+      state: '{{ states.binary_sensor.garden_upper.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.garden_upper", "on") and "round_trip_time_avg" in states.binary_sensor.garden_upper.attributes }}'
+      unit_of_measurement: ms
+
+    - name: front_camera
+      state: '{{ states.binary_sensor.front.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.front", "on") and "round_trip_time_avg" in states.binary_sensor.front.attributes }}'
+      unit_of_measurement: ms
+
+    - name: garden_shed_upper_camera
+      state: '{{ states.binary_sensor.garden_shed_upper.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.garden_shed_upper", "on") and "round_trip_time_avg" in states.binary_sensor.garden_shed_upper.attributes }}'
+      unit_of_measurement: ms
+
+    - name: patio_outdoor_camera
+      state: '{{ states.binary_sensor.patio_outdoor.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.patio_outdoor", "on") and "round_trip_time_avg" in states.binary_sensor.patio_outdoor.attributes }}'
+      unit_of_measurement: ms
+
+    - name: garden_shed_lower_camera
+      state: '{{ states.binary_sensor.garden_shed_lower.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.garden_shed_lower", "on") and "round_trip_time_avg" in states.binary_sensor.garden_shed_lower.attributes }}'
+      unit_of_measurement: ms
+
+    - name: dogs_camera
+      state: '{{ states.binary_sensor.dogs.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.dogs", "on") and "round_trip_time_avg" in states.binary_sensor.dogs.attributes }}'
+      unit_of_measurement: ms
+
+    - name: bart_simpson_room_camera
+      state: '{{ states.binary_sensor.bart_simpson_room.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.bart_simpson_room", "on") and "round_trip_time_avg" in states.binary_sensor.bart_simpson_room.attributes }}'
+      unit_of_measurement: ms
+
+    - name: broadlink_rm_pro
+      state: '{{ states.binary_sensor.broadlink_rm_pro.attributes.round_trip_time_avg }}'
+      availability: '{{ is_state("binary_sensor.broadlink_rm_pro", "on") and "round_trip_time_avg" in states.binary_sensor.broadlink_rm_pro.attributes }}'
+      unit_of_measurement: ms
+
+    - name: elec_cost_day
+      state: "{{ (states('sensor.electricity_today') | float(0) * states('sensor.electricity_unit_rate') | float(0.22760) + states('sensor.electricity_standing_charge') | float(0.56870)) | round(2) }}"
+      unit_of_measurement: "GBP"
+
+    - name: elec_price_now
+      state: "{{ ((states('sensor.electricity_power') | float(0) / 1000) * states('sensor.electricity_unit_rate') | float(0.22760) * 100) | round(2) }}"
+      unit_of_measurement: "p"
+
+    - name: gas_cost_day
+      state: "{{ (states('sensor.gas_today') | float(0) * states('sensor.gas_unit_rate') | float(0.05416) + states('sensor.gas_standing_charge') | float(0.27720)) | round(2) }}"
+      unit_of_measurement: "GBP"
+
+    - name: nonsmoker
+      state: '{{ (( as_timestamp(now()) - as_timestamp(strptime("13.07.2018", "%d.%m.%Y")) ) / 86400 ) | round(2) }}'
+      unit_of_measurement: "Days"
+
+    - name: required_temp
+      state: '{{state_attr("climate.lounge", "temperature")}}'
+      unit_of_measurement: "C"
+
+    - name: marge_simpson_towards_home
+      state: '{% if is_state("sensor.marge_simpson_home_marge_simpson_direction_of_travel", "towards") and not is_state("person.marge_simpson", "home") %}on{% else %}off{% endif %}'
+
+    - name: homer_simpson_towards_home
+      state: '{% if is_state("sensor.homer_simpson_home_homer_simpson_direction_of_travel", "towards") and not is_state("person.homer_simpson", "home") %}on{% else %}off{% endif %}'
+
+    - name: high_cpu
+      state: '{% if states("sensor.processor_use_percent")|int(0) > 40 %}on{% else %}off{% endif %}'
+
+    - name: marge_simpson_battery
+      state: '{{state_attr("device_tracker.google_maps_146646711938998732988", "battery_level")}}'
+      unit_of_measurement: "%"
+
+    - name: homer_simpson_battery
+      state: '{{state_attr("device_tracker.google_maps_104199578859638696260", "battery_level")}}'
+      unit_of_measurement: "%"
+
+    - name: lisa_simpson_battery
+      state: '{{ states("sensor.pixel_6_pro_lisa_simpson_battery_level") }}'
+      unit_of_measurement: "%"
+
+    - name: lisa_simpson_last_sensor_update
+      state: '{{ states.sensor.pixel_6_pro_lisa_simpson_last_update_trigger.last_changed }}'
+      device_class: timestamp
+
+  - sensor:
+      - name: Outside Temperature
+        unique_id: outside_temperature
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state: "{{ state_attr('weather.home_homer_simpson_com', 'temperature') }}"
+
+  - sensor:
+      - name: Outside Condition
+        unique_id: outside_condition
+        state: "{{ states('weather.home_homer_simpson_com') }}"
+        icon: >-
+          {% set s = states('weather.home_homer_simpson_com') %}
+          {% set m = {
+            'clear-night':'mdi:weather-night',
+            'cloudy':'mdi:weather-cloudy',
+            'fog':'mdi:weather-fog',
+            'hail':'mdi:weather-hail',
+            'lightning':'mdi:weather-lightning',
+            'lightning-rainy':'mdi:weather-lightning-rainy',
+            'partlycloudy':'mdi:weather-partly-cloudy',
+            'pouring':'mdi:weather-pouring',
+            'rainy':'mdi:weather-rainy',
+            'snowy':'mdi:weather-snowy',
+            'snowy-rainy':'mdi:weather-snowy-rainy',
+            'sunny':'mdi:weather-sunny',
+            'windy':'mdi:weather-windy',
+            'windy-variant':'mdi:weather-windy-variant',
+            'exceptional':'mdi:alert-circle-outline'
+          } %}
+          {{ m.get(s, 'mdi:weather-partly-cloudy') }}
+
+  - sensor:
+      - name: "Pixel 10 Pro Sleep State"
+        unique_id: pixel_10_pro_sleep_state
+        state: >-
+          {% set v = states('sensor.pixel_10_pro_sleep_confidence') | float(0) %}
+          {{ 'sleeping' if v >= 50 else 'awake' }}
+        icon: >-
+          {% set v = states('sensor.pixel_10_pro_sleep_confidence') | float(0) %}
+          {{ 'mdi:sleep' if v >= 50 else 'mdi:run' }}
+      - name: "Pixel 10 Pro Sleep Duration Formatted"
+        unique_id: pixel_10_pro_sleep_duration_formatted
+        state: >-
+          {% set mins = states('sensor.pixel_10_pro_sleep_duration') | int(0) %}
+          {{ (mins // 60) }}h {{ (mins % 60) }}m
+        icon: mdi:bed-clock
+      - name: "Pixel 10 Pro Sleep Duration Hours"
+        unique_id: pixel_10_pro_sleep_duration_hours
+        unit_of_measurement: h
+        state_class: measurement
+        state: >-
+          {{ ((states('sensor.pixel_10_pro_sleep_duration') | float(0)) / 60) | round(2) }}
+        icon: mdi:bed-clock
+
+  - sensor:
+      # Firing alerts by severity, derived from the active_alerts REST
+      # sensor's attribute payload so none of these poll Mimir a second time.
+      # For tier="transient" hosts (laptops / dev VM - roaming DHCP, off during
+      # the day, swallowed by Zscaler) only the "expected churn" alerts
+      # (TargetDown, WindowsHostRebooted) are excluded here, from active_alerts,
+      # and from the Alertmanager route - real problems on those hosts (CPU,
+      # memory, disk, ...) still count and still page.
+      - name: "Active Alerts Critical"
+        unique_id: active_alerts_critical
+        state: >-
+          {% set ns = namespace(n=0) %}
+          {% for a in state_attr('sensor.active_alerts', 'alerts') or [] %}
+            {% if a.state == 'firing' and a.labels.severity == 'critical' and not (a.labels.get('tier') == 'transient' and a.labels.alertname in ['TargetDown', 'WindowsHostRebooted']) %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}
+        icon: mdi:alert-octagon
+
+      - name: "Active Alerts Warning"
+        unique_id: active_alerts_warning
+        state: >-
+          {% set ns = namespace(n=0) %}
+          {% for a in state_attr('sensor.active_alerts', 'alerts') or [] %}
+            {% if a.state == 'firing' and a.labels.severity == 'warning' and not (a.labels.get('tier') == 'transient' and a.labels.alertname in ['TargetDown', 'WindowsHostRebooted']) %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}
+        icon: mdi:alert
+
+      - name: "Active Alerts Info"
+        unique_id: active_alerts_info
+        state: >-
+          {% set ns = namespace(n=0) %}
+          {% for a in state_attr('sensor.active_alerts', 'alerts') or [] %}
+            {% if a.state == 'firing' and a.labels.severity == 'info' and not (a.labels.get('tier') == 'transient' and a.labels.alertname in ['TargetDown', 'WindowsHostRebooted']) %}
+              {% set ns.n = ns.n + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.n }}
+        icon: mdi:information
+
+  - binary_sensor:
+    # On while the Mimir watchdog heartbeat has arrived in the last 10 min.
+    # Off => the ruler / Alloy / Mimir / webhook path is down.
+    - name: monitoring_watchdog
+      unique_id: monitoring_watchdog
+      device_class: connectivity
+      state: >-
+        {{ (as_timestamp(now()) - as_timestamp(states('input_datetime.monitoring_last_watchdog'), 0)) < 600 }}
+
+    - name: recycling_bin
+      state: >-
+        {% set anchor_ts = as_timestamp(strptime("2026-06-08", "%Y-%m-%d")) %}
+        {% set week = ((as_timestamp(now()) + 86400 - anchor_ts) / (7 * 86400)) | int %}
+        {{ week >= 0 and week % 2 == 0 }}
+
+    - name: waste_bin
+      state: >-
+        {% set anchor_ts = as_timestamp(strptime("2026-06-08", "%Y-%m-%d")) %}
+        {% set week = ((as_timestamp(now()) + 86400 - anchor_ts) / (7 * 86400)) | int %}
+        {{ week >= 0 and week % 3 == 0 }}
+
+    - name: garden_waste_bin
+      state: >-
+        {% set anchor_ts = as_timestamp(strptime("2026-06-08", "%Y-%m-%d")) %}
+        {% set week = ((as_timestamp(now()) + 86400 - anchor_ts) / (7 * 86400)) | int %}
+        {{ week >= 0 and week % 2 == 0 }}
+
+    - name: sunday_bool
+      state: >-
+        {{ (now().strftime("%a") == "Sun")}}
+
+    - name: recycling_bin_done
+      state: >-
+        {{is_state('input_select.recycling_bin', 'Done')}}
+
+    - name: waste_bin_done
+      state: >-
+        {{is_state('input_select.waste_bin', 'Done')}}
+
+    - name: garden_waste_bin_done
+      state: >-
+        {{is_state('input_select.garden_waste_bin', 'Done')}}
+
+    - name: food_waste_bin_done
+      state: >-
+        {{is_state('input_select.food_waste_bin', 'Done')}}
+
+    # On when any Azure DevOps pipeline's latest build did not succeed
+    # (failed / canceled / partiallySucceeded). Drives the conditional
+    # "Pipeline Failure" banner on the Home view in ui-lovelace.yaml.
+    - name: azure_pipeline_failure
+      unique_id: azure_pipeline_failure
+      icon: mdi:pipe-disconnected
+      state: >-
+        {% set ns = namespace(bad=false) %}
+        {% for s in ['sensor.home_homeassistant_ci_latest_build',
+                     'sensor.home_docker_compose_latest_build',
+                     'sensor.home_publish_to_github_latest_build',
+                     'sensor.home_homeassistant_latest_build'] %}
+          {% if state_attr(s, 'result') not in ['succeeded', none] %}
+            {% set ns.bad = true %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.bad }}
+      attributes:
+        # These 4 entity_ids match the 4 pipelines that actually exist as of
+        # 2026-09-15 (the old Home-Assistant and AppDaemon pipelines were
+        # deleted - unused for years - and their matching sensor slots
+        # disappeared entirely on the next HA restart, rather than sticking
+        # around stale; sensor.home_publish_to_github_latest_build didn't
+        # exist at all until that same restart). Before this, the same
+        # entity_id was observed reporting 3 different definition_names
+        # across a few minutes of polling with no config change - so reading
+        # each sensor's own definition_name attribute instead of a
+        # hardcoded label is what actually keeps this correct if the
+        # tracked-pipeline set ever changes again, not the entity_id list
+        # itself.
+        failed: >-
+          {% set ns = namespace(items=[]) %}
+          {% for s in ['sensor.home_homeassistant_ci_latest_build',
+                       'sensor.home_docker_compose_latest_build',
+                       'sensor.home_publish_to_github_latest_build',
+                       'sensor.home_homeassistant_latest_build'] %}
+            {% set r = state_attr(s, 'result') %}
+            {% if r not in ['succeeded', none] %}
+              {% set ns.items = ns.items + [{
+                'name': (state_attr(s, 'definition_name') or 'Unknown') ~ ' Pipeline',
+                'result': r,
+                'build': states(s),
+                'url': state_attr(s, 'url') }] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.items }}
+
+    # On while any tracked Azure DevOps pipeline's latest build is still
+    # running (status inProgress). Drives the "Pipeline Running" banner on
+    # the Home view in ui-lovelace.yaml. Polled by the integration (~5 min),
+    # so very short builds may finish between polls without showing.
+    - name: azure_pipeline_running
+      unique_id: azure_pipeline_running
+      icon: mdi:pipe
+      state: >-
+        {% set ns = namespace(busy=false) %}
+        {% for s in ['sensor.home_homeassistant_ci_latest_build',
+                     'sensor.home_docker_compose_latest_build',
+                     'sensor.home_publish_to_github_latest_build',
+                     'sensor.home_homeassistant_latest_build'] %}
+          {% if state_attr(s, 'status') == 'inProgress' %}
+            {% set ns.busy = true %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.busy }}
+      attributes:
+        # See the matching comment on azure_pipeline_failure above - reads
+        # each sensor's own definition_name live instead of a hardcoded
+        # entity_id -> label table.
+        running: >-
+          {% set ns = namespace(items=[]) %}
+          {% for s in ['sensor.home_homeassistant_ci_latest_build',
+                       'sensor.home_docker_compose_latest_build',
+                       'sensor.home_publish_to_github_latest_build',
+                       'sensor.home_homeassistant_latest_build'] %}
+            {% if state_attr(s, 'status') == 'inProgress' %}
+              {% set ns.items = ns.items + [{
+                'name': (state_attr(s, 'definition_name') or 'Unknown') ~ ' Pipeline',
+                'build': states(s),
+                'started': state_attr(s, 'start_time'),
+                'url': state_attr(s, 'url') }] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.items }}
+
+    - name: github_action_running
+      unique_id: github_action_running
+      icon: mdi:github
+      state: "{{ is_state('sensor.github_actions_latest_run', 'in_progress') }}"
+      attributes:
+        running: >-
+          {% if is_state('sensor.github_actions_latest_run', 'in_progress') %}
+            {{ [{
+              'name': 'Publish demo image',
+              'build': state_attr('sensor.github_actions_latest_run', 'run_number'),
+              'started': state_attr('sensor.github_actions_latest_run', 'created_at'),
+              'url': state_attr('sensor.github_actions_latest_run', 'html_url') }] }}
+          {% else %}
+            {{ [] }}
+          {% endif %}
+
+    - name: azure_devops_approval_pending
+      unique_id: azure_devops_approval_pending
+      icon: mdi:account-check
+      state: "{{ states('sensor.azure_devops_pending_approvals') | int(0) > 0 }}"
+      attributes:
+        pending: >-
+          {% set items = state_attr('sensor.azure_devops_pending_approvals', 'value') or [] %}
+          {% if items %}
+            {{ [{
+              'name': 'Publish to Github',
+              'since': items[0].createdOn,
+              'url': 'https://dev.azure.com/example/Home/_build?definitionId=7' }] }}
+          {% else %}
+            {{ [] }}
+          {% endif %}
+
+  - sensor:
+      # These exist because the "GitHub Actions Info" entities card can't use
+      # a `type: template` row to derive them inline - that's a valid row
+      # type on custom:mushroom-chips-card (see the Pixel Health section
+      # elsewhere in ui-lovelace.yaml), not on the core `entities` card,
+      # where it's silently invalid and renders as "Configuration error"
+      # (confirmed live 2026-09-25). Same fix Docker Pipeline Info already
+      # uses for its own computed fields - a dedicated sensor per value,
+      # referenced as a plain entity row.
+      - name: "GitHub Actions Last Commit Message"
+        unique_id: github_actions_last_commit_message
+        icon: mdi:message-text
+        state: "{{ (state_attr('sensor.github_actions_latest_run', 'head_commit') or {}).get('message', 'Unknown') }}"
+
+      - name: "GitHub Actions Last Run Status"
+        unique_id: github_actions_last_run_status
+        icon: mdi:check-circle-outline
+        state: "{{ state_attr('sensor.github_actions_latest_run', 'conclusion') or states('sensor.github_actions_latest_run') }}"
+
+      # Tuya sockets (product kOKEJBFoF9VNB5FR) report voltage and power with
+      # scale=0 in their cloud metadata but the hardware actually sends tenths,
+      # so HA shows 10x the real value. These corrected sensors divide by 10.
+      # Disable the raw sensor.XXX_voltage / sensor.XXX_power entities in the
+      # HA UI once these are working.
+      - name: "Door Number Light Voltage Corrected"
+        unique_id: tuya_door_number_light_voltage_corrected
+        unit_of_measurement: "V"
+        device_class: voltage
+        state_class: measurement
+        state: "{{ (states('sensor.door_number_light_voltage') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.door_number_light_voltage') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Door Number Light Power Corrected"
+        unique_id: tuya_door_number_light_power_corrected
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: "{{ (states('sensor.door_number_light_power') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.door_number_light_power') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Marge Simpson Electric Blanket Voltage Corrected"
+        unique_id: tuya_marge_simpson_electric_blanket_voltage_corrected
+        unit_of_measurement: "V"
+        device_class: voltage
+        state_class: measurement
+        state: "{{ (states('sensor.marge_simpson_electric_blanket_voltage') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.marge_simpson_electric_blanket_voltage') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Marge Simpson Electric Blanket Power Corrected"
+        unique_id: tuya_marge_simpson_electric_blanket_power_corrected
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: "{{ (states('sensor.marge_simpson_electric_blanket_power') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.marge_simpson_electric_blanket_power') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Tree House Light Voltage Corrected"
+        unique_id: tuya_tree_house_light_voltage_corrected
+        unit_of_measurement: "V"
+        device_class: voltage
+        state_class: measurement
+        state: "{{ (states('sensor.tree_house_light_voltage') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.tree_house_light_voltage') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Tree House Light Power Corrected"
+        unique_id: tuya_tree_house_light_power_corrected
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: "{{ (states('sensor.tree_house_light_power') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.tree_house_light_power') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Smart Socket 5 Voltage Corrected"
+        unique_id: tuya_smart_socket_5_voltage_corrected
+        unit_of_measurement: "V"
+        device_class: voltage
+        state_class: measurement
+        state: "{{ (states('sensor.smart_socket_5_voltage') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.smart_socket_5_voltage') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Smart Socket 5 Power Corrected"
+        unique_id: tuya_smart_socket_5_power_corrected
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: "{{ (states('sensor.smart_socket_5_power') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.smart_socket_5_power') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Santa Sleigh Voltage Corrected"
+        unique_id: tuya_santa_sleigh_voltage_corrected
+        unit_of_measurement: "V"
+        device_class: voltage
+        state_class: measurement
+        state: "{{ (states('sensor.santa_sleigh_voltage') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.santa_sleigh_voltage') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Santa Sleigh Power Corrected"
+        unique_id: tuya_santa_sleigh_power_corrected
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: "{{ (states('sensor.santa_sleigh_power') | float(0) / 10) | round(1) }}"
+        availability: "{{ states('sensor.santa_sleigh_power') not in ['unavailable', 'unknown'] }}"
+
+  # Per-device daily cost sensors (£0.23893 per kWh = 23.893p/kWh, no standing charge split per device)
+  - sensor:
+      - name: "Homer Simpson Laptop Cost Today"
+        unique_id: homer_simpson_laptop_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.homer_simpson_laptop_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.homer_simpson_laptop_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Work Laptop Cost Today"
+        unique_id: work_laptop_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.work_laptop_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.work_laptop_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Brother Printer Cost Today"
+        unique_id: brother_printer_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.brother_printer_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.brother_printer_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "3D Printer Cost Today"
+        unique_id: printer_3d_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.3d_printer_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.3d_printer_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Servers Cost Today"
+        unique_id: servers_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.servers_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.servers_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Master Bedroom AC Cost Today"
+        unique_id: master_bedroom_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.master_bedroom_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.master_bedroom_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Lisa Simpson Room AC Cost Today"
+        unique_id: lisa_simpson_room_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.lisa_simpson_room_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.lisa_simpson_room_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Kitchen AC Cost Today"
+        unique_id: kitchen_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.kitchen_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.kitchen_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Bart Simpson Room AC Cost Today"
+        unique_id: bart_simpson_room_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.bart_simpson_room_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.bart_simpson_room_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Upstairs AC Cost Today"
+        unique_id: upstairs_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.upstairs_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.upstairs_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      - name: "Office AC Cost Today"
+        unique_id: office_ac_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.office_ac_daily') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+        availability: "{{ states('sensor.office_ac_daily') not in ['unavailable', 'unknown'] }}"
+
+      # Weekly cost sensors (£0.23893/kWh)
+      - name: "Homer Simpson Laptop Cost Weekly"
+        unique_id: homer_simpson_laptop_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.homer_simpson_laptop_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Work Laptop Cost Weekly"
+        unique_id: work_laptop_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.work_laptop_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Brother Printer Cost Weekly"
+        unique_id: brother_printer_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.brother_printer_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "3D Printer Cost Weekly"
+        unique_id: printer_3d_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.3d_printer_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Servers Cost Weekly"
+        unique_id: servers_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.servers_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Master Bedroom AC Cost Weekly"
+        unique_id: master_bedroom_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.master_bedroom_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Lisa Simpson Room AC Cost Weekly"
+        unique_id: lisa_simpson_room_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.lisa_simpson_room_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Kitchen AC Cost Weekly"
+        unique_id: kitchen_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.kitchen_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Bart Simpson Room AC Cost Weekly"
+        unique_id: bart_simpson_room_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.bart_simpson_room_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Upstairs AC Cost Weekly"
+        unique_id: upstairs_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.upstairs_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Office AC Cost Weekly"
+        unique_id: office_ac_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.office_ac_weekly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+
+      # Monthly cost sensors
+      - name: "Homer Simpson Laptop Cost Monthly"
+        unique_id: homer_simpson_laptop_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.homer_simpson_laptop_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Work Laptop Cost Monthly"
+        unique_id: work_laptop_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.work_laptop_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Brother Printer Cost Monthly"
+        unique_id: brother_printer_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.brother_printer_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "3D Printer Cost Monthly"
+        unique_id: printer_3d_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.3d_printer_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Servers Cost Monthly"
+        unique_id: servers_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.servers_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Master Bedroom AC Cost Monthly"
+        unique_id: master_bedroom_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.master_bedroom_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Lisa Simpson Room AC Cost Monthly"
+        unique_id: lisa_simpson_room_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.lisa_simpson_room_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Kitchen AC Cost Monthly"
+        unique_id: kitchen_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.kitchen_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Bart Simpson Room AC Cost Monthly"
+        unique_id: bart_simpson_room_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.bart_simpson_room_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Upstairs AC Cost Monthly"
+        unique_id: upstairs_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.upstairs_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Office AC Cost Monthly"
+        unique_id: office_ac_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.office_ac_monthly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+
+      # Summary sensors — total across all measured devices
+      - name: "Office Devices Cost Today"
+        unique_id: office_devices_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.homer_simpson_laptop_cost_today') | float(0) +
+            states('sensor.work_laptop_cost_today') | float(0) +
+            states('sensor.brother_printer_cost_today') | float(0) +
+            states('sensor.printer_3d_cost_today') | float(0) +
+            states('sensor.servers_cost_today') | float(0)
+          ) | round(2) }}
+      - name: "Office Devices Cost Weekly"
+        unique_id: office_devices_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.homer_simpson_laptop_cost_weekly') | float(0) +
+            states('sensor.work_laptop_cost_weekly') | float(0) +
+            states('sensor.brother_printer_cost_weekly') | float(0) +
+            states('sensor.printer_3d_cost_weekly') | float(0) +
+            states('sensor.servers_cost_weekly') | float(0)
+          ) | round(2) }}
+      - name: "Office Devices Cost Monthly"
+        unique_id: office_devices_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.homer_simpson_laptop_cost_monthly') | float(0) +
+            states('sensor.work_laptop_cost_monthly') | float(0) +
+            states('sensor.brother_printer_cost_monthly') | float(0) +
+            states('sensor.printer_3d_cost_monthly') | float(0) +
+            states('sensor.servers_cost_monthly') | float(0)
+          ) | round(2) }}
+      - name: "AC Units Cost Today"
+        unique_id: ac_units_cost_today
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.master_bedroom_ac_cost_today') | float(0) +
+            states('sensor.lisa_simpson_room_ac_cost_today') | float(0) +
+            states('sensor.kitchen_ac_cost_today') | float(0) +
+            states('sensor.bart_simpson_room_ac_cost_today') | float(0) +
+            states('sensor.upstairs_ac_cost_today') | float(0) +
+            states('sensor.office_ac_cost_today') | float(0)
+          ) | round(2) }}
+      - name: "AC Units Cost Weekly"
+        unique_id: ac_units_cost_weekly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.master_bedroom_ac_cost_weekly') | float(0) +
+            states('sensor.lisa_simpson_room_ac_cost_weekly') | float(0) +
+            states('sensor.kitchen_ac_cost_weekly') | float(0) +
+            states('sensor.bart_simpson_room_ac_cost_weekly') | float(0) +
+            states('sensor.upstairs_ac_cost_weekly') | float(0) +
+            states('sensor.office_ac_cost_weekly') | float(0)
+          ) | round(2) }}
+      - name: "AC Units Cost Monthly"
+        unique_id: ac_units_cost_monthly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.master_bedroom_ac_cost_monthly') | float(0) +
+            states('sensor.lisa_simpson_room_ac_cost_monthly') | float(0) +
+            states('sensor.kitchen_ac_cost_monthly') | float(0) +
+            states('sensor.bart_simpson_room_ac_cost_monthly') | float(0) +
+            states('sensor.upstairs_ac_cost_monthly') | float(0) +
+            states('sensor.office_ac_cost_monthly') | float(0)
+          ) | round(2) }}
+
+      # Yearly cost sensors
+      - name: "Homer Simpson Laptop Cost Yearly"
+        unique_id: homer_simpson_laptop_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.homer_simpson_laptop_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Work Laptop Cost Yearly"
+        unique_id: work_laptop_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.work_laptop_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Brother Printer Cost Yearly"
+        unique_id: brother_printer_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.brother_printer_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "3D Printer Cost Yearly"
+        unique_id: printer_3d_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.3d_printer_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Servers Cost Yearly"
+        unique_id: servers_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.servers_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Master Bedroom AC Cost Yearly"
+        unique_id: master_bedroom_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.master_bedroom_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Lisa Simpson Room AC Cost Yearly"
+        unique_id: lisa_simpson_room_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.lisa_simpson_room_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Kitchen AC Cost Yearly"
+        unique_id: kitchen_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.kitchen_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Bart Simpson Room AC Cost Yearly"
+        unique_id: bart_simpson_room_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.bart_simpson_room_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Upstairs AC Cost Yearly"
+        unique_id: upstairs_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.upstairs_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Office AC Cost Yearly"
+        unique_id: office_ac_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: "{{ (states('sensor.office_ac_yearly') | float(0) * (states('sensor.electricity_unit_rate') | float(0.22760))) | round(2) }}"
+      - name: "Office Devices Cost Yearly"
+        unique_id: office_devices_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.homer_simpson_laptop_cost_yearly') | float(0) +
+            states('sensor.work_laptop_cost_yearly') | float(0) +
+            states('sensor.brother_printer_cost_yearly') | float(0) +
+            states('sensor.3d_printer_cost_yearly') | float(0) +
+            states('sensor.servers_cost_yearly') | float(0)
+          ) | round(2) }}
+      - name: "AC Units Cost Yearly"
+        unique_id: ac_units_cost_yearly
+        unit_of_measurement: "£"
+        icon: mdi:currency-gbp
+        state: >-
+          {{ (
+            states('sensor.master_bedroom_ac_cost_yearly') | float(0) +
+            states('sensor.lisa_simpson_room_ac_cost_yearly') | float(0) +
+            states('sensor.kitchen_ac_cost_yearly') | float(0) +
+            states('sensor.bart_simpson_room_ac_cost_yearly') | float(0) +
+            states('sensor.upstairs_ac_cost_yearly') | float(0) +
+            states('sensor.office_ac_cost_yearly') | float(0)
+          ) | round(2) }}
+
+  - select:
+      - name: "Plinth Audio Effect"
+        unique_id: plinth_audio_effect
+        icon: mdi:music-note
+        options: >-
+          {% set base = ["Blurz","DJ Light","Freqmap","Freqmatrix","Freqpixels","Freqwave","Gravcenter","Gravcentric","Gravfreq","Gravimeter","Juggles","Matripix","Midnoise","Noisefire","Noisemeter","Noisemove","Pixels","Pixelwave","Plasmoid","Puddlepeak","Puddles","Ripple Peak","Rocktaves","Waterfall"] %}
+          {% set cur = state_attr('light.kitchen_plinths', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.kitchen_plinths', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id:
+                - light.kitchen_island_plinth
+                - light.kitchen_tall_units_plinth
+                - light.kitchen_under_stair_units_plinth
+                - light.kitchen_sink_plinth
+            data:
+              effect: "{{ option }}"
+      - name: "Plinth Visual Effect"
+        unique_id: plinth_visual_effect
+        icon: mdi:palette
+        options: >-
+          {% set base = ["Solid","Blink","Breathe","Wipe","Wipe Random","Random Colors","Sweep","Dynamic","Colorloop","Rainbow","Scan","Scan Dual","Fade","Theater","Theater Rainbow","Running","Saw","Twinkle","Dissolve","Dissolve Rnd","Sparkle","Sparkle Dark","Sparkle+","Strobe","Strobe Rainbow","Strobe Mega","Blink Rainbow","Android","Chase","Chase Random","Chase Rainbow","Chase Flash","Chase Flash Rnd","Rainbow Runner","Colorful","Traffic Light","Sweep Random","Chase 2","Aurora","Stream","Scanner","Lighthouse","Rain","Tetrix","Fire Flicker","Gradient","Loading","Rolling Balls","Fairy","Two Dots","Fairytwinkle","Running Dual","Chase 3","Tri Wipe","Tri Fade","Lightning","ICU","Multi Comet","Scanner Dual","Stream 2","Oscillate","Pride 2015","Juggle","Palette","Fire 2012","Colorwaves","Bpm","Fill Noise","Noise 1","Noise 2","Noise 3","Noise 4","Colortwinkles","Lake","Meteor","Meteor Smooth","Railway","Ripple","Twinklefox","Twinklecat","Halloween Eyes","Solid Pattern","Solid Pattern Tri","Spots","Spots Fade","Glitter","Candle","Fireworks Starburst","Fireworks 1D","Bouncing Balls","Sinelon","Sinelon Dual","Sinelon Rainbow","Popcorn","Drip","Plasma","Percent","Ripple Rainbow","Heartbeat","Pacifica","Candle Multi","Solid Glitter","Sunrise","Phased","Twinkleup","Noise Pal","Sine","Phased Noise","Flow","Chunchun","Dancing Shadows","Washing Machine","Rotozoomer","Blends","TV Simulator","Dynamic Smooth","Perlin Move","Firenoise","Plasma Ball","Flow Stripe","Wavesins"] %}
+          {% set cur = state_attr('light.kitchen_plinths', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.kitchen_plinths', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id:
+                - light.kitchen_island_plinth
+                - light.kitchen_tall_units_plinth
+                - light.kitchen_under_stair_units_plinth
+                - light.kitchen_sink_plinth
+            data:
+              effect: "{{ option }}"
+
+      - name: "Wall Units Audio Effect"
+        unique_id: wall_units_audio_effect
+        icon: mdi:music-note
+        options: >-
+          {% set base = ["Blurz","DJ Light","Freqmap","Freqmatrix","Freqpixels","Freqwave","Gravcenter","Gravcentric","Gravfreq","Gravimeter","Juggles","Matripix","Midnoise","Noisefire","Noisemeter","Noisemove","Pixels","Pixelwave","Plasmoid","Puddlepeak","Puddles","Ripple Peak","Rocktaves","Waterfall"] %}
+          {% set cur = state_attr('light.kitchen_wall_units', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.kitchen_wall_units', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id: light.kitchen_wall_units
+            data:
+              effect: "{{ option }}"
+      - name: "Wall Units Visual Effect"
+        unique_id: wall_units_visual_effect
+        icon: mdi:palette
+        options: >-
+          {% set base = ["Solid","Blink","Breathe","Wipe","Wipe Random","Random Colors","Sweep","Dynamic","Colorloop","Rainbow","Scan","Scan Dual","Fade","Theater","Theater Rainbow","Running","Saw","Twinkle","Dissolve","Dissolve Rnd","Sparkle","Sparkle Dark","Sparkle+","Strobe","Strobe Rainbow","Strobe Mega","Blink Rainbow","Android","Chase","Chase Random","Chase Rainbow","Chase Flash","Chase Flash Rnd","Rainbow Runner","Colorful","Traffic Light","Sweep Random","Chase 2","Aurora","Stream","Scanner","Lighthouse","Rain","Tetrix","Fire Flicker","Gradient","Loading","Rolling Balls","Fairy","Two Dots","Fairytwinkle","Running Dual","Chase 3","Tri Wipe","Tri Fade","Lightning","ICU","Multi Comet","Scanner Dual","Stream 2","Oscillate","Pride 2015","Juggle","Palette","Fire 2012","Colorwaves","Bpm","Fill Noise","Noise 1","Noise 2","Noise 3","Noise 4","Colortwinkles","Lake","Meteor","Meteor Smooth","Railway","Ripple","Twinklefox","Twinklecat","Halloween Eyes","Solid Pattern","Solid Pattern Tri","Spots","Spots Fade","Glitter","Candle","Fireworks Starburst","Fireworks 1D","Bouncing Balls","Sinelon","Sinelon Dual","Sinelon Rainbow","Popcorn","Drip","Plasma","Percent","Ripple Rainbow","Heartbeat","Pacifica","Candle Multi","Solid Glitter","Sunrise","Phased","Twinkleup","Noise Pal","Sine","Phased Noise","Flow","Chunchun","Dancing Shadows","Washing Machine","Rotozoomer","Blends","TV Simulator","Dynamic Smooth","Perlin Move","Firenoise","Plasma Ball","Flow Stripe","Wavesins"] %}
+          {% set cur = state_attr('light.kitchen_wall_units', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.kitchen_wall_units', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id: light.kitchen_wall_units
+            data:
+              effect: "{{ option }}"
+      - name: "Utility Units Audio Effect"
+        unique_id: utility_units_audio_effect
+        icon: mdi:music-note
+        options: >-
+          {% set base = ["Blurz","DJ Light","Freqmap","Freqmatrix","Freqpixels","Freqwave","Gravcenter","Gravcentric","Gravfreq","Gravimeter","Juggles","Matripix","Midnoise","Noisefire","Noisemeter","Noisemove","Pixels","Pixelwave","Plasmoid","Puddlepeak","Puddles","Ripple Peak","Rocktaves","Waterfall"] %}
+          {% set cur = state_attr('light.utility_units', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.utility_units', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id: light.utility_units
+            data:
+              effect: "{{ option }}"
+      - name: "Utility Units Visual Effect"
+        unique_id: utility_units_visual_effect
+        icon: mdi:palette
+        options: >-
+          {% set base = ["Solid","Blink","Breathe","Wipe","Wipe Random","Random Colors","Sweep","Dynamic","Colorloop","Rainbow","Scan","Scan Dual","Fade","Theater","Theater Rainbow","Running","Saw","Twinkle","Dissolve","Dissolve Rnd","Sparkle","Sparkle Dark","Sparkle+","Strobe","Strobe Rainbow","Strobe Mega","Blink Rainbow","Android","Chase","Chase Random","Chase Rainbow","Chase Flash","Chase Flash Rnd","Rainbow Runner","Colorful","Traffic Light","Sweep Random","Chase 2","Aurora","Stream","Scanner","Lighthouse","Rain","Tetrix","Fire Flicker","Gradient","Loading","Rolling Balls","Fairy","Two Dots","Fairytwinkle","Running Dual","Chase 3","Tri Wipe","Tri Fade","Lightning","ICU","Multi Comet","Scanner Dual","Stream 2","Oscillate","Pride 2015","Juggle","Palette","Fire 2012","Colorwaves","Bpm","Fill Noise","Noise 1","Noise 2","Noise 3","Noise 4","Colortwinkles","Lake","Meteor","Meteor Smooth","Railway","Ripple","Twinklefox","Twinklecat","Halloween Eyes","Solid Pattern","Solid Pattern Tri","Spots","Spots Fade","Glitter","Candle","Fireworks Starburst","Fireworks 1D","Bouncing Balls","Sinelon","Sinelon Dual","Sinelon Rainbow","Popcorn","Drip","Plasma","Percent","Ripple Rainbow","Heartbeat","Pacifica","Candle Multi","Solid Glitter","Sunrise","Phased","Twinkleup","Noise Pal","Sine","Phased Noise","Flow","Chunchun","Dancing Shadows","Washing Machine","Rotozoomer","Blends","TV Simulator","Dynamic Smooth","Perlin Move","Firenoise","Plasma Ball","Flow Stripe","Wavesins"] %}
+          {% set cur = state_attr('light.utility_units', 'effect') %}
+          {{ (base + [cur]) | unique | list if cur is not none and cur not in base else base }}
+        state: "{{ state_attr('light.utility_units', 'effect') }}"
+        select_option:
+          - service: light.turn_on
+            target:
+              entity_id: light.utility_units
+            data:
+              effect: "{{ option }}"
+
+rest_command:
+  adguard_set_protection:
+    url: "http://10.0.0.10:3008/control/protection"
+    method: post
+    headers:
+      Authorization: !secret adguard_auth_header
+      Content-Type: application/json
+    payload: "{{ {'enabled': enabled, 'duration': duration_ms} | tojson }}"
+  wled_set_cct:
+    url: "http://{{ ip }}/json/state"
+    method: post
+    headers:
+      Content-Type: application/json
+    payload: "{{ {'seg': [{'id': 0, 'cct': cct}]} | tojson }}"
+
+  # WhatsApp via CallMeBot (free personal API). phone/apikey are passed in by
+  # script.notify_whatsapp so the secrets stay in one place.
+  callmebot_whatsapp:
+    url: >-
+      https://api.callmebot.com/whatsapp.php?phone={{ phone }}&apikey={{ apikey }}&text={{ text | urlencode }}
+    method: get
+
+  # Same Grafana Graphite-format annotation the host scripts (scripts/*.sh)
+  # POST, but callable from any HA script/automation - used by the System
+  # Maintenance card scripts so every button press leaves a mark on the
+  # dashboards. tags/message are passed in by the calling script.
+  grafana_annotation:
+    url: "https://#{home_assistant_base_url}#:599/grafana/api/annotations/graphite"
+    method: post
+    headers:
+      Authorization: "#{grafana_api_key}#"
+      Content-Type: application/json
+    payload: '{"tags": {{ tags | tojson }}, "data": "{{ message }}", "what": "Event Triggered"}'
+
+timer:
+  # restore: true — survive HA restarts (deploys). Without it a restart
+  # resets the timer to idle without ever firing timer.finished, so the
+  # heating_boost / adguard_protection_disabled input_booleans (and their
+  # conditional Home-screen countdown cards) get stuck on forever.
+  heating_boost:
+    name: Heating Boost Timer
+    duration: "00:30:00"
+    icon: mdi:fire
+    restore: true
+  adguard_protection_disabled:
+    name: AdGuard Protection Timer
+    duration: "24:00:00"
+    icon: mdi:shield-off
+    restore: true
+  kids_internet_block:
+    name: Kids Internet Block Timer
+    duration: "00:30:00"
+    icon: mdi:timer-lock
+    restore: true
+  alerts_muted:
+    name: Alerts Muted Timer
+    duration: "01:00:00"
+    icon: mdi:bell-off
+    restore: true
+  front_door_recent_activity:
+    # event.front_door_motion / event.front_door_chime (Nest doorbell) fire a
+    # point-in-time state change with no "on" duration of their own, so this
+    # timer is what turns that into a Home-screen-conditional-card-friendly
+    # "recently active" window - see the automations that start/stop it.
+    name: Front Door Recent Activity Timer
+    duration: "00:00:30"
+    icon: mdi:doorbell-video
+    restore: true
+
+input_button:
+  tts_cast:
+    name: Cast
+    icon: mdi:cast-audio
+
+input_boolean:
+  homer_simpson_laptop_wol_pulse:
+    name: Homer Simpson Laptop WOL Pulse
+    icon: mdi:lan-connect
+  irrigation_enabled:
+    name: Irrigation Schedule Enabled
+    icon: mdi:sprinkler-variant
+  irrigation_monday:
+    name: "Irrigate Monday"
+    icon: mdi:sprinkler
+  irrigation_tuesday:
+    name: "Irrigate Tuesday"
+    icon: mdi:sprinkler
+  irrigation_wednesday:
+    name: "Irrigate Wednesday"
+    icon: mdi:sprinkler
+  irrigation_thursday:
+    name: "Irrigate Thursday"
+    icon: mdi:sprinkler
+  irrigation_friday:
+    name: "Irrigate Friday"
+    icon: mdi:sprinkler
+  irrigation_saturday:
+    name: "Irrigate Saturday"
+    icon: mdi:sprinkler
+  irrigation_sunday:
+    name: "Irrigate Sunday"
+    icon: mdi:sprinkler
+  irrigation_rain_sensor_enabled:
+    name: "Irrigation Rain Skip"
+    icon: mdi:weather-rainy
+  heating_boost:
+    name: Heating Boost Active
+    icon: mdi:fire
+  adguard_protection_disabled:
+    name: AdGuard Protection Disabled
+    icon: mdi:shield-off
+  kids_internet_blocked:
+    name: Kids Internet Blocked
+    icon: mdi:wifi-cancel
+  alerts_muted:
+    name: Alerts Muted
+    icon: mdi:bell-off
+  front_door_recent_activity:
+    name: Front Door Recent Activity
+    icon: mdi:doorbell-video
+
+input_number:
+  heating_boost_minutes:
+    name: Heating Boost Duration
+    min: 5
+    max: 60
+    step: 5
+    unit_of_measurement: min
+    icon: mdi:timer-outline
+  irrigation_zone1_duration:
+    name: "Zone 1 Duration"
+    icon: mdi:timer-outline
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: min
+    initial: 5
+  irrigation_zone2_duration:
+    name: "Zone 2 Duration"
+    icon: mdi:timer-outline
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: min
+    initial: 5
+  irrigation_zone3_duration:
+    name: "Zone 3 Duration"
+    icon: mdi:timer-outline
+    min: 1
+    max: 60
+    step: 1
+    unit_of_measurement: min
+    initial: 15
+  irrigation_rain_threshold:
+    name: "Rain Skip Threshold"
+    icon: mdi:weather-rainy
+    min: 0.1
+    max: 10
+    step: 0.1
+    unit_of_measurement: "mm/h"
+    initial: 1.0
+  heating_hour_am_on:
+    name: Hour On a.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 12
+    step: 1
+  heating_minute_am_on:
+    name: Minutes On a.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 59
+    step: 1
+  heating_hour_am_off:
+    name: Hour Off a.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 12
+    step: 1
+  heating_minute_am_off:
+    name: Minutes Off a.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 59
+    step: 1
+  heating_hour_pm_on:
+    name: Hour On p.m
+    icon: mdi:timer-outline
+    min: 12
+    max: 23
+    step: 1
+  heating_minute_pm_on:
+    name: Minutes On p.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 59
+    step: 1
+  heating_hour_pm_off:
+    name: Hour Off p.m
+    icon: mdi:timer-outline
+    min: 12
+    max: 23
+    step: 1
+  heating_minute_pm_off:
+    name: Minutes Off p.m
+    icon: mdi:timer-outline
+    min: 0
+    max: 59
+    step: 1
+  media_volume_select:
+    name: Media Player Volume
+    icon: mdi:volume-high
+    min: 0
+    max: 10
+    step: 1
+
+input_text:
+  tts_text:
+    name: Text to Say
+    initial: Some Text
+
+input_datetime:
+  irrigation_start_time:
+    name: Irrigation Start Time
+    has_date: false
+    has_time: true
+  motion_alert_evening_condition_time:
+    name: Motion Alerts Time on p.m
+    has_date: false
+    has_time: true
+  motion_alert_morning_condition_time:
+    name: Motion Alerts Time off a.m
+    has_date: false
+    has_time: true
+  # Updated every time the Mimir watchdog webhook fires - binary_sensor
+  # .monitoring_watchdog goes off if this stops advancing.
+  monitoring_last_watchdog:
+    name: Monitoring Last Watchdog
+    has_date: true
+    has_time: true
+
+input_select:
+  kids_block_duration:
+    name: Kids Block Duration
+    icon: mdi:timer-outline
+    options:
+      - "10 minutes"
+      - "30 minutes"
+      - "1 hour"
+      - "2 hours"
+      - "Until midnight"
+    initial: "30 minutes"
+  alert_mute_duration:
+    name: Alert Mute Duration
+    icon: mdi:timer-off-outline
+    options:
+      - "15 minutes"
+      - "1 hour"
+      - "4 hours"
+      - "24 hours"
+    initial: "1 hour"
+  plinth_active_mode:
+    name: Plinth Active Mode
+    icon: mdi:led-strip-variant
+    options:
+      - "Off"
+      - Warm
+      - Neutral
+      - Cool
+      - Rainbow
+      - Fire
+      - Chase
+      - Audio
+      - Audio Warm
+      - Audio Cool
+    initial: "Off"
+  wall_units_active_mode:
+    name: Wall Units Active Mode
+    icon: mdi:led-strip-variant
+    options:
+      - "Off"
+      - Warm
+      - Neutral
+      - Cool
+      - Rainbow
+      - Fire
+      - Chase
+      - Audio
+      - Audio Warm
+      - Audio Cool
+    initial: "Off"
+  utility_units_active_mode:
+    name: Utility Units Active Mode
+    icon: mdi:led-strip-variant
+    options:
+      - "Off"
+      - Warm
+      - Neutral
+      - Cool
+      - Rainbow
+      - Fire
+      - Chase
+      - Audio
+      - Audio Warm
+      - Audio Cool
+    initial: "Off"
+  camera_dropdown:
+    name: Cast camera
+    options:
+      - All Cameras
+      - All Front Cams
+      - All Internal Cams
+      - All Kids Cams
+      - All Rear Cams
+      - Bart Simpson Room
+      - Cycle Cameras
+      - Dogs
+      - Front
+      - Garden Shed Lower
+      - Garden Shed Upper
+      - Garden Upper
+      - Patio Outdoor
+    initial: All Kids Cams
+    icon: mdi:camera
+  cast_to_screen_dropdown:
+    name: To Screen
+    options:
+      - Bart Simpson TV
+      - Bedroom Display
+      - Bedroom TV
+      - Kitchen Display
+      - Lounge TV
+    initial: Bart Simpson TV
+    icon: mdi:cast
+  recycling_bin:
+    name: Recycling Bin
+    options:
+      - Recycling Bin
+      - Done
+    icon: mdi:recycle
+  waste_bin:
+    name: Refuse Bin
+    options:
+      - Refuse Bin
+      - Done
+    icon: mdi:delete
+  garden_waste_bin:
+    name: Garden Waste Bin
+    options:
+      - Garden Waste
+      - Done
+    icon: mdi:leaf
+  food_waste_bin:
+    name: Food Waste Bin
+    options:
+      - Food Waste
+      - Done
+    icon: mdi:food-apple
+  plinth_default_audio_effect:
+    name: Default Audio Preset
+    icon: mdi:music-note
+    initial: Gravcenter
+    options:
+      - Akemi
+      - Blurz
+      - DJ Light
+      - Freqmap
+      - Freqmatrix
+      - Freqpixels
+      - Freqwave
+      - GEQ
+      - Gravcenter
+      - Gravcentric
+      - Gravfreq
+      - Gravimeter
+      - Juggles
+      - Matripix
+      - Midnoise
+      - Noisefire
+      - Noisemeter
+      - Noisemove
+      - Pixels
+      - Pixelwave
+      - Plasmoid
+      - Puddlepeak
+      - Puddles
+      - Ripple Peak
+      - Rocktaves
+      - Swirl
+      - Waterfall
+      - Waverly
+  wall_units_default_audio_effect:
+    name: Default Audio Preset
+    icon: mdi:music-note
+    initial: Gravcenter
+    options:
+      - Akemi
+      - Blurz
+      - DJ Light
+      - Freqmap
+      - Freqmatrix
+      - Freqpixels
+      - Freqwave
+      - GEQ
+      - Gravcenter
+      - Gravcentric
+      - Gravfreq
+      - Gravimeter
+      - Juggles
+      - Matripix
+      - Midnoise
+      - Noisefire
+      - Noisemeter
+      - Noisemove
+      - Pixels
+      - Pixelwave
+      - Plasmoid
+      - Puddlepeak
+      - Puddles
+      - Ripple Peak
+      - Rocktaves
+      - Swirl
+      - Waterfall
+      - Waverly
+  utility_units_default_audio_effect:
+    name: Default Audio Preset
+    icon: mdi:music-note
+    initial: Gravcenter
+    options:
+      - Blurz
+      - DJ Light
+      - Freqmap
+      - Freqmatrix
+      - Freqpixels
+      - Freqwave
+      - Gravcenter
+      - Gravcentric
+      - Gravfreq
+      - Gravimeter
+      - Juggles
+      - Matripix
+      - Midnoise
+      - Noisefire
+      - Noisemeter
+      - Noisemove
+      - Pixels
+      - Pixelwave
+      - Plasmoid
+      - Puddlepeak
+      - Puddles
+      - Ripple Peak
+      - Rocktaves
+      - Waterfall
+  tts_voice_dropdown:
+    name: Voice
+    options:
+      - Ryan
+      - Thomas
+      - Oliver
+      - Elliot
+      - Ethan
+      - Sonia
+      - Libby
+      - Maisie
+    initial: Ryan
+    icon: mdi:account-voice
+  cast_to_media_player_dropdown:
+    name: To Media Device
+    options:
+      - Bart Simpson Room Speaker
+      - Bart Simpson TV
+      - Bathroom Speaker
+      - Bedroom Display
+      - Bedroom TV
+      - Downstairs Group
+      - Garden Audio
+      - Garden Speaker
+      - Home Group
+      - Lisa Simpson Room Speaker
+      - Kitchen Display
+      - Kitchen Speaker
+      - Lounge Speaker
+      - Lounge TV
+      - Upstairs Bedroom Speaker
+      - Upstairs Group
+      - Utility Speaker
+    initial: Lounge Speaker
+    icon: mdi:cast
+# Enables support for tracking state changes over time.
+recorder:
+  purge_keep_days: 10
+  exclude:
+    entities:
+      # Fast-changing host/network diagnostics that nothing graphs from the
+      # recorder (Grafana reads these from Mimir, not here). ~18% of the states
+      # table. CPU %, Mem %, disk, last boot and the ping *_average sensors stay.
+      - sensor.network_in_eth0
+      - sensor.network_out_eth0
+      - sensor.memory_free
+      - sensor.load_1m
+      - sensor.load_5m
+      - sensor.load_15m
+      - sensor.icotera_router_download_speed
+      - sensor.icotera_router_upload_speed
+      - sensor.swap_use_percent
+
+cloud:
+  google_actions:
+    filter:
+      exclude_domains:
+        - group
+        - script
+        - scene
+        - cover
+        - input_boolean
+        - fan
+        - media_player
+        - camera
+        - switch
+        - sensor
+        - binary_sensor
+        - input_select
+        - climate
+      include_entities:
+        - script.garden_upper_bedroom_display
+        - script.garden_upper_kitchen_display
+        - script.patio_outdoor_bedroom_display
+        - script.patio_outdoor_kitchen_display
+        - script.garden_shed_upper_bedroom_display
+        - script.garden_shed_upper_kitchen_display
+        - script.all_front_bedroom_display
+        - script.all_front_kitchen_display
+        - script.all_rear_bedroom_display
+        - script.all_rear_kitchen_display
+        - script.all_internal_bedroom_display
+        - script.all_internal_kitchen_display
+        - script.all_kids_bedroom_display
+        - script.all_kids_kitchen_display
+        - script.all_cameras_bedroom_display
+        - script.all_cameras_kitchen_display
+        - script.cycle_cameras_bedroom_display
+        - script.cycle_cameras_kitchen_display
+        - script.bart_simpson_room_bedroom_display
+        - script.bart_simpson_room_kitchen_display
+        - script.front_camera_bedroom_display
+        - script.front_camera_kitchen_display
+        - script.garden_upper_lounge
+        - script.garden_upper_kitchen
+        - script.patio_outdoor_lounge
+        - script.patio_outdoor_kitchen
+        - script.garden_shed_upper_lounge
+        - script.garden_shed_upper_kitchen
+        - script.all_front_lounge
+        - script.all_front_kitchen
+        - script.all_rear_lounge
+        - script.all_rear_kitchen
+        - script.all_internal_lounge
+        - script.all_internal_kitchen
+        - script.all_kids_lounge
+        - script.all_kids_kitchen
+        - script.all_cameras_lounge
+        - script.all_cameras_kitchen
+        - script.cycle_cameras_lounge
+        - script.cycle_cameras_kitchen
+        - script.intruder_alert
+        - script.tv_lamp_on
+        - script.cancel_alerts
+        - script.bart_simpson_room_lounge
+        - script.bart_simpson_room_kitchen
+        - script.front_camera_lounge
+        - script.front_camera_kitchen
+        - script.remove_ip_ban
+        - script.all_motion_automations_on
+        - script.all_motion_automations_off
+        - script.internal_motion_automations_on
+        - script.internal_motion_automations_off
+        # Lights
+        - light.bedroom_lamp
+        - light.master_bedroom_dimmer_switch_light_1
+        - light.lisa_simpson_dimmer_switch_light_1
+        # Kitchen plinths
+        - light.kitchen_island_plinth
+        - light.kitchen_tall_units_plinth
+        - light.kitchen_under_stair_units_plinth
+        - light.kitchen_sink_plinth
+        # Bedroom switches
+        - switch.marge_simpson_electric_blanket_socket
+        - switch.lisa_simpson_fairy_lights_socket_1
+        # Outbuildings
+        - switch.shed_light_socket_1
+        - switch.tree_house_light_socket
+        # Garden & Patio
+        - switch.garden_tree_and_path_switch_1
+        - switch.garden_tree_and_path_switch_2
+        - switch.patio_lights_socket_1
+        - switch.patio_switch_1
+        - switch.patio_switch_2
+        # Front
+        - switch.front_lights_switch_1
+        - switch.front_lights_switch_2
+        - switch.door_number_light_socket
+        - switch.christmas_lights_front_socket_1
+        - switch.xmas_lights_window_socket
+        # Party
+        - switch.disco_ball_socket_1
+        - switch.smoke_machine_socket_1
+        # Office
+        - switch.homer_simpson_laptop_wake
+        - switch.homer_simpson_laptop_wol
+        - switch.smart_plug_2_socket_1
+        - switch.smart_plug_3_socket_1
+        - switch.smart_plug_4_socket_1
+        - switch.smart_plug_5_socket_1
+        # Heating boost
+        - switch.heating_boost
+        # Home Assistant scripts
+        - switch.reboot_system
+        # Kitchen plinth presets
+        - switch.plinth_audio
+        - switch.plinth_warm
+        - switch.plinth_cool
+        # Kitchen wall units presets
+        - switch.wall_units_warm
+        - switch.wall_units_cool
+        # Kitchen lights - global on/off
+        - light.kitchen_plinths
+        - light.kitchen_wall_units
+        # Irrigation
+        - valve.wt_11w_zone_1
+        - valve.wt_11w_zone_2
+        - valve.wt_11w_zone_3
+    entity_config:
+      # Lights
+      light.bedroom_lamp:
+        name: Bedroom Lamp
+        room: Bedroom
+      light.master_bedroom_dimmer_switch_light_1:
+        name: Bedroom Dimmer
+        room: Bedroom
+      light.lisa_simpson_dimmer_switch_light_1:
+        name: Lisa Simpson Dimmer
+        room: Lisa Simpson Room
+      # Kitchen plinths
+      light.kitchen_island_plinth:
+        name: Island Plinth
+        room: Kitchen
+      light.kitchen_tall_units_plinth:
+        name: Tall Units Plinth
+        room: Kitchen
+      light.kitchen_under_stair_units_plinth:
+        name: Under Stair Plinth
+        room: Kitchen
+      light.kitchen_sink_plinth:
+        name: Sink Plinth
+        room: Kitchen
+      switch.plinth_audio:
+        name: Plinth Audio
+        room: Kitchen
+      switch.plinth_warm:
+        name: Plinth Warm
+        room: Kitchen
+      switch.plinth_cool:
+        name: Plinth Cool
+        room: Kitchen
+      switch.wall_units_warm:
+        name: Wall Units Warm
+        room: Kitchen
+      switch.wall_units_cool:
+        name: Wall Units Cool
+        room: Kitchen
+      light.kitchen_plinths:
+        name: Kitchen Plinths
+        room: Kitchen
+      light.kitchen_wall_units:
+        name: Kitchen Wall Units
+        room: Kitchen
+      valve.wt_11w_zone_1:
+        name: Irrigation Zone 1
+        room: Garden
+      valve.wt_11w_zone_2:
+        name: Irrigation Zone 2
+        room: Garden
+      valve.wt_11w_zone_3:
+        name: Irrigation Zone 3
+        room: Garden
+      # Bedroom switches
+      switch.marge_simpson_electric_blanket_socket:
+        name: Electric Blanket
+        room: Bedroom
+      switch.lisa_simpson_fairy_lights_socket_1:
+        name: Lisa Simpson Fairy Lights
+        room: Lisa Simpson Room
+      # Outbuildings
+      switch.shed_light_socket_1:
+        name: Shed Light
+        room: Garden
+      switch.tree_house_light_socket:
+        name: Treehouse Light
+        room: Garden
+      # Garden & Patio
+      switch.garden_tree_and_path_switch_1:
+        name: Garden Tree Light
+        room: Garden
+      switch.garden_tree_and_path_switch_2:
+        name: Garden Path Light
+        room: Garden
+      switch.patio_lights_socket_1:
+        name: Patio Fairy Lights
+        room: Garden
+      switch.patio_switch_1:
+        name: Patio Spotlights
+        room: Garden
+      switch.patio_switch_2:
+        name: Patio Wall Light
+        room: Garden
+      # Front
+      switch.front_lights_switch_1:
+        name: Front Post Light
+        room: Front
+      switch.front_lights_switch_2:
+        name: Front Wall Light
+        room: Front
+      switch.door_number_light_socket:
+        name: Door Number Light
+        room: Front
+      switch.christmas_lights_front_socket_1:
+        name: Christmas Lights Front
+        room: Christmas
+      switch.xmas_lights_window_socket:
+        name: Xmas Front Window
+        room: Christmas
+      # Party
+      switch.disco_ball_socket_1:
+        name: Disco Ball
+        room: Party
+      switch.smoke_machine_socket_1:
+        name: Smoke Machine
+        room: Party
+      # Office
+      switch.homer_simpson_laptop_wake:
+        name: Homer Simpson Laptop
+        room: Office
+      switch.homer_simpson_laptop_wol:
+        name: Homer Simpson Laptop WOL
+        room: Office
+      switch.smart_plug_2_socket_1:
+        name: Work Laptop
+        room: Office
+      switch.smart_plug_3_socket_1:
+        name: Brother Printer
+        room: Office
+      switch.smart_plug_4_socket_1:
+        name: 3D Printer
+        room: Office
+      switch.smart_plug_5_socket_1:
+        name: Servers
+        room: Office
+      switch.reboot_system:
+        name: Reboot Home Assistant
+        room: Home Assistant
+      switch.heating_boost:
+        name: Heating Boost
+        aliases:
+          - Turn on heating boost
+          - Boost heating
+          - Heating boost on
+        room: Lounge
+      # Home Assistant scripts
+      script.remove_ip_ban:
+        name: Remove IP Bans
+        aliases:
+          - Clear IP Ban
+          - Clear Ban
+          - Purge IP Ban
+          - Reset IP Ban
+          - Backdoor
+        room: Home Assistant
+
+device_tracker 4:
+  - platform: google_maps
+    username: redacted@example.com
+    max_gps_accuracy: 200
+
+person:
+  - name: Homer Simpson
+    id: homer_simpson12345
+    device_trackers:
+      - device_tracker.google_maps_104199578859638696260
+      - device_tracker.pixel_10_pro
+      - device_tracker.pixel_10_pro_2  # UniFi Wi-Fi (MAC 2a:74:97:c0:57:91)
+  - name: Marge Simpson
+    id: marge_simpson12345
+    device_trackers:
+      - device_tracker.google_maps_146646711938998732988
+      - device_tracker.pixel_6_2
+      - device_tracker.unifi_5a_94_45_29_d8_f9_default  # Pixel 9 Pro Wi-Fi
+  - name: Lisa Simpson
+    id: lisa_simpson12345
+    picture: /local/lisa_simpson.jpg?v=2
+    device_trackers:
+      - device_tracker.pixel_6_pro_lisa_simpson
+      - device_tracker.pixel_6_pro_6  # UniFi Wi-Fi (MAC b2:bf:28:eb:15:c5)
+  - name: Bart Simpson
+    id: bart_simpson12345
+    picture: /local/bart_simpson.jpg?v=2
+    device_trackers:
+      - device_tracker.google_maps_146646711938998732988
+      - device_tracker.marge_simpson_pixel_6
+      - device_tracker.unifi_5a_94_45_29_d8_f9_default  # Marge Simpson's Pixel 9 Pro Wi-Fi
+  - name: Dog
+    id: dog12345
+    device_trackers:
+      - device_tracker.eleqqixh_dog
+
+zone:
+  - name: Home
+    latitude: 39.7588
+    longitude: -89.6213
+    radius: 130
+    icon: mdi:home
+
+  - name: Work
+    latitude: 39.7973
+    longitude: -89.6797
+    radius: 110
+    icon: mdi:account-hard-hat
+
+  - name: Mona's House
+    latitude: 39.7602
+    longitude: -89.6372
+    radius: 40
+    icon: mdi:human-male-female
+
+  - name: Patty & Selma's Apartment
+    latitude: 39.7989
+    longitude: -89.6422
+    radius: 50
+    icon: mdi:human-female
+
+  - name: Springfield Community Pool
+    latitude: 39.7885
+    longitude: -89.6710
+    radius: 60
+    icon: mdi:swim
+
+  - name: Springfield Park
+    latitude: 39.7736
+    longitude: -89.6473
+    radius: 270
+    icon: mdi:tree
+
+  - name: Kwik-E-Mart
+    latitude: 39.7951
+    longitude: -89.6719
+    radius: 70
+    icon: mdi:cart-outline
+
+  - name: Kwik-E-Mart
+    latitude: 39.8075
+    longitude: -89.6569
+    radius: 70
+    icon: mdi:cart-outline
+
+  - name: Kwik-E-Mart
+    longitude: -89.6570
+    latitude: 39.7994
+    radius: 50
+    icon: mdi:cart-outline
+
+  - name: Noiseland Video Arcade
+    latitude: 39.7725
+    longitude: -89.6587
+    radius: 50
+    icon: mdi:basketball
+
+  - name: Springfield Ice Arena
+    latitude: 39.7720
+    longitude: -89.6766
+    radius: 50
+    icon: mdi:skate
+
+  - name: Springfield Elementary
+    latitude: 39.7824
+    longitude: -89.6216
+    radius: 140
+    icon: mdi:school
+
+  - name: School
+    latitude: 39.7814
+    longitude: -89.6213
+    radius: 140
+    icon: mdi:school
+
+  - name: Kwik-E-Mart
+    latitude: 39.7535
+    longitude: -89.6506
+    radius: 20
+    icon: mdi:cart
+
+  - name: Kwik-E-Mart
+    latitude: 39.7564
+    longitude: -89.6220
+    radius: 20
+    icon: mdi:basket
+
+  - name: Moe's Tavern
+    latitude: 39.7541
+    longitude: -89.6290
+    radius: 30
+    icon: mdi:beer
+
+  - name: Springfield Gymnastics
+    latitude: 39.7884
+    longitude: -89.6593
+    radius: 50
+    icon: mdi:account-star-outline
+
+  - name: Flaming Moe's
+    latitude: 39.7671
+    longitude: -89.6682
+    radius: 50
+    icon: mdi:panda
+
+  - name: Fillmore Street
+    latitude: 39.7767
+    longitude: -89.6433
+    radius: 30
+    icon: mdi:doctor
+
+  - name: Dr. Hibbert's Office
+    latitude: 39.7576
+    longitude: -89.6686
+    radius: 30
+    icon: mdi:doctor
+
+  - name: Comic Book Guy's House
+    latitude: 39.8104
+    longitude: -89.6414
+    radius: 80
+    icon: mdi:account-cowboy-hat
+
+  - name: Agnes Skinner's House
+    latitude: 39.8050
+    longitude: -89.6480
+    radius: 30
+    icon: mdi:face-woman
+
+  - name: Springfield Mall
+    latitude: 39.7769
+    longitude: -89.6459
+    radius: 220
+    icon: mdi:cart-plus
+
+  - name: Cletus' Farm
+    latitude: 39.7941
+    longitude: -89.6349
+    radius: 30
+    icon: mdi:beer
+
+  - name: Springfield General Hospital
+    latitude: 39.7683
+    longitude: -89.6213
+    radius: 50
+    icon: mdi:hospital-box-outline
+
+  - name: Springfield Parkway
+    latitude: 39.7674
+    longitude: -89.6644
+    radius: 60
+    icon: mdi:hospital-box-outline
+
+  - name: Lenny's House
+    latitude: 39.7680
+    longitude: -89.6251
+    radius: 60
+    icon: mdi:emoticon-devil-outline
+
+  - name: Carl's House
+    latitude: 39.7632
+    longitude: -89.6318
+    radius: 80
+    icon: mdi:emoticon-devil-outline
+
+  - name: Mindy's House
+    latitude: 39.7973
+    longitude: -89.6547
+    radius: 80
+    icon: mdi:emoticon-devil-outline
+
+  - name: Helen Lovejoy's House
+    latitude: 39.7827
+    longitude: -89.6438
+    radius: 80
+    icon: mdi:emoticon-devil-outline
+
+  - name: Luann Van Houten's House
+    latitude: 39.7842
+    longitude: -89.6584
+    radius: 80
+    icon: mdi:emoticon-devil-outline
+
+  - name: Edna Krabappel's House
+    latitude: 39.7690
+    longitude: -89.6754
+    radius: 150
+    icon: mdi:emoticon-devil-outline
+
+  - name: Kwik-E-Mart
+    latitude: 39.8112
+    longitude: -89.6695
+    radius: 400
+    icon: mdi:cart-outline
+
+  - name: Kwik-E-Mart
+    latitude: 39.7824
+    longitude: -89.6419
+    radius: 100
+    icon: mdi:cart-outline
+
+  - name: Duff Gardens
+    latitude: 39.7997
+    longitude: -89.6305
+    radius: 200
+    icon: mdi:slot-machine
+
+  - name: Springfield Truck Stop
+    latitude: 39.7808
+    longitude: -89.6582
+    radius: 100
+    icon: mdi:truck
+
+  - name: Costco
+    latitude: 39.7591
+    longitude: -89.6410
+    radius: 150
+    icon: mdi:warehouse
+
+  - name: Lake Springfield
+    latitude: 39.7837
+    longitude: -89.6697
+    radius: 400
+    icon: mdi:waves
+
+  - name: Shelbyville Park
+    latitude: 39.7520
+    longitude: -89.6466
+    radius: 150
+    icon: mdi:tree
+
+mqtt:
+  binary_sensor:
+    - name: "Garden Shed Upper Motion"
+      state_topic: "blueiris/sensor/gardenshedupper/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: garden_shed_upper_motion
+
+    - name: "Garden Upper Motion"
+      state_topic: "blueiris/sensor/gardenupper/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: garden_upper_motion
+
+    - name: "Bart Simpson Room Motion"
+      state_topic: "blueiris/sensor/lisa_simpsonbackroom/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: bart_simpson_room_motion
+
+    - name: "Garden Shed Lower Motion"
+      state_topic: "blueiris/sensor/gardenshedlower/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: garden_shed_lower_motion
+
+    - name: "Front Motion"
+      state_topic: "blueiris/sensor/front/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: front_motion
+
+    - name: "Patio Outdoor Motion"
+      state_topic: "blueiris/sensor/patiooutdoor/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: patio_outdoor_motion
+
+    - name: "Dogs Motion"
+      state_topic: "blueiris/sensor/dogs/state"
+      payload_on: "ON"
+      payload_off: "OFF"
+      device_class: motion
+      unique_id: dogs_motion
+
+  sensor:
+    - name: "Electricity Power"
+      unique_id: electricity_power
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ (value_json['electricitymeter']['power']['value'] * 1000) | round(0) | int }}"
+      unit_of_measurement: "W"
+      device_class: power
+      state_class: measurement
+
+    - name: "Electricity Today"
+      unique_id: electricity_today
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['day'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Electricity Week"
+      unique_id: electricity_week
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['week'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Electricity Month"
+      unique_id: electricity_month
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['month'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Electricity Cumulative"
+      unique_id: electricity_cumulative
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['cumulative'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Electricity Unit Rate"
+      unique_id: electricity_unit_rate
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['unitrate'] }}"
+      unit_of_measurement: "£/kWh"
+      icon: mdi:currency-gbp
+
+    - name: "Electricity Standing Charge"
+      unique_id: electricity_standing_charge
+      state_topic: "glow/34865D11976C/SENSOR/electricitymeter"
+      value_template: "{{ value_json['electricitymeter']['energy']['import']['price']['standingcharge'] }}"
+      unit_of_measurement: "£/day"
+      icon: mdi:currency-gbp
+
+    - name: "Gas Today"
+      unique_id: gas_today
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['day'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Gas Week"
+      unique_id: gas_week
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['week'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Gas Month"
+      unique_id: gas_month
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['month'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Gas Cumulative"
+      unique_id: gas_cumulative
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['cumulative'] }}"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+
+    - name: "Gas Unit Rate"
+      unique_id: gas_unit_rate
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['price']['unitrate'] }}"
+      unit_of_measurement: "£/kWh"
+      icon: mdi:currency-gbp
+
+    - name: "Gas Standing Charge"
+      unique_id: gas_standing_charge
+      state_topic: "glow/34865D11976C/SENSOR/gasmeter"
+      value_template: "{{ value_json['gasmeter']['energy']['import']['price']['standingcharge'] }}"
+      unit_of_measurement: "£/day"
+      icon: mdi:currency-gbp
+
+sensor 76:
+  - platform: filter
+    name: Filtered Daily Power Usage
+    entity_id: sensor.daily
+    filters:
+      - filter: outlier
+        window_size: 4
+        radius: 0.5
+
+# sensor 26 (command_line) moved to switches.yaml — old platform: command_line is deprecated
+
+
+shell_command:
+  # BlueIris restarts are now handled by a scheduled task on the BlueIris VM itself.
+  remove_ip_ban: rm -f /config/ip_bans.yaml
+  home_assistant_service_started: /config/scripts/home_assistant_service_started.sh
+
+nest:
+  client_id: "REDACTED}#"
+  client_secret: "REDACTED}#"
+  project_id: "#{NEST_PROJECT_ID}#"
+  subscriber_id: "#{NEST_SUBSCRIBER_ID}#"
+
+sensor 38:
+  - platform: google_geocode
+    name: Homer Simpson
+    origin: device_tracker.google_maps_104199578859638696260
+    options: street_number, street, city
+    display_zone: hide
+    gravatar: redacted@example.com
+    api_key: REDACTED}#
+
+sensor 39:
+  - platform: google_geocode
+    name: Marge Simpson
+    origin: device_tracker.google_maps_146646711938998732988
+    options: street_number, street, city
+    display_zone: hide
+    gravatar: redacted@example.com
+    api_key: REDACTED}#
+
+sensor 40:
+  - platform: google_geocode
+    name: Dog
+    origin: device_tracker.eleqqixh_dog
+    options: street_number, street, city
+    display_zone: hide
+    gravatar: redacted@example.com
+    api_key: REDACTED}#
+
+sensor 79:
+  - platform: google_geocode
+    name: Lisa Simpson
+    origin: device_tracker.pixel_6_pro_lisa_simpson
+    options: street_number, street, city
+    display_zone: hide
+    gravatar: redacted@example.com
+    api_key: REDACTED}#
+
+# Trailing 12h peak rain intensity, so irrigation can tell "it rained
+# heavily this afternoon" apart from "it's dry right now"
+sensor 80:
+  - platform: statistics
+    entity_id: sensor.home_homer_simpson_com_rain_intensity
+    name: "Rain Intensity 12h Max"
+    unique_id: rain_intensity_12h_max
+    state_characteristic: value_max
+    max_age:
+      hours: 12
+    sampling_size: 200
+
+sensor 41:
+  - platform: rest
+    name: ha_latest_version
+    unique_id: ha_latest_version
+    resource: "https://version.home-assistant.io/stable.json"
+    value_template: "{{ value_json.homeassistant.default }}"
+    scan_interval: 3600
+
+# Firing alerts from the Mimir ruler (Watchdog excluded). Goes unavailable if
+# Mimir is unreachable - the monitoring watchdog covers that case.
+sensor 81:
+  - platform: rest
+    name: active_alerts
+    unique_id: active_alerts
+    resource: "http://127.0.0.1:9009/prometheus/api/v1/alerts"
+    scan_interval: 60
+    value_template: >-
+      {% set ns = namespace(n=0) %}
+      {% for a in value_json.data.alerts %}
+        {% if a.state == 'firing' and a.labels.alertname != 'Watchdog' and not (a.labels.get('tier') == 'transient' and a.labels.alertname in ['TargetDown', 'WindowsHostRebooted']) %}
+          {% set ns.n = ns.n + 1 %}
+        {% endif %}
+      {% endfor %}
+      {{ ns.n }}
+    json_attributes_path: "$.data"
+    json_attributes:
+      - alerts
+
+sensor 91:
+  - platform: rest
+    name: github_actions_latest_run
+    unique_id: github_actions_latest_run
+    resource: "https://api.github.com/repos/gavinwoolley/homeassistant/actions/workflows/demo-image.yml/runs?per_page=1"
+    value_template: "{{ value_json.workflow_runs[0].status }}"
+    scan_interval: 120
+    json_attributes_path: "$.workflow_runs[0]"
+    json_attributes:
+      - conclusion
+      - run_number
+      - html_url
+      - created_at
+      - head_commit
+  - platform: rest
+    name: demo_image_published_version
+    unique_id: demo_image_published_version
+    resource: "https://raw.githubusercontent.com/gavinwoolley/homeassistant/main/.devcontainer/devcontainer.json"
+    value_template: "{{ value_json.image.split(':')[-1] }}"
+    scan_interval: 300
+  - platform: rest
+    name: demo_grafana_image_published_version
+    unique_id: demo_grafana_image_published_version
+    resource: "https://raw.githubusercontent.com/gavinwoolley/homeassistant/main/.devcontainer/grafana/docker-compose.codespaces.yml"
+    value_template: >-
+      {% set m = value | regex_findall('homeassistant-demo-grafana:(\S+)') %}
+      {{ m[0] if m else 'unknown' }}
+    scan_interval: 300
+  - platform: rest
+    name: azure_devops_pending_approvals
+    unique_id: azure_devops_pending_approvals
+    resource: "https://dev.azure.com/example/Home/_apis/pipelines/approvals?state=pending&api-version=7.1"
+    authentication: basic
+    # NOT an empty string - confirmed live (2026-09-25) that HA's own
+    # rest/__init__.py only attaches auth at all when `if username and
+    # password:` - an empty string username is falsy in Python, so this
+    # sensor was silently sent with NO Authorization header whatsoever
+    # despite a valid, correctly-scoped PAT sitting right there in
+    # secrets.yaml. Azure DevOps responds to the resulting unauthenticated
+    # request with a 203 + HTML sign-in page rather than a 401, which HA's
+    # REST integration can't parse as JSON - exactly the failure mode this
+    # branch's own final review flagged as a risk before this was ever
+    # live-tested, now confirmed as the actual live bug. Azure DevOps PAT
+    # auth ignores the username value entirely (only the password/PAT
+    # matters), so any non-empty placeholder works - "pat" here is
+    # arbitrary, not a real value.
+    username: "pat"
+    password: REDACTED azure_devops_pat
+    value_template: "{{ value_json.count }}"
+    scan_interval: 120
+    json_attributes_path: "$"
+    json_attributes:
+      - value
+
+# Derivative sensors: estimate current AC power (kW) from hourly energy changes
+sensor 78:
+  - platform: derivative
+    source: sensor.master_bedroom_energy
+    name: "Master Bedroom AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+  - platform: derivative
+    source: sensor.lisa_simpson_room_energy
+    name: "Lisa Simpson Room AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+  - platform: derivative
+    source: sensor.kitchen_energy_consumed
+    name: "Kitchen AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+  - platform: derivative
+    source: sensor.bart_simpson_room_energy
+    name: "Bart Simpson Room AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+  - platform: derivative
+    source: sensor.upstairs_energy_consumed
+    name: "Upstairs AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+  - platform: derivative
+    source: sensor.office_energy_consumed
+    name: "Office AC Power"
+    unit_time: h
+    unit: kW
+    time_window: "01:00:00"
+
+# Irrigation zone run time today. The prometheus exporter has no valve state
+# metric, so this gives the Grafana Irrigation dashboard a real "how long did
+# each zone water" number (history_stats type:time reports hours).
+sensor 82:
+  - platform: history_stats
+    name: "Irrigation Zone 1 Watering Today"
+    unique_id: irrigation_zone_1_watering_today
+    entity_id: valve.wt_11w_zone_1
+    state:
+      - "open"
+      - "opening"
+    type: time
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
+  - platform: history_stats
+    name: "Irrigation Zone 2 Watering Today"
+    unique_id: irrigation_zone_2_watering_today
+    entity_id: valve.wt_11w_zone_2
+    state:
+      - "open"
+      - "opening"
+    type: time
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
+  - platform: history_stats
+    name: "Irrigation Zone 3 Watering Today"
+    unique_id: irrigation_zone_3_watering_today
+    entity_id: valve.wt_11w_zone_3
+    state:
+      - "open"
+      - "opening"
+    type: time
+    start: "{{ today_at() }}"
+    end: "{{ now() }}"
+
+# Daily energy resets at midnight — utility_meter tracks kWh used today
+utility_meter:
+  master_bedroom_ac_daily:
+    source: sensor.master_bedroom_energy
+    cycle: daily
+    name: "Master Bedroom AC Daily"
+    unique_id: master_bedroom_ac_daily_meter
+  lisa_simpson_room_ac_daily:
+    source: sensor.lisa_simpson_room_energy
+    cycle: daily
+    name: "Lisa Simpson Room AC Daily"
+    unique_id: lisa_simpson_room_ac_daily_meter
+  kitchen_ac_daily:
+    source: sensor.kitchen_energy_consumed
+    cycle: daily
+    name: "Kitchen AC Daily"
+    unique_id: kitchen_ac_daily_meter
+  bart_simpson_room_ac_daily:
+    source: sensor.bart_simpson_room_energy
+    cycle: daily
+    name: "Bart Simpson Room AC Daily"
+    unique_id: bart_simpson_room_ac_daily_meter
+  upstairs_ac_daily:
+    source: sensor.upstairs_energy_consumed
+    cycle: daily
+    name: "Upstairs AC Daily"
+    unique_id: upstairs_ac_daily_meter
+  office_ac_daily:
+    source: sensor.office_energy_consumed
+    cycle: daily
+    name: "Office AC Daily"
+    unique_id: office_ac_daily_meter
+  homer_simpson_laptop_daily:
+    source: sensor.smart_plug_6_total_energy
+    cycle: daily
+    name: "Homer Simpson Laptop Daily"
+    unique_id: homer_simpson_laptop_daily_meter
+  work_laptop_daily:
+    source: sensor.smart_plug_2_total_energy
+    cycle: daily
+    name: "Work Laptop Daily"
+    unique_id: work_laptop_daily_meter
+  brother_printer_daily:
+    source: sensor.smart_plug_3_total_energy
+    cycle: daily
+    name: "Brother Printer Daily"
+    unique_id: brother_printer_daily_meter
+  printer_3d_daily:
+    source: sensor.smart_plug_4_total_energy
+    cycle: daily
+    name: "3D Printer Daily"
+    unique_id: printer_3d_daily_meter
+  servers_daily:
+    source: sensor.smart_plug_5_total_energy
+    cycle: daily
+    name: "Servers Daily"
+    unique_id: servers_daily_meter
+
+  # Weekly meters — reset every Monday
+  master_bedroom_ac_weekly:
+    source: sensor.master_bedroom_energy
+    cycle: weekly
+    name: "Master Bedroom AC Weekly"
+    unique_id: master_bedroom_ac_weekly_meter
+  lisa_simpson_room_ac_weekly:
+    source: sensor.lisa_simpson_room_energy
+    cycle: weekly
+    name: "Lisa Simpson Room AC Weekly"
+    unique_id: lisa_simpson_room_ac_weekly_meter
+  kitchen_ac_weekly:
+    source: sensor.kitchen_energy_consumed
+    cycle: weekly
+    name: "Kitchen AC Weekly"
+    unique_id: kitchen_ac_weekly_meter
+  bart_simpson_room_ac_weekly:
+    source: sensor.bart_simpson_room_energy
+    cycle: weekly
+    name: "Bart Simpson Room AC Weekly"
+    unique_id: bart_simpson_room_ac_weekly_meter
+  upstairs_ac_weekly:
+    source: sensor.upstairs_energy_consumed
+    cycle: weekly
+    name: "Upstairs AC Weekly"
+    unique_id: upstairs_ac_weekly_meter
+  office_ac_weekly:
+    source: sensor.office_energy_consumed
+    cycle: weekly
+    name: "Office AC Weekly"
+    unique_id: office_ac_weekly_meter
+  homer_simpson_laptop_weekly:
+    source: sensor.smart_plug_6_total_energy
+    cycle: weekly
+    name: "Homer Simpson Laptop Weekly"
+    unique_id: homer_simpson_laptop_weekly_meter
+  work_laptop_weekly:
+    source: sensor.smart_plug_2_total_energy
+    cycle: weekly
+    name: "Work Laptop Weekly"
+    unique_id: work_laptop_weekly_meter
+  brother_printer_weekly:
+    source: sensor.smart_plug_3_total_energy
+    cycle: weekly
+    name: "Brother Printer Weekly"
+    unique_id: brother_printer_weekly_meter
+  printer_3d_weekly:
+    source: sensor.smart_plug_4_total_energy
+    cycle: weekly
+    name: "3D Printer Weekly"
+    unique_id: printer_3d_weekly_meter
+  servers_weekly:
+    source: sensor.smart_plug_5_total_energy
+    cycle: weekly
+    name: "Servers Weekly"
+    unique_id: servers_weekly_meter
+
+  # Monthly meters — reset on the 1st of each month
+  master_bedroom_ac_monthly:
+    source: sensor.master_bedroom_energy
+    cycle: monthly
+    name: "Master Bedroom AC Monthly"
+    unique_id: master_bedroom_ac_monthly_meter
+  lisa_simpson_room_ac_monthly:
+    source: sensor.lisa_simpson_room_energy
+    cycle: monthly
+    name: "Lisa Simpson Room AC Monthly"
+    unique_id: lisa_simpson_room_ac_monthly_meter
+  kitchen_ac_monthly:
+    source: sensor.kitchen_energy_consumed
+    cycle: monthly
+    name: "Kitchen AC Monthly"
+    unique_id: kitchen_ac_monthly_meter
+  bart_simpson_room_ac_monthly:
+    source: sensor.bart_simpson_room_energy
+    cycle: monthly
+    name: "Bart Simpson Room AC Monthly"
+    unique_id: bart_simpson_room_ac_monthly_meter
+  upstairs_ac_monthly:
+    source: sensor.upstairs_energy_consumed
+    cycle: monthly
+    name: "Upstairs AC Monthly"
+    unique_id: upstairs_ac_monthly_meter
+  office_ac_monthly:
+    source: sensor.office_energy_consumed
+    cycle: monthly
+    name: "Office AC Monthly"
+    unique_id: office_ac_monthly_meter
+  homer_simpson_laptop_monthly:
+    source: sensor.smart_plug_6_total_energy
+    cycle: monthly
+    name: "Homer Simpson Laptop Monthly"
+    unique_id: homer_simpson_laptop_monthly_meter
+  work_laptop_monthly:
+    source: sensor.smart_plug_2_total_energy
+    cycle: monthly
+    name: "Work Laptop Monthly"
+    unique_id: work_laptop_monthly_meter
+  brother_printer_monthly:
+    source: sensor.smart_plug_3_total_energy
+    cycle: monthly
+    name: "Brother Printer Monthly"
+    unique_id: brother_printer_monthly_meter
+  printer_3d_monthly:
+    source: sensor.smart_plug_4_total_energy
+    cycle: monthly
+    name: "3D Printer Monthly"
+    unique_id: printer_3d_monthly_meter
+  servers_monthly:
+    source: sensor.smart_plug_5_total_energy
+    cycle: monthly
+    name: "Servers Monthly"
+    unique_id: servers_monthly_meter
+
+  # Yearly meters — reset on January 1st
+  master_bedroom_ac_yearly:
+    source: sensor.master_bedroom_energy
+    cycle: yearly
+    name: "Master Bedroom AC Yearly"
+    unique_id: master_bedroom_ac_yearly_meter
+  lisa_simpson_room_ac_yearly:
+    source: sensor.lisa_simpson_room_energy
+    cycle: yearly
+    name: "Lisa Simpson Room AC Yearly"
+    unique_id: lisa_simpson_room_ac_yearly_meter
+  kitchen_ac_yearly:
+    source: sensor.kitchen_energy_consumed
+    cycle: yearly
+    name: "Kitchen AC Yearly"
+    unique_id: kitchen_ac_yearly_meter
+  bart_simpson_room_ac_yearly:
+    source: sensor.bart_simpson_room_energy
+    cycle: yearly
+    name: "Bart Simpson Room AC Yearly"
+    unique_id: bart_simpson_room_ac_yearly_meter
+  upstairs_ac_yearly:
+    source: sensor.upstairs_energy_consumed
+    cycle: yearly
+    name: "Upstairs AC Yearly"
+    unique_id: upstairs_ac_yearly_meter
+  office_ac_yearly:
+    source: sensor.office_energy_consumed
+    cycle: yearly
+    name: "Office AC Yearly"
+    unique_id: office_ac_yearly_meter
+  homer_simpson_laptop_yearly:
+    source: sensor.smart_plug_6_total_energy
+    cycle: yearly
+    name: "Homer Simpson Laptop Yearly"
+    unique_id: homer_simpson_laptop_yearly_meter
+  work_laptop_yearly:
+    source: sensor.smart_plug_2_total_energy
+    cycle: yearly
+    name: "Work Laptop Yearly"
+    unique_id: work_laptop_yearly_meter
+  brother_printer_yearly:
+    source: sensor.smart_plug_3_total_energy
+    cycle: yearly
+    name: "Brother Printer Yearly"
+    unique_id: brother_printer_yearly_meter
+  printer_3d_yearly:
+    source: sensor.smart_plug_4_total_energy
+    cycle: yearly
+    name: "3D Printer Yearly"
+    unique_id: printer_3d_yearly_meter
+  servers_yearly:
+    source: sensor.smart_plug_5_total_energy
+    cycle: yearly
+    name: "Servers Yearly"
+    unique_id: servers_yearly_meter
