@@ -1,0 +1,201 @@
+name: $(Major).$(Minor).$(Patch)
+
+trigger: none
+
+schedules:
+- cron: "0 8 * * *"
+  displayName: Daily Renovate run
+  branches:
+    include:
+    - master
+  always: true
+
+pool:
+  name: Local Ubuntu
+
+variables:
+- group: renovate-secrets
+- name: Major
+  value: 2
+- name: Minor
+  value: 0
+- name: Patch
+  value: $[counter(format('{0}.{1}', variables['Major'], variables['Minor']), 0)]
+
+stages:
+- stage: Renovate
+  displayName: Run Renovate
+  jobs:
+  - job: RenovateJob
+    displayName: Renovate and Notify
+    steps:
+      - bash: |
+          docker run --rm \
+            -e RENOVATE_PLATFORM \
+            -e RENOVATE_ENDPOINT \
+            -e RENOVATE_TOKEN \
+            -e RENOVATE_GIT_AUTHOR \
+            -e LOG_LEVEL \
+            -e RENOVATE_REPOSITORIES \
+            -e RENOVATE_GITHUB_COM_TOKEN \
+            -e RENOVATE_HOST_RULES \
+            renovate/renovate:44.46.6
+        displayName: 'Run Renovate'
+        env:
+          RENOVATE_PLATFORM: azure
+          RENOVATE_ENDPOINT: $(System.CollectionUri)
+          RENOVATE_TOKEN: $(System.AccessToken)
+          RENOVATE_GIT_AUTHOR: "Renovate Bot <renovate-bot@homer_simpson.com>"
+          LOG_LEVEL: info
+          RENOVATE_REPOSITORIES: $(System.TeamProject)/$(Build.Repository.Name)
+          RENOVATE_HOST_RULES: '[{"hostType":"docker","matchHost":"docker.io","username":"$(dockerhub_username)","password":"REDACTED)"}]'
+          RENOVATE_GITHUB_COM_TOKEN: $(RENOVATE_GITHUB_COM_TOKEN)
+
+      - bash: |
+          echo "Fetching active Renovate PRs..."
+
+          PR_DATA=$(curl -s -u ":$(System.AccessToken)" \
+            "$(System.CollectionUri)$(System.TeamProject)/_apis/git/repositories/$(Build.Repository.Name)/pullrequests?searchCriteria.status=active&api-version=7.0")
+
+          echo "$PR_DATA" | jq -c '[.value[] | select(.sourceRefName | startswith("refs/heads/renovate/"))]' \
+            > $(Agent.TempDirectory)/renovate_prs_raw.json
+
+          PR_COUNT=$(jq 'length' $(Agent.TempDirectory)/renovate_prs_raw.json)
+          echo "Found $PR_COUNT active Renovate PR(s)."
+        displayName: 'Get Active Renovate PRs'
+
+      - bash: |
+          # Build a finalized summary (id, title, link, breaking-changes excerpt) per PR,
+          # written both as a working file for the notify step and as a live status file
+          # HA can read for the Build and Release dashboard.
+          : > $(Agent.TempDirectory)/renovate_summary.jsonl
+
+          jq -c '.[]' $(Agent.TempDirectory)/renovate_prs_raw.json | while IFS= read -r ROW; do
+            PR_ID=$(echo "$ROW" | jq -r '.pullRequestId')
+            PR_TITLE=$(echo "$ROW" | jq -r '.title' | sed 's/^Update //')
+            PR_DESC=$(echo "$ROW" | jq -r '.description // ""')
+            PR_LINK="$(System.CollectionUri)$(System.TeamProject)/_git/$(Build.Repository.Name)/pullrequest/$PR_ID"
+
+            SOURCE_URL=$(printf '%s\n' "$PR_DESC" | grep -oE 'https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+' | head -1)
+            BREAKING=$(printf '%s\n' "$PR_DESC" | grep -iE "breaking" -A 5 | sed -n '1,12p')
+
+            if [ -n "$BREAKING" ]; then
+              : # use the excerpt Renovate flagged as-is
+            elif printf '%s' "$PR_DESC" | grep -qi "truncated due to platform limits"; then
+              BREAKING="Renovate's changelog was too long for Azure DevOps and got truncated here, so breaking changes may not be visible in this PR. Check the upstream changelog before merging."
+            else
+              BREAKING="No breaking changes flagged in the available changelog. See the PR for full details."
+            fi
+
+            if [ -n "$SOURCE_URL" ]; then
+              BREAKING="$BREAKING"$'\n\n'"[Full changelog]($SOURCE_URL)"
+            fi
+
+            jq -cn --arg id "$PR_ID" --arg title "$PR_TITLE" --arg link "$PR_LINK" --arg breaking "$BREAKING" \
+              '{id: $id, title: $title, link: $link, breaking: $breaking}' \
+              >> $(Agent.TempDirectory)/renovate_summary.jsonl
+          done
+
+          jq -sc '{count: length, prs: .}' $(Agent.TempDirectory)/renovate_summary.jsonl \
+            | sudo tee /home/homeassistant/.homeassistant/docker-home-assistant-config/renovate_prs.json > /dev/null
+
+          echo "Wrote $(jq '.count' /home/homeassistant/.homeassistant/docker-home-assistant-config/renovate_prs.json) PR(s) to renovate_prs.json for the Build and Release dashboard."
+        displayName: 'Build PR Summary and Write HA Status File'
+
+      - bash: |
+          if [ ! -s $(Agent.TempDirectory)/renovate_summary.jsonl ]; then
+            echo "No PRs to notify about."
+            exit 0
+          fi
+
+          post_ha() {
+            # $1 = endpoint (service name), $2 = JSON body
+            local RETRIES=3
+            local SENT=false
+            for ((i=1; i<=RETRIES; i++)); do
+              RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+                "https://home.example.com:8123/api/services/$1" \
+                -H "Authorization: Bearer $(ha_api_token)" \
+                -H "Content-Type: application/json" \
+                -d "$2")
+              if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 201 ]; then
+                SENT=true
+                break
+              else
+                echo "  $1 failed (HTTP $RESPONSE), attempt $i of $RETRIES."
+                if [ $i -lt $RETRIES ]; then sleep 10; fi
+              fi
+            done
+            [ "$SENT" = true ]
+          }
+
+          FAILURE_COUNT=0
+          SUCCESS_COUNT=0
+
+          while IFS= read -r ROW; do
+            PR_ID=$(echo "$ROW" | jq -r '.id')
+            PR_TITLE=$(echo "$ROW" | jq -r '.title')
+            PR_LINK=$(echo "$ROW" | jq -r '.link')
+            BREAKING=$(echo "$ROW" | jq -r '.breaking')
+            NOTIF_ID="renovate-pr-$PR_ID"
+
+            echo "---"
+            echo "Notifying for PR #$PR_ID: $PR_TITLE"
+
+            SIDEBAR_MESSAGE=$(jq -rn --arg title "$PR_TITLE" --arg breaking "$BREAKING" --arg link "$PR_LINK" \
+              '"**\($title)**\n\n\($breaking)\n\n[View PR](\($link))"')
+            SIDEBAR_BODY=$(jq -n --arg id "$NOTIF_ID" --arg title "Docker image update: $PR_TITLE" --arg message "$SIDEBAR_MESSAGE" \
+              '{notification_id: $id, title: $title, message: $message}')
+
+            if post_ha "persistent_notification/create" "$SIDEBAR_BODY"; then
+              echo "  Sidebar notification sent."
+              ((SUCCESS_COUNT++))
+            else
+              echo "  Sidebar notification failed."
+              ((FAILURE_COUNT++))
+            fi
+
+            PUSH_BODY=$(jq -n --arg title "Docker image update: $PR_TITLE" --arg message "$PR_TITLE (tap to view the PR)" \
+              --arg tag "$NOTIF_ID" --arg url "$PR_LINK" \
+              '{label_id: "push_devices", title: $title, message: $message, tag: $tag, data: {url: $url}}')
+
+            if post_ha "html5/send_message" "$PUSH_BODY"; then
+              echo "  Mobile push sent."
+              ((SUCCESS_COUNT++))
+            else
+              echo "  Mobile push failed."
+              ((FAILURE_COUNT++))
+            fi
+          done < $(Agent.TempDirectory)/renovate_summary.jsonl
+
+          echo "---"
+          echo "Successfully sent $SUCCESS_COUNT notifications"
+
+          if [ $FAILURE_COUNT -gt 0 ]; then
+            echo "Failed to send $FAILURE_COUNT notifications"
+            exit 1
+          fi
+        displayName: 'Send HA Notifications for Each PR (sidebar + mobile push)'
+
+- stage: FailureNotification
+  displayName: Failure Notification
+  dependsOn: Renovate
+  condition: failed()
+  jobs:
+  - job: NotifyFailure
+    displayName: Send Failure Notification
+    steps:
+      - bash: |
+          PIPELINE_LINK="$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)"
+
+          BODY=$(jq -n --arg id "renovate-run-failed" --arg title "Renovate: Run Failed" \
+            --arg message "The Renovate pipeline failed. [View pipeline run]($PIPELINE_LINK)" \
+            '{notification_id: $id, title: $title, message: $message}')
+
+          curl -s -X POST \
+            "https://home.example.com:8123/api/services/persistent_notification/create" \
+            -H "Authorization: Bearer $(ha_api_token)" \
+            -H "Content-Type: application/json" \
+            -d "$BODY"
+          echo "Sent failure notification"
+        displayName: 'Send Failure Notification'

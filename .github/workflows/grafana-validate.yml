@@ -1,0 +1,63 @@
+name: Grafana dashboards
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "grafanaDashboards/**"
+  pull_request:
+    paths:
+      - "grafanaDashboards/**"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate dashboard JSON + duplicate uid/title check
+        run: |
+          python3 - <<'PY'
+          import json, glob, os, collections, sys
+
+          uids = collections.defaultdict(list)
+          titles = collections.defaultdict(list)
+          bad = []
+
+          for path in glob.glob("grafanaDashboards/dashboards/**/*.json", recursive=True):
+              try:
+                  with open(path, encoding="utf-8") as fh:
+                      d = json.load(fh)
+              except Exception as e:
+                  bad.append(f"{path}: {e}")
+                  continue
+              uids[d.get("uid")].append(path)
+              titles[(os.path.dirname(path), d.get("title"))].append(path)
+              print(f"OK  {path}")
+
+          dupes = False
+          for key, paths in {**uids, **titles}.items():
+              if len(paths) > 1:
+                  print(f"DUPLICATE {key!r}: {paths}")
+                  dupes = True
+
+          if bad:
+              print("Invalid JSON:")
+              for b in bad:
+                  print(f"  {b}")
+
+          if bad or dupes:
+              sys.exit(1)
+          PY
+
+      - name: Validate provisioning YAML
+        run: |
+          pip install --quiet pyyaml
+          python3 - <<'PY'
+          import glob, yaml
+          for path in glob.glob("grafanaDashboards/provisioning/**/*.yml", recursive=True):
+              with open(path, encoding="utf-8") as fh:
+                  yaml.safe_load(fh)
+              print(f"OK  {path}")
+          PY

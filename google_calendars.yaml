@@ -1,0 +1,6 @@
+- cal_id: #{homer_simpson_google_calendar_id}#
+  entities:
+  - device_id: #{homer_simpson_google_calendar_device_id}#
+    ignore_availability: true
+    name: #{homer_simpson_google_calendar_id}#
+    track: true

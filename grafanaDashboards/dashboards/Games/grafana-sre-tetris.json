@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A complete SRE-themed Tetris game whose colored tetrominoes represent operational signals, load, and incidents.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A complete SRE-themed Tetris game whose colored tetrominoes represent operational signals, load, and incidents.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 28,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana SRE Tetris\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); header.append(title,status); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 130px)',minHeight:'0',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, dead=false; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);root.replaceChildren()};\nconst canvas=document.createElement('canvas'), ctx=canvas.getContext('2d'); canvas.width=800;canvas.height=500;Object.assign(canvas.style,{width:'100%',height:'100%',maxWidth:'900px',objectFit:'contain',imageRendering:'pixelated'});stage.appendChild(canvas);var arcadeMuteButton=document.createElement('button');let arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';function renderArcadeMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.borderColor=arcadeMuted?'#777d86':'#5794f2';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});stage.appendChild(arcadeMuteButton);arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderArcadeMute()});renderArcadeMute();function arcadeTone(freq=440,duration=.07,wave='square'){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const oscillator=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();oscillator.type=wave;oscillator.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.045,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);oscillator.connect(gain).connect(arcadeAudio.destination);oscillator.start();oscillator.stop(arcadeAudio.currentTime+duration+.02)}catch(_){/* Sound is optional when browser policy blocks audio. */}}\nfunction bg(){ctx.fillStyle='#0b0c0e';ctx.fillRect(0,0,800,500);ctx.strokeStyle='rgba(255,255,255,.045)';for(let x=0;x<800;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,500);ctx.stroke()}for(let y=0;y<500;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke()}}\nlet tetrisMusicTimer=0,tetrisMusicStep=0;const tetrisRiff=[261.63,329.63,392,493.88,392,329.63,293.66,349.23,440,349.23,293.66,261.63];function stopTetrisMusic(){if(tetrisMusicTimer){clearTimeout(tetrisMusicTimer);tetrisMusicTimer=0}}function playTetrisNote(freq){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const osc=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();osc.type='triangle';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.014,arcadeAudio.currentTime+.012);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+.16);osc.connect(gain).connect(arcadeAudio.destination);osc.start();osc.stop(arcadeAudio.currentTime+.18)}catch(_){/* Music is optional when browser policy blocks audio. */}}function playTetrisMusic(){if(!root.isConnected){stopTetrisMusic();return}if(arcadeMuted){stopTetrisMusic();return}playTetrisNote(tetrisRiff[tetrisMusicStep++%tetrisRiff.length]);tetrisMusicTimer=setTimeout(playTetrisMusic,210)}arcadeMuteButton.addEventListener('click',()=>{if(arcadeMuted)stopTetrisMusic();else if(!tetrisMusicTimer)playTetrisMusic()});if(!arcadeMuted)playTetrisMusic();const previousTetrisCleanup=this.arcadeCleanup;this.arcadeCleanup=()=>{stopTetrisMusic();if(previousTetrisCleanup)previousTetrisCleanup()};const BOARD_X=270,BOARD_Y=10,CELL_W=26,CELL_H=24,COLS=10,ROWS=20;let board,p,score,lines,keys={},ended=false;const tetrominoes=[{n:'CPU',color:'#5794f2',s:[[1,1,1,1]]},{n:'MEMORY',color:'#73bf69',s:[[1,1],[1,1]]},{n:'LOGS',color:'#ff9830',s:[[1,0,0],[1,1,1]]},{n:'TRACES',color:'#b877d9',s:[[0,0,1],[1,1,1]]},{n:'METRICS',color:'#e0b400',s:[[0,1,1],[1,1,0]]},{n:'ALERTS',color:'#f2495c',s:[[1,1,0],[0,1,1]]},{n:'PODS',color:'#56a64b',s:[[0,1,0],[1,1,1]]}];metric('incidents_resolved_total','0');metric('operational_load','0');metric('sre_score','0');metric('level','1');function restart(){board=Array.from({length:ROWS},()=>Array(COLS).fill(0));score=0;lines=0;ended=false;spawn();state('RUNNING - ARROWS MOVE, UP ROTATE, SPACE RESTART')}function spawn(){const type=tetrominoes[Math.random()*tetrominoes.length|0];p={x:3,y:0,s:type.s.map(row=>row.slice()),n:type.n,color:type.color};if(collide()){ended=true;state('SLO BREACHED - PRESS SPACE TO RESTART','#f2495c')}}function collide(dx=0,dy=0,shape=p.s){return shape.some((row,y)=>row.some((filled,x)=>{if(!filled)return false;const px=p.x+x+dx,py=p.y+y+dy;return px<0||px>=COLS||py>=ROWS||(py>=0&&board[py][px])}))}function place(){p.s.forEach((row,y)=>row.forEach((filled,x)=>{if(filled&&p.y+y>=0)board[p.y+y][p.x+x]={name:p.n,color:p.color}}));let before=board.length;board=board.filter(row=>row.some(cell=>!cell));let cleared=before-board.length;while(board.length<ROWS)board.unshift(Array(COLS).fill(0));lines+=cleared;score+=cleared*100;arcadeTone(cleared?760:250,cleared?.12:.045,cleared?'sine':'square');spawn()}function tick(){if(!ended){if(!collide(0,1))p.y++;else place()}}root.addEventListener('keydown',e=>{if(e.code==='Space'&&ended){restart();e.preventDefault();return}if(e.key==='ArrowLeft'&&!collide(-1))p.x--;if(e.key==='ArrowRight'&&!collide(1))p.x++;if(e.key==='ArrowDown')tick();if(e.key==='ArrowUp'){let shape=p.s[0].map((_,i)=>p.s.map(row=>row[i]).reverse());if(!collide(0,0,shape))p.s=shape}if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault()});let last=0;function drawBlock(x,y,color){ctx.fillStyle=color;ctx.fillRect(BOARD_X+x*CELL_W+1,BOARD_Y+y*CELL_H+1,CELL_W-3,CELL_H-3)}function f(t){if(!root.isConnected){stopTetrisMusic();cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }return}if(!ended&&t-last>550){tick();last=t}bg();ctx.fillStyle='#111217';ctx.fillRect(BOARD_X,BOARD_Y,COLS*CELL_W,ROWS*CELL_H);ctx.strokeStyle='rgba(255,255,255,.12)';for(let x=0;x<=COLS;x++){ctx.beginPath();ctx.moveTo(BOARD_X+x*CELL_W+.5,BOARD_Y);ctx.lineTo(BOARD_X+x*CELL_W+.5,BOARD_Y+ROWS*CELL_H);ctx.stroke()}for(let y=0;y<=ROWS;y++){ctx.beginPath();ctx.moveTo(BOARD_X,BOARD_Y+y*CELL_H+.5);ctx.lineTo(BOARD_X+COLS*CELL_W,BOARD_Y+y*CELL_H+.5);ctx.stroke()}board.forEach((row,y)=>row.forEach((value,x)=>{if(value)drawBlock(x,y,value.color)}));if(!ended)p.s.forEach((row,y)=>row.forEach((filled,x)=>{if(filled)drawBlock(p.x+x,p.y+y,p.color)}));set('incidents_resolved_total',lines);set('operational_load',board.flat().filter(Boolean).length);set('sre_score',score);set('level',1+(lines/10|0));if(ended){ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(0,0,800,500);ctx.fillStyle='#f2495c';ctx.font='700 27px monospace';ctx.textAlign='center';ctx.fillText('SLO BREACHED',400,235);ctx.fillStyle='#d8d9da';ctx.font='16px monospace';ctx.fillText('Press SPACE to restart',400,270);ctx.textAlign='left'}raf=requestAnimationFrame(f)}restart();f();",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana SRE Tetris",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana SRE Tetris",
+  "uid": "grafana-sre-tetris",
+  "version": 2,
+  "weekStart": ""
+}

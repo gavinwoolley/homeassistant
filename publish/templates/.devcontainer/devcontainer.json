@@ -1,0 +1,14 @@
+{
+  "name": "Home Assistant demo",
+  "_comment_image": "The version after the colon below is stamped by publish/sanitize.py's apply_demo_image_version() on every publish, not left as `:latest` - confirmed live (2026-09-23) that a brand new Codespace showed entity_ids that have never existed anywhere in this repo's history, since `:latest` gives no way to tell a fresh pull apart from a stale cached layer. Normally the real Azure DevOps pipeline build number that produced this publish (a semantic version like 1.0.42), falling back to this private repo's own source commit sha only for a local/dry-run publish with no pipeline context. demo-image.yml tags its build with the exact same value (parsed back out of the mirror commit's own message), so this always points at the image actually built from this same source.",
+  "image": "ghcr.io/gavinwoolley/homeassistant-demo:__DEMO_IMAGE_VERSION__",
+  "overrideCommand": false,
+  "forwardPorts": [8123],
+  "portsAttributes": {
+    "8123": {
+      "label": "Home Assistant demo",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "remoteUser": "root"
+}

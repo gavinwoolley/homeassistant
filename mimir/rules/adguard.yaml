@@ -1,0 +1,51 @@
+# AdGuard Home alerts. ebrianne/adguard-exporter, job="adguard".
+# AdGuard is the LAN's only DNS server - if it stops, the house loses the internet.
+namespace: adguard
+groups:
+  - name: adguard
+    rules:
+      - alert: AdGuardExporterDown
+        expr: up{job="adguard"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AdGuard exporter is down"
+          description: "No visibility into DNS health."
+
+      - alert: AdGuardNotRunning
+        expr: adguard_running == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AdGuard Home is not running"
+          description: "The LAN's only DNS resolver is down - the whole house loses name resolution."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=adguardnotrunning"
+
+      - alert: AdGuardNoQueries
+        expr: rate(adguard_num_dns_queries[10m]) == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AdGuard is answering no DNS queries"
+          description: "Query rate has been flat at zero for 15 minutes - DNS is effectively dead even though the process is up."
+
+      - alert: AdGuardProtectionDisabledLong
+        expr: adguard_protection_enabled == 0
+        for: 24h
+        labels:
+          severity: warning
+        annotations:
+          summary: "AdGuard filtering has been disabled for 24h"
+          description: "Someone disabled protection and it was never re-enabled."
+
+      - alert: AdGuardSlowResponses
+        expr: adguard_avg_processing_time > 0.1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "AdGuard DNS responses are slow"
+          description: "Average processing time {{ $value | printf \"%.3f\" }}s - upstream resolver trouble."

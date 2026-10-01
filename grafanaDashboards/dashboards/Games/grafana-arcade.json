@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A no-datasource Grafana arcade launcher with responsive game cards, stable dashboard links, and opt-in synthesized background music.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A no-datasource Grafana arcade launcher with responsive game cards, stable dashboard links, and opt-in synthesized background music.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 28,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade launcher - no datasource required.\nif (this.grafanaArcadeLauncherCleanup) this.grafanaArcadeLauncherCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = `\n  <style>\n    .ga-shell { min-height:100%; box-sizing:border-box; padding:18px; color:#d8d9da; font-family:Inter,Roboto,Arial,sans-serif; background:radial-gradient(ellipse at 50% -25%,#203151 0%,#111217 42%,#0b0c0e 100%); }\n    .ga-hero { position:relative; overflow:hidden; min-height:145px; padding:20px 24px; border:1px solid #3a4862; border-radius:6px; background:linear-gradient(115deg,rgba(27,43,69,.96),rgba(17,18,23,.9) 62%,rgba(13,27,29,.94)); box-shadow:0 12px 34px rgba(0,0,0,.3); }\n    .ga-hero:after { content:''; position:absolute; inset:0; pointer-events:none; opacity:.27; background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(87,148,242,.09) 4px); }\n    .ga-kicker { position:relative; z-index:1; color:#73bf69; font:700 11px 'Roboto Mono',Consolas,monospace; letter-spacing:.18em; }\n    .ga-title { position:relative; z-index:1; margin:8px 0 5px; color:#e5ecff; font:800 clamp(34px,5vw,72px)/.9 'Roboto Mono',Consolas,monospace; letter-spacing:-.08em; text-shadow:3px 3px 0 #1f4b8f,0 0 22px rgba(87,148,242,.42); }\n    .ga-title span { color:#ff9830; }\n    .ga-sub { position:relative; z-index:1; color:#aeb9ca; font:13px 'Roboto Mono',Consolas,monospace; }\n    .ga-status { position:absolute; z-index:1; right:20px; top:18px; display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }\n    .ga-chip { padding:5px 8px; border:1px solid #40516d; border-radius:3px; background:rgba(9,12,18,.45); color:#9fa7b3; font:10px 'Roboto Mono',Consolas,monospace; }\n    .ga-dot { display:inline-block; width:7px; height:7px; margin-right:5px; border-radius:50%; background:#73bf69; box-shadow:0 0 10px #73bf69; animation:ga-pulse 1.5s infinite; }\n    .ga-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); grid-auto-rows:135px; gap:12px; min-height:0; margin-top:14px; }\n    .ga-card { position:relative; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; min-height:0; padding:15px; border:1px solid #343d4d; border-radius:5px; color:#d8d9da; text-decoration:none; background:linear-gradient(145deg,#1b2029,#14171c); transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease; }\n    .ga-card:before { content:''; position:absolute; left:0; top:0; right:0; height:3px; background:var(--accent); }\n    .ga-card:hover { transform:translateY(-3px); border-color:var(--accent); box-shadow:0 9px 22px rgba(0,0,0,.34),0 0 14px color-mix(in srgb,var(--accent) 26%,transparent); }\n    .ga-card-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }\n    .ga-icon { color:var(--accent); font:700 19px 'Roboto Mono',Consolas,monospace; text-shadow:0 0 10px color-mix(in srgb,var(--accent) 55%,transparent); }\n    .ga-name { color:#e5ecff; font-weight:700; font-size:15px; }\n    .ga-copy { margin-top:8px; color:#9fa7b3; font-size:12px; line-height:1.35; }\n    .ga-link { color:var(--accent); font:700 10px 'Roboto Mono',Consolas,monospace; letter-spacing:.07em; }\n    @keyframes ga-pulse { 50% { opacity:.35; box-shadow:none; } }\n    @media (max-width:650px) { .ga-shell { padding:10px; } .ga-hero { padding:18px; } .ga-status { position:static; justify-content:flex-start; margin-top:14px; } .ga-grid { min-height:0; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); } }\n  </style>\n  <main class=\"ga-shell\">\n    <section class=\"ga-hero\">\n      <div class=\"ga-kicker\">// OBSERVABILITY ENTERTAINMENT SYSTEM v1.0</div>\n      <div class=\"ga-title\">GRAFANA <span>ARCADE</span></div>\n      <div class=\"ga-sub\">&gt; SELECT_AN_INCIDENT &nbsp; // &nbsp; NO DATASOURCE REQUIRED</div>\n      <div class=\"ga-status\"><div class=\"ga-chip\"><i class=\"ga-dot\"></i>ALL SYSTEMS PLAYABLE</div><div class=\"ga-chip\">14 DASHBOARDS ONLINE</div><button class=\"ga-chip\" id=\"ga-music\" style=\"cursor:pointer\">MUSIC: OFF</button></div>\n    </section>\n    <nav class=\"ga-grid\" aria-label=\"Grafana Arcade games\">\n      <a class=\"ga-card\" style=\"--accent:#b877d9\" href=\"/d/grafana-2048\"><div class=\"ga-card-head\"><span class=\"ga-name\">2048</span><span class=\"ga-icon\">2^</span></div><div class=\"ga-copy\">Merge metric cells into larger numbers.</div><div class=\"ga-link\">COMPACT DATA -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#f2495c\" href=\"/d/grafana-alert-whack-a-mole\"><div class=\"ga-card-head\"><span class=\"ga-name\">Alert Whack-a-Mole</span><span class=\"ga-icon\">!!</span></div><div class=\"ga-copy\">ACK firing alerts before they time out.</div><div class=\"ga-link\">PAGE ON-CALL -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#ff9830\" href=\"/d/grafana-breakout\"><div class=\"ga-card-head\"><span class=\"ga-name\">Breakout</span><span class=\"ga-icon\">###</span></div><div class=\"ga-copy\">Clear status tiles. Preserve your lives.</div><div class=\"ga-link\">ACK BRICKS -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#5794f2\" href=\"/d/grafana-cardinality-invaders\"><div class=\"ga-card-head\"><span class=\"ga-name\">Cardinality Invaders</span><span class=\"ga-icon\">&lt;*&gt;</span></div><div class=\"ga-copy\">Drop toxic labels before they overwhelm Mimir.</div><div class=\"ga-link\">DEFEND INGESTER -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#73bf69\" href=\"/d/grafana-grot-observability-run\"><div class=\"ga-card-head\"><span class=\"ga-name\">Grot Observability Run</span><span class=\"ga-icon\">/^</span></div><div class=\"ga-copy\">Run from incoming incidents with Grot.</div><div class=\"ga-link\">START RUN -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#ffeb3b\" href=\"/d/grafana-grot-road-rage\"><div class=\"ga-card-head\"><span class=\"ga-name\">Grot Road Rage</span><span class=\"ga-icon\">=D</span></div><div class=\"ga-copy\">Dodge operational hazards with Grot.</div><div class=\"ga-link\">DRIVE ON-CALL -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#e0b400\" href=\"/d/grafana-minesweeper\"><div class=\"ga-card-head\"><span class=\"ga-name\">Minesweeper</span><span class=\"ga-icon\">!</span></div><div class=\"ga-copy\">Reveal safe cells. Flag hidden incidents.</div><div class=\"ga-link\">TRIAGE ALERTS -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#ff9830\" href=\"/d/grafana-asteroids\"><div class=\"ga-card-head\"><span class=\"ga-name\">Node Graph-oids</span><span class=\"ga-icon\">o/</span></div><div class=\"ga-copy\">Resolve incident nodes in the service graph.</div><div class=\"ga-link\">LAUNCH SHIP -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#ffeb3b\" href=\"/d/grafana-pacman\"><div class=\"ga-card-head\"><span class=\"ga-name\">Pac-Man</span><span class=\"ga-icon\">C:</span></div><div class=\"ga-copy\">Clear the maze before the alerts catch you.</div><div class=\"ga-link\">EAT PELLETS -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#5794f2\" href=\"/d/grafana-pong\"><div class=\"ga-card-head\"><span class=\"ga-name\">Pong</span><span class=\"ga-icon\">[]</span></div><div class=\"ga-copy\">Classic packet-vs-packet latency duel.</div><div class=\"ga-link\">START ROUND -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#73bf69\" href=\"/d/grafana-simon\"><div class=\"ga-card-head\"><span class=\"ga-name\">Simon</span><span class=\"ga-icon\">o-o</span></div><div class=\"ga-copy\">Remember the incident-response sequence.</div><div class=\"ga-link\">LOAD RUNBOOK -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#73bf69\" href=\"/d/grafana-snake\"><div class=\"ga-card-head\"><span class=\"ga-name\">Snake</span><span class=\"ga-icon\">&lt;~</span></div><div class=\"ga-copy\">Keep the telemetry snake alive.</div><div class=\"ga-link\">OPEN RUNBOOK -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#f2495c\" href=\"/d/grafana-sre-tetris\"><div class=\"ga-card-head\"><span class=\"ga-name\">SRE Tetris</span><span class=\"ga-icon\">[+]</span></div><div class=\"ga-copy\">Clear operational load before the SLO breaks.</div><div class=\"ga-link\">MANAGE LOAD -&gt;</div></a>\n      <a class=\"ga-card\" style=\"--accent:#73bf69\" href=\"/d/grafana-tic-tac-toe\"><div class=\"ga-card-head\"><span class=\"ga-name\">Grot-Tac-Toe</span><span class=\"ga-icon\">G/O</span></div><div class=\"ga-copy\">Beat automation on the incident grid.</div><div class=\"ga-link\">PLACE X -&gt;</div></a>\n    </nav>\n  </main>`;\nconst musicButton=root.querySelector('#ga-music');let launcherAudio,launcherTimer=0,launcherMuted=localStorage.getItem('grafana-arcade-muted')!=='false',riffStep=0;const launcherRiff=[261.63,329.63,392,523.25,392,329.63,293.66,392];function launcherNote(freq){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!launcherAudio)launcherAudio=new Audio();if(launcherAudio.state==='suspended')launcherAudio.resume();const osc=launcherAudio.createOscillator(),gain=launcherAudio.createGain();osc.type='square';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,launcherAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.028,launcherAudio.currentTime+.01);gain.gain.exponentialRampToValueAtTime(.0001,launcherAudio.currentTime+.15);osc.connect(gain).connect(launcherAudio.destination);osc.start();osc.stop(launcherAudio.currentTime+.17)}catch(_){/* Audio is optional when browser policy blocks it. */}}function stopLauncherMusic(){if(launcherTimer){clearTimeout(launcherTimer);launcherTimer=0}if(launcherAudio)launcherAudio.suspend()}function playLauncherMusic(){if(launcherMuted)return;launcherNote(launcherRiff[riffStep++%launcherRiff.length]);launcherTimer=setTimeout(playLauncherMusic,190)}function renderLauncherMusic(){musicButton.textContent=launcherMuted?'MUSIC: OFF':'MUSIC: ON';musicButton.style.color=launcherMuted?'#9fa7b3':'#73bf69'}musicButton.addEventListener('click',()=>{launcherMuted=!launcherMuted;localStorage.setItem('grafana-arcade-muted',String(launcherMuted));if(launcherMuted)stopLauncherMusic();else{if(launcherAudio)launcherAudio.resume();playLauncherMusic()}renderLauncherMusic()});renderLauncherMusic();root.querySelectorAll('.ga-card').forEach(card=>card.addEventListener('click',stopLauncherMusic));this.grafanaArcadeLauncherCleanup=stopLauncherMusic;",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Arcade Launcher",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Arcade",
+  "uid": "grafana-arcade",
+  "version": 2,
+  "weekStart": ""
+}

@@ -1,0 +1,27 @@
+name: gitleaks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # gitleaks-action reads its config path from this env var, not a
+          # `with:` input - `with: config-path:` (what this used to say) is
+          # silently ignored as an unrecognized input, so it ran with zero
+          # custom config and no way to know the allowlisted decoy/false-
+          # positive patterns in .gitleaks.toml (e.g. Grafana's own
+          # auto-generated panel "key" refIds, which look exactly like a
+          # generic high-entropy secret but aren't credentials) - confirmed
+          # live: this is exactly what failed the real first run.
+          GITLEAKS_CONFIG: .gitleaks.toml

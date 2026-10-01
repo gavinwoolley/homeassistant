@@ -1,0 +1,16 @@
+# Skeleton for publish/config/denylist.local.txt (gitignored - never commit
+# the filled-in version, it holds real filenames that are themselves PII).
+# Same split as replacements.local.yaml/replacements.local.example.yaml -
+# see that file's header comment for why.
+#
+# Copy this file to publish/config/denylist.local.txt and list every real
+# face-photo filename (or any other path whose NAME alone identifies someone
+# real) that lives in your private repo. One glob per line, same syntax as
+# denylist.txt. CI (azure-pipelines-publish.yml) pulls this from an Azure
+# DevOps Secure File rather than this repo - see publish/README.md.
+#
+# PLACEHOLDER SHAPE ONLY - every path below is a generic example, not a real
+# filename:
+www/real-person-1.jpg
+www/real-person-2.jpg
+www/RealPerson3.JPG

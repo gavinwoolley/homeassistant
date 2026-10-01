@@ -1,0 +1,601 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PAE45454D0EDB9216"
+      },
+      "type": "jdbranham-diagram-panel",
+      "pluginVersion": "1.7.3",
+      "id": 1,
+      "title": "Network Diagram",
+      "transparent": true,
+      "gridPos": {
+        "h": 40,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 1,
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 400
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "composites": [],
+        "content": "%%{init: {'flowchart': {'nodeSpacing': 14, 'rankSpacing': 90, 'padding': 6, 'useMaxWidth': false}}}%%\ngraph LR\nsubgraph Internet\n  google_dns{{\"Google DNS\"}}\n  cloudflare_dns{{\"Cloudflare DNS\"}}\nend\ngoogle_dns{{\"Google DNS\"}} --- firewall{\"Firewall\"}\ncloudflare_dns{{\"Cloudflare DNS\"}} --- firewall{\"Firewall\"}\nfirewall{\"Firewall\"} --> hp_switch[/\"HP Switch\"\\]\nhp_switch[/\"HP Switch\"\\] --> server_1[[\"Server 1\"]]\nhp_switch[/\"HP Switch\"\\] --> server_2[[\"Server 2\"]]\nhp_switch[/\"HP Switch\"\\] --> server_3[[\"Server 3\"]]\nserver_3[[\"Server 3\"]] --> plex(\"Plex (VM)\")\nserver_2[[\"Server 2\"]] --> blue_iris(\"Blue Iris (VM)\")\nserver_2[[\"Server 2\"]] --> ubuntu(\"Ubuntu VM (Docker)\")\nsubgraph Containers\n  home_assistant[\"Home Assistant\"]\n  grafana[\"Grafana\"]\n  mimir[\"Mimir\"]\n  loki[\"Loki\"]\n  alloy[\"Alloy\"]\n  cadvisor[\"cAdvisor\"]\n  portainer[\"Portainer\"]\n  coder[\"Coder\"]\n  adguard[\"AdGuard\"]\n  nginx[\"Nginx\"]\n  mosquitto[\"Mosquitto\"]\n  unpoller[\"UnPoller\"]\n  unifi_controller[\"UniFi Controller\"]\n  unifi_db[(\"UniFi DB (Mongo)\")]\n  mongodb_exporter[\"MongoDB Exporter\"]\n  nginx_exporter[\"Nginx Exporter\"]\n  mosquitto_exporter[\"Mosquitto Exporter\"]\n  adguard_exporter[\"AdGuard Exporter\"]\nend\nubuntu(\"Ubuntu VM (Docker)\") --> home_assistant[\"Home Assistant\"]\nubuntu(\"Ubuntu VM (Docker)\") --> grafana[\"Grafana\"]\nubuntu(\"Ubuntu VM (Docker)\") --> mimir[\"Mimir\"]\nubuntu(\"Ubuntu VM (Docker)\") --> loki[\"Loki\"]\nubuntu(\"Ubuntu VM (Docker)\") --> alloy[\"Alloy\"]\nubuntu(\"Ubuntu VM (Docker)\") --> cadvisor[\"cAdvisor\"]\nubuntu(\"Ubuntu VM (Docker)\") --> portainer[\"Portainer\"]\nubuntu(\"Ubuntu VM (Docker)\") --> coder[\"Coder\"]\nubuntu(\"Ubuntu VM (Docker)\") --> adguard[\"AdGuard\"]\nubuntu(\"Ubuntu VM (Docker)\") --> nginx[\"Nginx\"]\nubuntu(\"Ubuntu VM (Docker)\") --> mosquitto[\"Mosquitto\"]\nubuntu(\"Ubuntu VM (Docker)\") --> unpoller[\"UnPoller\"]\nubuntu(\"Ubuntu VM (Docker)\") --> unifi_controller[\"UniFi Controller\"]\nubuntu(\"Ubuntu VM (Docker)\") --> unifi_db[(\"UniFi DB (Mongo)\")]\nubuntu(\"Ubuntu VM (Docker)\") --> mongodb_exporter[\"MongoDB Exporter\"]\nubuntu(\"Ubuntu VM (Docker)\") --> nginx_exporter[\"Nginx Exporter\"]\nubuntu(\"Ubuntu VM (Docker)\") --> mosquitto_exporter[\"Mosquitto Exporter\"]\nubuntu(\"Ubuntu VM (Docker)\") --> adguard_exporter[\"AdGuard Exporter\"]\nsubgraph WiFi\n  u6_pro_hallway([\"U6 Pro Hallway\"])\n  u7_kitchen([\"U7 Pro Kitchen\"])\n  u7_lite_office([\"U7 Lite Office\"])\n  ac_lite_lounge([\"AC Lite Lounge\"])\n  uap_drive([\"UAP Drive\"])\n  uap_garden([\"UAP Garden\"])\nend\nunifi_controller[\"UniFi Controller\"] --> u6_pro_hallway([\"U6 Pro Hallway\"])\nunifi_controller[\"UniFi Controller\"] --> u7_kitchen([\"U7 Pro Kitchen\"])\nunifi_controller[\"UniFi Controller\"] --> u7_lite_office([\"U7 Lite Office\"])\nunifi_controller[\"UniFi Controller\"] --> ac_lite_lounge([\"AC Lite Lounge\"])\nunifi_controller[\"UniFi Controller\"] --> uap_drive([\"UAP Drive\"])\nunifi_controller[\"UniFi Controller\"] --> uap_garden([\"UAP Garden\"])\nsubgraph Cameras\n  camera_front[\"Front Camera\"]\n  camera_patio[\"Patio Camera\"]\n  camera_garden_upper[\"Garden Upper Camera\"]\n  camera_shed_upper[\"Shed Upper Camera\"]\n  camera_shed_lower[\"Shed Lower Camera\"]\n  camera_bart_simpson_room[\"Bart Simpson Room Camera\"]\nend\nblue_iris(\"Blue Iris (VM)\") --> camera_front\nblue_iris(\"Blue Iris (VM)\") --> camera_patio\nblue_iris(\"Blue Iris (VM)\") --> camera_garden_upper\nblue_iris(\"Blue Iris (VM)\") --> camera_shed_upper\nblue_iris(\"Blue Iris (VM)\") --> camera_shed_lower\nblue_iris(\"Blue Iris (VM)\") --> camera_bart_simpson_room\nunifi_controller -.-> unifi_db\nunpoller -.-> unifi_controller\nmosquitto -.-> home_assistant\nmosquitto -.-> blue_iris\nalloy -.-> loki\nalloy -.-> mimir\ngrafana -.-> loki\ngrafana -.-> mimir\nmongodb_exporter -.-> unifi_db\nnginx_exporter -.-> nginx\nmosquitto_exporter -.-> mosquitto\nadguard_exporter -.-> adguard\n",
+        "decimals": 1,
+        "legend": {
+          "show": false,
+          "asTable": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "gradient": {
+            "enabled": true,
+            "show": true
+          },
+          "stats": [
+            "mean",
+            "last",
+            "min",
+            "max"
+          ],
+          "showLegend": false
+        },
+        "maxWidth": true,
+        "mermaidServiceUrl": "",
+        "metricCharacterReplacements": [],
+        "moddedSeriesVal": 0,
+        "mode": "content",
+        "nodeSize": {
+          "minWidth": 150,
+          "minHeight": 54
+        },
+        "style": ".diagram-container-1{overflow:auto !important;}#diagram-1 svg{max-width:none !important;max-height:none !important;}#diagram-1 .label,#diagram-1 .nodeLabel,#diagram-1 span.nodeLabel,#diagram-1 .diagram-value,#diagram-1 foreignObject div{font-size:13px !important;line-height:1.15 !important;text-shadow:none !important;}#diagram-1 .edgeLabel{font-size:13px !important;}#diagram-1 foreignObject{overflow:visible;}#diagram-1 foreignObject>div{display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;height:100% !important;width:100% !important;}",
+        "useBackground": false,
+        "useBasicAuth": false,
+        "valueName": "last"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"google_dns\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "google_dns",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"cloudflare_dns\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "cloudflare_dns",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"firewall\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "firewall",
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"hp_switch\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "hp_switch",
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"server_1\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "server_1",
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"server_2\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "server_2",
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"server_3\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "server_3",
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"plex\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "plex",
+          "refId": "H"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"blue_iris\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "blue_iris",
+          "refId": "I"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"this_host\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "ubuntu",
+          "refId": "J"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"home_assistant\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "home_assistant",
+          "refId": "K"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"grafana\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "grafana",
+          "refId": "L"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"mimir\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "mimir",
+          "refId": "M"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"loki\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "loki",
+          "refId": "N"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"alloy\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "alloy",
+          "refId": "O"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"cadvisor\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "cadvisor",
+          "refId": "P"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"portainer\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "portainer",
+          "refId": "Q"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"coder\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "coder",
+          "refId": "R"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"adguard\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "adguard",
+          "refId": "S"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"nginx_external\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "nginx",
+          "refId": "T"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"mosquitto\",job=\"blackbox_tcp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "mosquitto",
+          "refId": "U"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"unpoller\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "unpoller",
+          "refId": "V"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"unifi_controller\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "unifi_controller",
+          "refId": "W"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"unifi_db\",job=\"blackbox_tcp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "unifi_db",
+          "refId": "X"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"mongodb_exporter\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "mongodb_exporter",
+          "refId": "Y"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"nginx_exporter\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "nginx_exporter",
+          "refId": "Z"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"mosquitto_exporter\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "mosquitto_exporter",
+          "refId": "AA"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"adguard_exporter\",job=\"blackbox_http\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "adguard_exporter",
+          "refId": "AB"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"u6_pro_hallway\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "u6_pro_hallway",
+          "refId": "AC"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"u7_kitchen\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "u7_kitchen",
+          "refId": "AD"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"u7_lite_office\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "u7_lite_office",
+          "refId": "AE"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"ac_lite_lounge\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "ac_lite_lounge",
+          "refId": "AF"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"uap_drive\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "uap_drive",
+          "refId": "AG"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"uap_garden\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "uap_garden",
+          "refId": "AH"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_front\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_front",
+          "refId": "AI"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_patio\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_patio",
+          "refId": "AJ"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_garden_upper\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_garden_upper",
+          "refId": "AK"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_shed_upper\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_shed_upper",
+          "refId": "AL"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_shed_lower\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_shed_lower",
+          "refId": "AM"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PAE45454D0EDB9216"
+          },
+          "editorMode": "code",
+          "expr": "probe_duration_seconds{instance=\"camera_bart_simpson_room\",job=\"blackbox_icmp\"} * 1000",
+          "instant": true,
+          "range": false,
+          "legendFormat": "camera_bart_simpson_room",
+          "refId": "AN"
+        }
+      ]
+    }
+  ],
+  "preload": false,
+  "refresh": "1m",
+  "schemaVersion": 39,
+  "tags": [
+    "home-assistant",
+    "topology"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Topology",
+  "uid": "ha-topology",
+  "weekStart": ""
+}

@@ -1,0 +1,23 @@
+{
+  "name": "Grafana observability demo",
+  "dockerComposeFile": "docker-compose.codespaces.yml",
+  "_comment_service": "Grafana is the featured entry point (see portsAttributes below), but `service` stays homeassistant-demo, not grafana-demo - tested live (2026-09-22, devcontainer CLI directly against this compose file) that the Alpine-based Grafana image doesn't get a working /workspaces mount from the CLI the way this HA image does, breaking postStartCommand/exec entirely. Which container is `service` only affects VS Code's own terminal/exec target, not which port auto-opens - that's portsAttributes' job, decoupled from this.",
+  "service": "homeassistant-demo",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "stopCompose",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb"
+  },
+  "_comment_postStartCommand": "A flat sleep here previously left port 3001 without its label or openBrowser applied in a real Codespace - confirmed live via the user's own screenshot (Ports panel showed 3001 with no label at all, while 8123 got its custom label fine), even though a local timing test found Grafana ready in ~7s. Real Codespace conditions (cold image layers, CPU contention) are plausibly slower than that local test, and there's no reason to guess a number when a real readiness endpoint exists - poll grafana-demo's own /api/health (container-to-container, since this runs inside homeassistant-demo per `service` above - localhost would be wrong here) until it's genuinely serving, up to 90s, instead of hoping a fixed delay was long enough.",
+  "postStartCommand": "for i in $(seq 1 45); do curl -sf http://grafana-demo:3000/api/health >/dev/null 2>&1 && break; sleep 2; done",
+  "_comment_forwardPorts": "8123 deliberately not forwarded at all - homeassistant-demo is a data source for grafana-demo/alloy-demo over the shared Docker network (http://homeassistant-demo:8123, container DNS), never through any host-published port, so there's nothing for a human to reach there anyway. Also collapses this back to the exact single-port shape (one port, one openBrowser) already proven to work in the plain HA-only devcontainer.json, in case a second forwarded port was itself part of why 3001 wasn't getting labeled/auto-opened.",
+  "forwardPorts": [3001],
+  "portsAttributes": {
+    "3001": {
+      "label": "Grafana demo",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "remoteUser": "root"
+}

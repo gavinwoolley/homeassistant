@@ -1,0 +1,99 @@
+# Meta-monitoring: alerts about the monitoring pipeline and scrape health itself.
+# `mimirtool rules load` requires the top-level `namespace:` key.
+namespace: infra-meta
+groups:
+  - name: watchdog
+    rules:
+      # Always firing. Alertmanager routes it to Home Assistant every 2 minutes.
+      # If HA stops receiving it, the ruler / Alloy / Mimir / network path is
+      # down and HA self-pages ("monitoring pipeline silent"). Nothing else can
+      # detect "the alerting system itself is down".
+      - alert: Watchdog
+        expr: vector(1)
+        labels:
+          severity: none
+        annotations:
+          summary: Alerting pipeline heartbeat (always firing by design)
+          description: >-
+            This alert is always active. Its only purpose is to prove the whole
+            path ruler -> Alertmanager -> Home Assistant webhook is alive.
+
+  - name: scrape-health
+    rules:
+      # A scrape target has been unreachable for 15m. For transient hosts
+      # (laptops / dev VM) this carries tier="transient" from config.alloy and
+      # the Alertmanager drops it on a non-paging route - a machine that sleeps
+      # going unreachable is expected. Their other alerts still page.
+      - alert: TargetDown
+        expr: up == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Scrape target {{ $labels.instance }} ({{ $labels.job }}) is down"
+          description: "Prometheus has failed to scrape {{ $labels.job }}/{{ $labels.instance }} for 15 minutes."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=targetdown"
+
+      - alert: ManyTargetsDown
+        expr: (count(up == 0) / count(up)) > 0.2
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $value | humanizePercentage }} of all scrape targets are down"
+          description: "More than 20% of scrape targets are unreachable - likely Alloy, the network, or Mimir ingestion rather than the individual targets."
+
+      - alert: ScrapeSampleLimitHit
+        expr: scrape_samples_scraped == 0 and up == 1
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.job }}/{{ $labels.instance }} scrapes return no samples"
+          description: "The target is up but exposing zero metrics - exporter misconfigured or the backing service is down."
+
+  - name: pipeline-health
+    rules:
+      # Alloy's remote_write to Mimir is backing up (WAL growing / not draining).
+      - alert: AlloyRemoteWriteBehind
+        expr: |
+          (
+            prometheus_remote_storage_highest_timestamp_in_seconds
+            - ignoring(url, remote_name) group_right()
+              prometheus_remote_storage_queue_highest_sent_timestamp_seconds
+          ) > 300
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alloy remote_write is {{ $value | humanizeDuration }} behind"
+          description: "Samples are not reaching Mimir fast enough - check Mimir ingester health and host memory."
+
+      - alert: AlloyRemoteWriteFailing
+        expr: sum(rate(prometheus_remote_storage_samples_failed_total[5m])) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alloy remote_write is failing to send samples to Mimir"
+          description: "{{ $value | humanize }} samples/s rejected by Mimir - check Mimir logs for ingestion errors."
+
+      # Mimir has stopped accepting writes (ingestion stalled).
+      - alert: MimirNotIngesting
+        expr: sum(rate(cortex_distributor_received_samples_total[5m])) == 0
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mimir has ingested no samples for 15 minutes"
+          description: "The distributor is receiving nothing - Mimir, Alloy, or the network path is broken."
+
+      # Loki has stopped receiving log lines.
+      - alert: LokiNotIngesting
+        expr: sum(rate(loki_distributor_lines_received_total[10m])) == 0
+        for: 20m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki has received no log lines for 20 minutes"
+          description: "Alloy log shipping or Loki ingestion is broken."

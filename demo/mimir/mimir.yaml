@@ -1,0 +1,64 @@
+multitenancy_enabled: false
+
+server:
+  http_listen_port: 8080
+
+common:
+  storage:
+    backend: filesystem
+    filesystem:
+      dir: /data
+
+blocks_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/blocks
+  bucket_store:
+    ignore_blocks_within: 0
+  tsdb:
+    dir: /data/tsdb
+    # Short retention - this is one fake HA instance's worth of data for
+    # people trying the repo out, not a real house. Keep the on-disk
+    # footprint small.
+    retention_period: 6h
+    flush_blocks_on_shutdown: true
+
+ruler_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/rules
+
+alertmanager_storage:
+  backend: filesystem
+  filesystem:
+    dir: /data/alertmanager
+
+ingester:
+  ring:
+    kvstore:
+      store: inmemory
+    replication_factor: 1
+    unregister_on_shutdown: false
+    min_ready_duration: 0s
+
+querier:
+  query_store_after: 2h
+
+limits:
+  max_label_names_per_series: 60
+  compactor_blocks_retention_period: 1d
+  ingestion_rate: 50000
+  ingestion_burst_size: 1000000
+  out_of_order_time_window: 1h
+  # A single demo HA instance is nowhere near production's 200000 - this is
+  # just a low, safe ceiling for a toy dataset.
+  max_global_series_per_user: 20000
+
+compactor: {}
+
+# No ruler/alertmanager rule loading in the demo - production's alert rules
+# (mimir/rules/**) reference real infrastructure (host RAM, AdGuard, etc.)
+# that doesn't exist here. The Alertmanager datasource is still provisioned
+# so the UI doesn't error, it just has nothing loaded into it.
+alertmanager:
+  external_url: http://localhost:3001/alertmanager

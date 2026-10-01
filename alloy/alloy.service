@@ -1,0 +1,15 @@
+[Unit]
+Description=Grafana Alloy
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+ExecStart=/usr/local/bin/alloy run /etc/alloy/config.alloy --server.http.listen-addr=0.0.0.0:12345
+Restart=always
+RestartSec=5
+User=root
+MemoryMax=900M
+MemorySwapMax=0
+
+[Install]
+WantedBy=multi-user.target

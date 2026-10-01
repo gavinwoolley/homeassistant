@@ -1,0 +1,6 @@
+ARG HA_VERSION=stable
+FROM homeassistant/home-assistant:${HA_VERSION}
+
+# gcompat allows Alpine (musl libc) to run glibc-compiled binaries like
+# the Ubuntu-installed alpr binary mounted from the host at /usr/bin/alpr
+RUN apk add --no-cache gcompat

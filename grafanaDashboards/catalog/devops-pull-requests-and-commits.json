@@ -1,0 +1,1298 @@
+{
+    "__inputs": [
+        {
+            "name": "DS_AZUREDEVOPS",
+            "label": "AzureDevopsInfinity",
+            "description": "",
+            "type": "datasource",
+            "pluginId": "yesoreyeram-infinity-datasource",
+            "pluginName": "Infinity"
+        }
+    ],
+    "__elements": {},
+    "__requires": [
+        {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "10.4.2"
+        },
+        {
+            "type": "panel",
+            "id": "table",
+            "name": "Table",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "stat",
+            "name": "Stat",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "piechart",
+            "name": "Pie chart",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "text",
+            "name": "Text",
+            "version": ""
+        },
+        {
+            "type": "datasource",
+            "id": "yesoreyeram-infinity-datasource",
+            "name": "Infinity",
+            "version": ""
+        }
+    ],
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "description": "Azure DevOps pull request and commit activity per repository, with author breakdown. Requires an Infinity datasource using Basic Auth with a PAT (user or service account, Code Read scope).",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": null,
+    "links": [
+        {
+            "asDropdown": false,
+            "icon": "info",
+            "includeVars": false,
+            "keepTime": false,
+            "tags": [],
+            "targetBlank": false,
+            "title": "FYI: This dashboard only returns the top 101 results per repo",
+            "tooltip": "",
+            "type": "link",
+            "url": "d/devops-pull-requests-and-commits/devops-pull-requests-and-commits?orgId=1"
+        }
+    ],
+    "panels": [
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_AZUREDEVOPS}"
+            },
+            "description": "",
+            "gridPos": {
+                "h": 4,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 11,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "# Devops Pull Requests and Commits\n\nSelect a Project and one or more Repositories to see the report of Pull Requests and Commits. \n\nFor each repo selected, the below rows will be repeated.",
+                "mode": "markdown"
+            },
+            "pluginVersion": "10.4.2",
+            "transparent": true,
+            "type": "text"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 4
+            },
+            "id": 23,
+            "panels": [],
+            "title": "Summary",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_AZUREDEVOPS}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "hideFrom": {
+                            "legend": false,
+                            "tooltip": false,
+                            "viz": false
+                        }
+                    },
+                    "mappings": []
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 11,
+                "w": 6,
+                "x": 0,
+                "y": 5
+            },
+            "id": 24,
+            "maxPerRow": 4,
+            "options": {
+                "displayLabels": [
+                    "name",
+                    "value"
+                ],
+                "legend": {
+                    "displayMode": "table",
+                    "placement": "bottom",
+                    "showLegend": false,
+                    "values": [
+                        "value"
+                    ]
+                },
+                "pieType": "pie",
+                "reduceOptions": {
+                    "calcs": [
+                        "max"
+                    ],
+                    "fields": "/^Count \\(count\\)$/",
+                    "values": true
+                },
+                "tooltip": {
+                    "mode": "single",
+                    "sort": "none"
+                }
+            },
+            "pluginVersion": "10.4.2",
+            "repeat": "repo_id",
+            "repeatDirection": "h",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "title",
+                            "text": "Title",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "repository.name",
+                            "text": "Repository",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "repository.project.name",
+                            "text": "Project",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "mergeStatus",
+                            "text": "Status",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "createdBy.displayName",
+                            "text": "Created by",
+                            "type": "string"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "global_query_id": "",
+                    "json_options": {
+                        "columnar": false,
+                        "root_is_not_array": false
+                    },
+                    "refId": "A",
+                    "root_selector": "",
+                    "source": "url",
+                    "type": "json",
+                    "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/pullrequests?api-version=7.1-preview.1",
+                    "url_options": {
+                        "data": "",
+                        "method": "GET",
+                        "params": [
+                            {
+                                "key": "searchCriteria.maxTime",
+                                "value": "${__to:date:YYYY-MM-DD}"
+                            },
+                            {
+                                "key": "searchCriteria.minTime",
+                                "value": "${__from:date:iso:YYYY-MM-DD}"
+                            },
+                            {
+                                "key": "searchCriteria.status",
+                                "value": "completed"
+                            },
+                            {
+                                "key": "searchCriteria.repositoryId",
+                                "value": "$repo_id"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "title": "PR Count $repo_id",
+            "transformations": [
+                {
+                    "id": "calculateField",
+                    "options": {
+                        "mode": "reduceRow",
+                        "reduce": {
+                            "include": [
+                                "Created by"
+                            ],
+                            "reducer": "count"
+                        }
+                    }
+                },
+                {
+                    "id": "groupBy",
+                    "options": {
+                        "fields": {
+                            "Count": {
+                                "aggregations": [
+                                    "count"
+                                ],
+                                "operation": "aggregate"
+                            },
+                            "Created by": {
+                                "aggregations": [],
+                                "operation": "groupby"
+                            }
+                        }
+                    }
+                }
+            ],
+            "type": "piechart"
+        },
+        {
+            "collapsed": true,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 16
+            },
+            "id": 6,
+            "panels": [
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 6,
+                        "w": 24,
+                        "x": 0,
+                        "y": 16
+                    },
+                    "id": 5,
+                    "options": {
+                        "colorMode": "value",
+                        "graphMode": "area",
+                        "justifyMode": "auto",
+                        "orientation": "auto",
+                        "reduceOptions": {
+                            "calcs": [
+                                "lastNotNull"
+                            ],
+                            "fields": "/^Count \\(count\\)$/",
+                            "values": true
+                        },
+                        "showPercentChange": false,
+                        "textMode": "auto",
+                        "wideLayout": true
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "title",
+                                    "text": "Title",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "repository.name",
+                                    "text": "Repository",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "repository.project.name",
+                                    "text": "Project",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "mergeStatus",
+                                    "text": "Status",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "createdBy.displayName",
+                                    "text": "Created by",
+                                    "type": "string"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/pullrequests?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.maxTime",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.minTime",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.status",
+                                        "value": "completed"
+                                    },
+                                    {
+                                        "key": "searchCriteria.repositoryId",
+                                        "value": "$repo_id"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "PR Count $repo_id",
+                    "transformations": [
+                        {
+                            "id": "calculateField",
+                            "options": {
+                                "mode": "reduceRow",
+                                "reduce": {
+                                    "include": [
+                                        "Created by"
+                                    ],
+                                    "reducer": "count"
+                                }
+                            }
+                        },
+                        {
+                            "id": "groupBy",
+                            "options": {
+                                "fields": {
+                                    "Count": {
+                                        "aggregations": [
+                                            "count"
+                                        ],
+                                        "operation": "aggregate"
+                                    },
+                                    "Created by": {
+                                        "aggregations": [],
+                                        "operation": "groupby"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": "sortBy",
+                            "options": {
+                                "fields": {},
+                                "sort": [
+                                    {
+                                        "desc": true,
+                                        "field": "Count (count)"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "type": "stat"
+                },
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "custom": {
+                                "align": "auto",
+                                "cellOptions": {
+                                    "type": "auto"
+                                },
+                                "inspect": false
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green",
+                                        "value": null
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 14,
+                        "w": 13,
+                        "x": 0,
+                        "y": 22
+                    },
+                    "id": 1,
+                    "options": {
+                        "cellHeight": "sm",
+                        "footer": {
+                            "countRows": false,
+                            "fields": "",
+                            "reducer": [
+                                "sum"
+                            ],
+                            "show": false
+                        },
+                        "showHeader": true,
+                        "sortBy": [
+                            {
+                                "desc": false,
+                                "displayName": "Created by"
+                            }
+                        ]
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "title",
+                                    "text": "Title",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "repository.name",
+                                    "text": "Repository",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "createdBy.displayName",
+                                    "text": "Created by",
+                                    "type": "string"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/pullrequests?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.maxTime",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.minTime",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.status",
+                                        "value": "completed"
+                                    },
+                                    {
+                                        "key": "searchCriteria.repositoryId",
+                                        "value": "$repo_id"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "Pull Requests Summary $repo_id",
+                    "type": "table"
+                },
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                }
+                            },
+                            "mappings": []
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 14,
+                        "w": 11,
+                        "x": 13,
+                        "y": 22
+                    },
+                    "id": 4,
+                    "options": {
+                        "displayLabels": [
+                            "name",
+                            "value"
+                        ],
+                        "legend": {
+                            "displayMode": "list",
+                            "placement": "bottom",
+                            "showLegend": false
+                        },
+                        "pieType": "pie",
+                        "reduceOptions": {
+                            "calcs": [
+                                "max"
+                            ],
+                            "fields": "/^Count \\(count\\)$/",
+                            "values": true
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "title",
+                                    "text": "Title",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "repository.name",
+                                    "text": "Repository",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "repository.project.name",
+                                    "text": "Project",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "mergeStatus",
+                                    "text": "Status",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "createdBy.displayName",
+                                    "text": "Created by",
+                                    "type": "string"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/pullrequests?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.maxTime",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.minTime",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.status",
+                                        "value": "completed"
+                                    },
+                                    {
+                                        "key": "searchCriteria.repositoryId",
+                                        "value": "$repo_id"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "PR Count $repo_id",
+                    "transformations": [
+                        {
+                            "id": "calculateField",
+                            "options": {
+                                "mode": "reduceRow",
+                                "reduce": {
+                                    "include": [
+                                        "Created by"
+                                    ],
+                                    "reducer": "count"
+                                }
+                            }
+                        },
+                        {
+                            "id": "groupBy",
+                            "options": {
+                                "fields": {
+                                    "Count": {
+                                        "aggregations": [
+                                            "count"
+                                        ],
+                                        "operation": "aggregate"
+                                    },
+                                    "Created by": {
+                                        "aggregations": [],
+                                        "operation": "groupby"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "type": "piechart"
+                }
+            ],
+            "repeat": "repo_id",
+            "repeatDirection": "h",
+            "title": "Pull Requests $repo_id",
+            "type": "row"
+        },
+        {
+            "collapsed": true,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 20
+            },
+            "id": 7,
+            "panels": [
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green"
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 6,
+                        "w": 24,
+                        "x": 0,
+                        "y": 15
+                    },
+                    "id": 8,
+                    "options": {
+                        "colorMode": "value",
+                        "graphMode": "area",
+                        "justifyMode": "auto",
+                        "orientation": "auto",
+                        "reduceOptions": {
+                            "calcs": [
+                                "lastNotNull"
+                            ],
+                            "fields": "/^Count \\(count\\)$/",
+                            "values": true
+                        },
+                        "showPercentChange": false,
+                        "textMode": "auto",
+                        "wideLayout": true
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "committer.name",
+                                    "text": "Created by",
+                                    "type": "string"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories/$repo_id/commits?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.toDate",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.fromDate",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "Commits Count $repo_id",
+                    "transformations": [
+                        {
+                            "id": "calculateField",
+                            "options": {
+                                "mode": "reduceRow",
+                                "reduce": {
+                                    "include": [
+                                        "Created by"
+                                    ],
+                                    "reducer": "count"
+                                }
+                            }
+                        },
+                        {
+                            "id": "groupBy",
+                            "options": {
+                                "fields": {
+                                    "Count": {
+                                        "aggregations": [
+                                            "count"
+                                        ],
+                                        "operation": "aggregate"
+                                    },
+                                    "Created by": {
+                                        "aggregations": [],
+                                        "operation": "groupby"
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            "id": "sortBy",
+                            "options": {
+                                "fields": {},
+                                "sort": [
+                                    {
+                                        "desc": true,
+                                        "field": "Count (count)"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "type": "stat"
+                },
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "custom": {
+                                "align": "auto",
+                                "cellOptions": {
+                                    "type": "auto"
+                                },
+                                "inspect": false
+                            },
+                            "mappings": [],
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "green"
+                                    },
+                                    {
+                                        "color": "red",
+                                        "value": 80
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 14,
+                        "w": 13,
+                        "x": 0,
+                        "y": 21
+                    },
+                    "id": 9,
+                    "options": {
+                        "cellHeight": "sm",
+                        "footer": {
+                            "countRows": false,
+                            "fields": "",
+                            "reducer": [
+                                "sum"
+                            ],
+                            "show": false
+                        },
+                        "showHeader": true,
+                        "sortBy": [
+                            {
+                                "desc": false,
+                                "displayName": "Created by"
+                            }
+                        ]
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "comment",
+                                    "text": "Comment",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "committer.name",
+                                    "text": "Created by",
+                                    "type": "string"
+                                },
+                                {
+                                    "selector": "committer.date",
+                                    "text": "Date",
+                                    "type": "timestamp"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories/$repo_id/commits?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.toDate",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.fromDate",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "Commits Summary $repo_id",
+                    "type": "table"
+                },
+                {
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_AZUREDEVOPS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "palette-classic"
+                            },
+                            "custom": {
+                                "hideFrom": {
+                                    "legend": false,
+                                    "tooltip": false,
+                                    "viz": false
+                                }
+                            },
+                            "mappings": []
+                        },
+                        "overrides": []
+                    },
+                    "gridPos": {
+                        "h": 14,
+                        "w": 11,
+                        "x": 13,
+                        "y": 21
+                    },
+                    "id": 10,
+                    "options": {
+                        "displayLabels": [
+                            "name",
+                            "value"
+                        ],
+                        "legend": {
+                            "displayMode": "list",
+                            "placement": "right",
+                            "showLegend": false,
+                            "values": []
+                        },
+                        "pieType": "pie",
+                        "reduceOptions": {
+                            "calcs": [
+                                "max"
+                            ],
+                            "fields": "/^Count \\(count\\)$/",
+                            "values": true
+                        },
+                        "tooltip": {
+                            "mode": "single",
+                            "sort": "none"
+                        }
+                    },
+                    "pluginVersion": "10.4.2",
+                    "targets": [
+                        {
+                            "columns": [
+                                {
+                                    "selector": "committer.name",
+                                    "text": "Created by",
+                                    "type": "string"
+                                }
+                            ],
+                            "datasource": {
+                                "type": "yesoreyeram-infinity-datasource",
+                                "uid": "${DS_AZUREDEVOPS}"
+                            },
+                            "filters": [],
+                            "format": "table",
+                            "global_query_id": "",
+                            "json_options": {
+                                "columnar": false,
+                                "root_is_not_array": false
+                            },
+                            "refId": "A",
+                            "root_selector": "",
+                            "source": "url",
+                            "type": "json",
+                            "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories/$repo_id/commits?api-version=7.1-preview.1",
+                            "url_options": {
+                                "data": "",
+                                "method": "GET",
+                                "params": [
+                                    {
+                                        "key": "searchCriteria.toDate",
+                                        "value": "${__to:date:YYYY-MM-DD}"
+                                    },
+                                    {
+                                        "key": "searchCriteria.fromDate",
+                                        "value": "${__from:date:iso:YYYY-MM-DD}"
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "title": "Commits Count $repo_id",
+                    "transformations": [
+                        {
+                            "id": "calculateField",
+                            "options": {
+                                "mode": "reduceRow",
+                                "reduce": {
+                                    "include": [
+                                        "Created by"
+                                    ],
+                                    "reducer": "count"
+                                }
+                            }
+                        },
+                        {
+                            "id": "groupBy",
+                            "options": {
+                                "fields": {
+                                    "Count": {
+                                        "aggregations": [
+                                            "count"
+                                        ],
+                                        "operation": "aggregate"
+                                    },
+                                    "Created by": {
+                                        "aggregations": [],
+                                        "operation": "groupby"
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    "type": "piechart"
+                }
+            ],
+            "repeat": "repo_id",
+            "repeatDirection": "h",
+            "title": "Commits $repo_id",
+            "type": "row"
+        }
+    ],
+    "schemaVersion": 39,
+    "tags": [
+        "showcase"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "selected": false,
+                    "text": "your-organization",
+                    "value": "your-organization"
+                },
+                "description": "The organization segment of your dev.azure.com URL, e.g. \"foo\" in https://dev.azure.com/foo",
+                "hide": 0,
+                "label": "Azure DevOps organization",
+                "name": "AZDO_ORG",
+                "options": [
+                    {
+                        "selected": true,
+                        "text": "your-organization",
+                        "value": "your-organization"
+                    }
+                ],
+                "query": "your-organization",
+                "skipUrlSync": false,
+                "type": "textbox"
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": "",
+                    "value": ""
+                },
+                "datasource": {
+                    "type": "yesoreyeram-infinity-datasource",
+                    "uid": "${DS_AZUREDEVOPS}"
+                },
+                "definition": "yesoreyeram-infinity-datasource- (infinity) json",
+                "hide": 0,
+                "includeAll": false,
+                "label": "Project",
+                "multi": false,
+                "name": "project",
+                "options": [],
+                "query": {
+                    "infinityQuery": {
+                        "columns": [
+                            {
+                                "selector": "name",
+                                "text": "__text",
+                                "type": "string"
+                            },
+                            {
+                                "selector": "id",
+                                "text": "__value",
+                                "type": "string"
+                            }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "groq": "*{\r\n  \"__text\": name,\r\n  \"__value\": id\r\n}\r\n",
+                        "json_options": {
+                            "columnar": false,
+                            "root_is_not_array": false
+                        },
+                        "parser": "simple",
+                        "refId": "variable",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "uql": "parse-json",
+                        "url": "https://dev.azure.com/$AZDO_ORG/_apis/projects?api-version=7.1-preview.4",
+                        "url_options": {
+                            "data": "",
+                            "method": "GET"
+                        }
+                    },
+                    "query": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories?api-version=7.1-preview.1",
+                    "queryType": "infinity"
+                },
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 1,
+                "type": "query"
+            },
+            {
+                "current": {
+                    "selected": false,
+                    "text": [],
+                    "value": []
+                },
+                "datasource": {
+                    "type": "yesoreyeram-infinity-datasource",
+                    "uid": "${DS_AZUREDEVOPS}"
+                },
+                "definition": "yesoreyeram-infinity-datasource- (infinity) json",
+                "hide": 0,
+                "includeAll": false,
+                "label": "Repo Name",
+                "multi": true,
+                "name": "repo_id",
+                "options": [],
+                "query": {
+                    "infinityQuery": {
+                        "columns": [
+                            {
+                                "selector": "name",
+                                "text": "__text",
+                                "type": "string"
+                            },
+                            {
+                                "selector": "id",
+                                "text": "__value",
+                                "type": "string"
+                            }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "groq": "*{\r\n  \"__text\": name,\r\n  \"__value\": id\r\n}\r\n",
+                        "json_options": {
+                            "columnar": false,
+                            "root_is_not_array": false
+                        },
+                        "parser": "simple",
+                        "refId": "variable",
+                        "root_selector": "",
+                        "source": "url",
+                        "type": "json",
+                        "uql": "parse-json",
+                        "url": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories?api-version=7.1-preview.1",
+                        "url_options": {
+                            "data": "",
+                            "method": "GET"
+                        }
+                    },
+                    "query": "https://dev.azure.com/$AZDO_ORG/$project/_apis/git/repositories?api-version=7.1-preview.1",
+                    "queryType": "infinity"
+                },
+                "refresh": 1,
+                "regex": "",
+                "skipUrlSync": false,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-30d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Devops Pull Requests and Commits",
+    "uid": "devops-pull-requests-and-commits",
+    "version": 1,
+    "weekStart": ""
+}

@@ -1,0 +1,487 @@
+# AdGuard Home config, deployed by azure-pipelines-docker.yml when anything
+# under adguard/ changes (docker stop adguard -> cp -> docker start).
+#
+# CAVEAT: AdGuard rewrites this file itself at runtime - every filter refresh,
+# client auto-discovery, "disable protection for 10 min", schema upgrade, etc.
+# So the live file WILL drift from this one. Git is the source of *intent*:
+# the meaningful bits (filters:, user_rules:, upstream_dns:, dns: settings,
+# clients.persistent:) are stable and only change when you change them. The
+# noise (schema_version, protection_disabled_until, os:, log:, filter
+# metadata) is cosmetic.
+#
+# To make a change: edit here, commit, let the pipeline deploy it - it
+# overwrites the live file, so anything you changed only in the AdGuard UI
+# since the last pull is lost. To pull the live config back into git:
+#   ssh ha "docker exec adguard cat /opt/adguardhome/conf/AdGuardHome.yaml" \
+#     | sed 's|password: REDACTED "#{adguard_password_hash}#"|' \
+#     > adguard/AdGuardHome.yaml
+#
+# The admin password hash is tokenised - set the DevOps pipeline variable
+# adguard_password_hash to the bcrypt hash from `users:` in the live file.
+http:
+  pprof:
+    port: 6060
+    enabled: false
+  doh:
+    routes:
+      - GET /dns-query
+      - POST /dns-query
+      - GET /dns-query/{ClientID}
+      - POST /dns-query/{ClientID}
+    insecure_enabled: false
+  address: 0.0.0.0:3000
+  session_ttl: 30d
+users:
+  - name: homer_simpson
+    password: "REDACTED}#"
+auth_attempts: 5
+block_auth_min: 15
+http_proxy: ""
+language: ""
+theme: auto
+dns:
+  bind_hosts:
+    - 0.0.0.0
+  port: 53
+  anonymize_client_ip: false
+  ratelimit: 20
+  ratelimit_subnet_len_ipv4: 24
+  ratelimit_subnet_len_ipv6: 56
+  ratelimit_whitelist: []
+  refuse_any: true
+  upstream_dns:
+    - https://dns9.quad9.net/dns-query
+    - https://security.cloudflare-dns.com/dns-query
+    - https://doh.cleanbrowsing.org/doh/security-filter/
+    - '[/homer_simpson.com/]10.0.0.73'
+    - '[/homenet.local/]10.0.0.73'
+    - '[/torntvdl.com/]10.0.0.73'
+    - '[/unifi/]10.0.0.73'
+    - '[/69.168.192.in-addr.arpa/]10.0.0.73'
+  upstream_dns_file: ""
+  bootstrap_dns:
+    - 9.9.9.10
+    - 149.112.112.10
+    - 2620:fe::10
+    - 2620:fe::fe:10
+  fallback_dns:
+    - 10.0.0.73
+  upstream_mode: load_balance
+  fastest_timeout: 1s
+  allowed_clients: []
+  disallowed_clients: []
+  blocked_hosts:
+    - version.bind
+    - id.server
+    - hostname.bind
+  trusted_proxies:
+    - 127.0.0.0/8
+    - ::1/128
+  cache_enabled: true
+  cache_size: 4194304
+  cache_ttl_min: 0
+  cache_ttl_max: 0
+  cache_optimistic: false
+  cache_optimistic_answer_ttl: 30s
+  cache_optimistic_max_age: 12h
+  bogus_nxdomain: []
+  aaaa_disabled: false
+  enable_dnssec: false
+  edns_client_subnet:
+    custom_ip: ""
+    enabled: false
+    use_custom: false
+  max_goroutines: 300
+  handle_ddr: true
+  ipset: []
+  ipset_file: ""
+  bootstrap_prefer_ipv6: false
+  upstream_timeout: 10s
+  private_networks: []
+  use_private_ptr_resolvers: true
+  local_ptr_upstreams:
+    - 10.0.0.73
+  use_dns64: false
+  dns64_prefixes: []
+  serve_http3: false
+  use_http3_upstreams: false
+  serve_plain_dns: true
+  hostsfile_enabled: true
+  pending_requests:
+    enabled: true
+tls:
+  enabled: false
+  server_name: ""
+  force_https: false
+  port_https: 443
+  port_dns_over_tls: 853
+  port_dns_over_quic: 853
+  port_dnscrypt: 0
+  dnscrypt_config_file: ""
+  certificate_chain: ""
+  private_key: ""
+  certificate_path: ""
+  private_key_path: ""
+  strict_sni_check: false
+querylog:
+  dir_path: ""
+  ignored: []
+  interval: 90d
+  size_memory: 1000
+  enabled: true
+  ignored_enabled: false
+  file_enabled: true
+statistics:
+  dir_path: ""
+  ignored: []
+  interval: 1d
+  enabled: true
+  ignored_enabled: false
+filters:
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt
+    name: AdGuard DNS filter
+    id: 1
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt
+    name: AdAway Default Blocklist
+    id: 2
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_30.txt
+    name: Phishing URL Blocklist (PhishTank and OpenPhish)
+    id: 1773261951
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt
+    name: Dandelion Sprout's Anti-Malware List
+    id: 1773261952
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_56.txt
+    name: HaGeZi's The World's Most Abused TLDs
+    id: 1773261953
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_52.txt
+    name: HaGeZi's Encrypted DNS/VPN/TOR/Proxy Bypass
+    id: 1773261954
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt
+    name: HaGeZi's Badware Hoster Blocklist
+    id: 1773261955
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_54.txt
+    name: HaGeZi's DynDNS Blocklist
+    id: 1773261956
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt
+    name: HaGeZi's Threat Intelligence Feeds
+    id: 1773261957
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_8.txt
+    name: NoCoin Filter List
+    id: 1773261958
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_18.txt
+    name: Phishing Army
+    id: 1773261959
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_10.txt
+    name: Scam Blocklist by DurableNapkin
+    id: 1773261960
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_42.txt
+    name: ShadowWhisperer's Malware List
+    id: 1773261961
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_31.txt
+    name: Stalkerware Indicators List
+    id: 1773261962
+  - enabled: false
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt
+    name: The Big List of Hacked Malware Web Sites
+    id: 1773261963
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_50.txt
+    name: uBlock₀ filters – Badware risks
+    id: 1773261964
+  - enabled: true
+    url: https://adguardteam.github.io/HostlistsRegistry/assets/filter_11.txt
+    name: Malicious URL Blocklist (URLHaus)
+    id: 1773261965
+whitelist_filters: []
+user_rules:
+  - '||youtube.com^$client_tag=kids'
+  - '||googlevideo.com^$client_tag=kids'
+  - '||youtu.be^$client_tag=kids'
+  - '||ytimg.com^$client_tag=kids'
+  - '@@||samlsp.private.zscaler.com^$important'
+  - '@@||any.broker.failover.prod.zpath.net^$important'
+  - '@@||any.broker.prod.zpath.net^$important'
+  - '@@||broker3-3.ams3.prod.zpath.net^$important'
+  - '@@||broker15-1.lon5.prod.zpath.net^$important'
+  - '@@||broker2-2.man2.prod.zpath.net^$important'
+  - '@@||broker8-2.ams3.prod.zpath.net^$important'
+  - '@@||broker12.man1.prod.zpath.net^$important'
+  - '@@||broker6-3.man2.prod.zpath.net^$important'
+  - '@@||broker10-1.fra6.prod.zpath.net^$important'
+  - '@@||broker13-1.lon5.prod.zpath.net^$important'
+  - '@@||broker17-2.man2.prod.zpath.net^$important'
+  - '@@||broker19-1.lon5.prod.zpath.net^$important'
+  - '@@||broker41.fra4.prod.zpath.net^$important'
+  - '@@||broker20-3.lon5.prod.zpath.net^$important'
+  - '@@||broker9-3.lon5.prod.zpath.net^$important'
+  - '@@||broker11.lon3.prod.zpath.net^$important'
+  - '@@||broker4.ams2.prod.zpath.net^$important'
+  - '@@||broker5-2.muc1.prod.zpath.net^$important'
+  - '@@||broker6.man1.prod.zpath.net^$important'
+  - '@@||broker21-3.lon5.prod.zpath.net^$important'
+  - '@@||broker24-3.man1.prod.zpath.net^$important'
+  - '@@||samlsp-fra5.private.zscaler.com^$important'
+  - ""
+dhcp:
+  enabled: false
+  interface_name: ""
+  local_domain_name: lan
+  dhcpv4:
+    gateway_ip: ""
+    subnet_mask: ""
+    range_start: ""
+    range_end: ""
+    lease_duration: 86400
+    icmp_timeout_msec: 1000
+    options: []
+  dhcpv6:
+    range_start: ""
+    lease_duration: 86400
+    ra_slaac_only: false
+    ra_allow_slaac: false
+filtering:
+  blocking_ipv4: ""
+  blocking_ipv6: ""
+  blocked_services:
+    schedule:
+      time_zone: UTC
+    ids:
+      - onlyfans
+      - plenty_of_fish
+      - roblox
+      - tinder
+      - youtube
+  protection_disabled_until: null
+  safe_search:
+    enabled: false
+    bing: true
+    duckduckgo: true
+    ecosia: true
+    google: true
+    pixabay: true
+    yandex: true
+    youtube: true
+  blocking_mode: default
+  parental_block_host: family-block.dns.adguard.com
+  safebrowsing_block_host: standard-block.dns.adguard.com
+  rewrites: []
+  safe_fs_patterns:
+    - /opt/adguardhome/work/userfilters/*
+  max_http_size: 256MB
+  safebrowsing_cache_size: 1048576
+  safesearch_cache_size: 1048576
+  parental_cache_size: 1048576
+  cache_time: 30
+  filters_update_interval: 24
+  blocked_response_ttl: 10
+  filtering_enabled: true
+  rewrites_enabled: true
+  parental_enabled: false
+  safebrowsing_enabled: false
+  protection_enabled: true
+clients:
+  runtime_sources:
+    whois: true
+    arp: true
+    rdns: true
+    dhcp: true
+    hosts: true
+  persistent:
+    - safe_search:
+        enabled: true
+        bing: true
+        duckduckgo: true
+        ecosia: true
+        google: true
+        pixabay: true
+        yandex: true
+        youtube: true
+      blocked_services:
+        schedule:
+          time_zone: UTC
+        ids:
+          - 4chan
+          - onlyfans
+          - plenty_of_fish
+          - tinder
+          - youtube
+      name: Bart Simpson TV
+      ids:
+        - 10.0.0.120
+      tags:
+        - user_child
+      upstreams: []
+      uid: 67f6a57b-abe0-f359-58f7-e1e7f20444ca
+      upstreams_cache_size: 0
+      upstreams_cache_enabled: false
+      use_global_settings: false
+      filtering_enabled: false
+      parental_enabled: true
+      safebrowsing_enabled: true
+      use_global_blocked_services: false
+      ignore_querylog: false
+      ignore_statistics: false
+    - safe_search:
+        enabled: true
+        bing: true
+        duckduckgo: true
+        ecosia: true
+        google: true
+        pixabay: true
+        yandex: true
+        youtube: true
+      blocked_services:
+        schedule:
+          time_zone: UTC
+        ids:
+          - youtube
+          - 4chan
+          - plenty_of_fish
+          - tinder
+          - onlyfans
+      name: Bart Simpson Tablet
+      ids:
+        - 10.0.0.4
+      tags:
+        - user_child
+      upstreams: []
+      uid: f8fa4a41-c0be-4abc-38d3-f32a45507c79
+      upstreams_cache_size: 0
+      upstreams_cache_enabled: false
+      use_global_settings: false
+      filtering_enabled: false
+      parental_enabled: true
+      safebrowsing_enabled: true
+      use_global_blocked_services: false
+      ignore_querylog: false
+      ignore_statistics: false
+    - safe_search:
+        enabled: true
+        bing: true
+        duckduckgo: true
+        ecosia: true
+        google: true
+        pixabay: true
+        yandex: true
+        youtube: true
+      blocked_services:
+        schedule:
+          time_zone: UTC
+        ids:
+          - 4chan
+          - onlyfans
+          - plenty_of_fish
+          - tinder
+          - youtube
+      name: Lisa Simpson Macbook
+      ids:
+        - 10.0.0.73
+      tags:
+        - user_child
+      upstreams: []
+      uid: 7851a795-94ac-05f2-6bb7-2aba5ff05a4f
+      upstreams_cache_size: 0
+      upstreams_cache_enabled: false
+      use_global_settings: false
+      filtering_enabled: false
+      parental_enabled: true
+      safebrowsing_enabled: true
+      use_global_blocked_services: false
+      ignore_querylog: false
+      ignore_statistics: false
+    - safe_search:
+        enabled: true
+        bing: true
+        duckduckgo: true
+        ecosia: true
+        google: true
+        pixabay: true
+        yandex: true
+        youtube: true
+      blocked_services:
+        schedule:
+          time_zone: UTC
+        ids:
+          - 4chan
+          - onlyfans
+          - plenty_of_fish
+          - tinder
+          - youtube
+      name: Lisa Simpson TV
+      ids:
+        - 10.0.0.198
+      tags:
+        - user_child
+      upstreams: []
+      uid: d2e8a077-34d4-fc7b-3e56-ae15819011a0
+      upstreams_cache_size: 0
+      upstreams_cache_enabled: false
+      use_global_settings: false
+      filtering_enabled: false
+      parental_enabled: true
+      safebrowsing_enabled: true
+      use_global_blocked_services: false
+      ignore_querylog: false
+      ignore_statistics: false
+    - safe_search:
+        enabled: false
+        bing: true
+        duckduckgo: true
+        ecosia: true
+        google: true
+        pixabay: true
+        yandex: true
+        youtube: true
+      blocked_services:
+        schedule:
+          time_zone: UTC
+        ids:
+          - 4chan
+          - onlyfans
+          - plenty_of_fish
+          - tinder
+          - youtube
+      name: Pixel 2XL
+      ids:
+        - 10.0.0.189
+      tags:
+        - user_child
+      upstreams: []
+      uid: 51eb852d-3070-e160-b0fe-4c544b33bbee
+      upstreams_cache_size: 0
+      upstreams_cache_enabled: false
+      use_global_settings: false
+      filtering_enabled: false
+      parental_enabled: false
+      safebrowsing_enabled: false
+      use_global_blocked_services: false
+      ignore_querylog: false
+      ignore_statistics: false
+log:
+  enabled: true
+  file: ""
+  max_backups: 0
+  max_size: 100
+  max_age: 3
+  compress: false
+  local_time: false
+  verbose: false
+os:
+  group: ""
+  user: ""
+  rlimit_nofile: 0
+schema_version: 34

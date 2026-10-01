@@ -1,0 +1,2182 @@
+{
+    "__inputs": [
+        {
+            "name": "DS_WIZ",
+            "label": "Wiz",
+            "description": "",
+            "type": "datasource",
+            "pluginId": "yesoreyeram-infinity-datasource",
+            "pluginName": "Infinity"
+        }
+    ],
+    "__elements": {},
+    "__requires": [
+        {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "13.2.1"
+        },
+        {
+            "type": "panel",
+            "id": "table",
+            "name": "Table",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "stat",
+            "name": "Stat",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "timeseries",
+            "name": "Time series",
+            "version": ""
+        },
+        {
+            "type": "datasource",
+            "id": "yesoreyeram-infinity-datasource",
+            "name": "Infinity",
+            "version": "4.0.0"
+        }
+    ],
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "description": "Open Wiz findings by severity: issue trends, threat detections, and risk issues, filterable by project. Requires an Infinity datasource with OAuth2 client-credentials access to the Wiz GraphQL API (Wiz Service Account).",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "panels": [
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 300,
+            "title": "Trends",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "gradientMode": "none"
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Critical"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "High"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "orange",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Medium"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "yellow",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Low"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "blue",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 8,
+                "x": 0,
+                "y": 1
+            },
+            "id": 301,
+            "options": {
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                }
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "time",
+                            "text": "Time",
+                            "type": "timestamp"
+                        },
+                        {
+                            "selector": "criticalSeverityValue",
+                            "text": "Critical",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "highSeverityValue",
+                            "text": "High",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "mediumSeverityValue",
+                            "text": "Medium",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "lowSeverityValue",
+                            "text": "Low",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-trend-all",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issuesTrendV2.0.dataPoints",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issuesTrendV2(\n    startDate: \"${__from:date:iso}\"\n    endDate: \"${__to:date:iso}\"\n    interval: DAY\n    type: OPEN_ISSUES\n    filterBy: { project: ${Project:json} }\n  ) {\n    dataPoints {\n      time\n      criticalSeverityValue\n      highSeverityValue\n      mediumSeverityValue\n      lowSeverityValue\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "All Issues Open by Severity (Threats + Risks)",
+            "transparent": true,
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "gradientMode": "none"
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Critical"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "dark-red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "High"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "orange",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Medium"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "yellow",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Low"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "blue",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 8,
+                "x": 8,
+                "y": 1
+            },
+            "id": 302,
+            "options": {
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "desc"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                }
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "time",
+                            "text": "Time",
+                            "type": "timestamp"
+                        },
+                        {
+                            "selector": "criticalSeverityValue",
+                            "text": "Critical",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "highSeverityValue",
+                            "text": "High",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "mediumSeverityValue",
+                            "text": "Medium",
+                            "type": "number"
+                        },
+                        {
+                            "selector": "lowSeverityValue",
+                            "text": "Low",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-trend-threats",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issuesTrendV2.0.dataPoints",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issuesTrendV2(\n    startDate: \"${__from:date:iso}\"\n    endDate: \"${__to:date:iso}\"\n    interval: DAY\n    type: OPEN_ISSUES\n    filterBy: { type: [THREAT_DETECTION], project: ${Project:json} }\n  ) {\n    dataPoints {\n      time\n      criticalSeverityValue\n      highSeverityValue\n      mediumSeverityValue\n      lowSeverityValue\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Threat Detections - Open by Severity",
+            "transparent": true,
+            "type": "timeseries"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "gradientMode": "none"
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Opened"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "red",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Resolved"
+                        },
+                        "properties": [
+                            {
+                                "id": "color",
+                                "value": {
+                                    "fixedColor": "green",
+                                    "mode": "fixed"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 10,
+                "w": 8,
+                "x": 16,
+                "y": 1
+            },
+            "id": 303,
+            "options": {
+                "tooltip": {
+                    "mode": "multi",
+                    "sort": "none"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                }
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "time",
+                            "text": "Time",
+                            "type": "timestamp"
+                        },
+                        {
+                            "selector": "totalValue",
+                            "text": "Opened",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-trend-opened",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issuesTrendV2.0.dataPoints",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issuesTrendV2(\n    startDate: \"${__from:date:iso}\"\n    endDate: \"${__to:date:iso}\"\n    interval: DAY\n    type: CREATED_VS_RESOLVED_ISSUES\n    filterBy: { project: ${Project:json} }\n  ) {\n    dataPoints {\n      time\n      totalValue\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                },
+                {
+                    "columns": [
+                        {
+                            "selector": "time",
+                            "text": "Time",
+                            "type": "timestamp"
+                        },
+                        {
+                            "selector": "totalValue",
+                            "text": "Resolved",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-trend-resolved",
+                    "parser": "backend",
+                    "refId": "B",
+                    "root_selector": "data.issuesTrendV2.1.dataPoints",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issuesTrendV2(\n    startDate: \"${__from:date:iso}\"\n    endDate: \"${__to:date:iso}\"\n    interval: DAY\n    type: CREATED_VS_RESOLVED_ISSUES\n    filterBy: { project: ${Project:json} }\n  ) {\n    dataPoints {\n      time\n      totalValue\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Open and Resolved Issues",
+            "transparent": true,
+            "type": "timeseries"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 11
+            },
+            "id": 100,
+            "title": "Threat Detections",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 8,
+                "x": 0,
+                "y": 12
+            },
+            "id": 101,
+            "transparent": true,
+            "options": {
+                "colorMode": "none",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-open",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Open",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "dark-red",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "dark-red",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 8,
+                "y": 12
+            },
+            "id": 102,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-crit",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], severity: [CRITICAL], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Critical",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "orange",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 12,
+                "y": 12
+            },
+            "id": 103,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-high",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], severity: [HIGH], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "High",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "yellow",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "yellow",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 16,
+                "y": 12
+            },
+            "id": 108,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-med",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], severity: [MEDIUM], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Medium",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "blue",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 20,
+                "y": 12
+            },
+            "id": 109,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-low",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], severity: [LOW], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Low",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Severity"
+                        },
+                        "properties": [
+                            {
+                                "id": "mappings",
+                                "value": [
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "CRITICAL": {
+                                                "text": "CRITICAL",
+                                                "color": "dark-red",
+                                                "index": 0
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "HIGH": {
+                                                "text": "HIGH",
+                                                "color": "orange",
+                                                "index": 1
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "MEDIUM": {
+                                                "text": "MEDIUM",
+                                                "color": "yellow",
+                                                "index": 2
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "LOW": {
+                                                "text": "LOW",
+                                                "color": "blue",
+                                                "index": 3
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "INFORMATIONAL": {
+                                                "text": "INFORMATIONAL",
+                                                "color": "gray",
+                                                "index": 4
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "custom.width",
+                                "value": 120
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Created"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 180
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Cloud"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 80
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Project"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 120
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Detection Rule"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 280
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "auto",
+                                    "wrapText": false
+                                }
+                            },
+                            {
+                                "id": "links",
+                                "value": [
+                                    {
+                                        "title": "Open in Wiz",
+                                        "url": "https://app.wiz.io/threats?filters=%7B%22status%22%3A%7B%22equals%22%3A%5B%22OPEN%22%2C%22IN_PROGRESS%22%5D%7D%7D#%7E%28issue%7E%27${__data.fields.id}%29",
+                                        "targetBlank": true
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "id"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 100
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "auto"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 15,
+                "w": 24,
+                "x": 0,
+                "y": 16
+            },
+            "id": 104,
+            "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Severity",
+                        "desc": false
+                    }
+                ]
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "createdAt",
+                            "text": "Created",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "projects.0.name",
+                            "text": "Project",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "sourceRules.0.name",
+                            "text": "Detection Rule",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "severity",
+                            "text": "Severity",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "status",
+                            "text": "Status",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.subscriptionName",
+                            "text": "Subscription",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.name",
+                            "text": "Resource",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.type",
+                            "text": "Type",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.cloudPlatform",
+                            "text": "Cloud",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "id",
+                            "text": "id",
+                            "type": "string"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-t-table",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues.nodes",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { type: [THREAT_DETECTION], status: [OPEN, IN_PROGRESS], project: ${Project:json} }\n    orderBy: { field: SEVERITY, direction: DESC }\n    first: 500\n  ) {\n    nodes {\n      id\n      status\n      severity\n      createdAt\n      projects { name }\n      entitySnapshot {\n        name\n        type\n        subscriptionName\n        cloudPlatform\n      }\n      sourceRules { name }\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Active Threat Detections (top 500 by severity)",
+            "transformations": [
+                {
+                    "id": "filterByValue",
+                    "options": {
+                        "filters": [
+                            {
+                                "fieldName": "Severity",
+                                "config": {
+                                    "id": "regex",
+                                    "options": {
+                                        "value": "${Severity:regex}"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": "include",
+                        "match": "all"
+                    }
+                },
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {},
+                        "indexByName": {
+                            "Created": 0,
+                            "Project": 1,
+                            "Detection Rule": 2,
+                            "Severity": 3,
+                            "Status": 4,
+                            "Subscription": 5,
+                            "Resource": 6,
+                            "Type": 7,
+                            "Cloud": 8,
+                            "id": 9
+                        },
+                        "renameByName": {}
+                    }
+                }
+            ],
+            "transparent": true,
+            "type": "table"
+        },
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 31
+            },
+            "id": 200,
+            "title": "Risk Issues",
+            "type": "row"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "text",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 8,
+                "x": 0,
+                "y": 32
+            },
+            "id": 201,
+            "transparent": true,
+            "options": {
+                "colorMode": "none",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-open",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Open",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "dark-red",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "dark-red",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 8,
+                "y": 32
+            },
+            "id": 202,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-crit",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], severity: [CRITICAL], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Critical",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "orange",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "orange",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 12,
+                "y": 32
+            },
+            "id": 203,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-high",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], severity: [HIGH], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "High",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "yellow",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "yellow",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 16,
+                "y": 32
+            },
+            "id": 208,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-med",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], severity: [MEDIUM], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Medium",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "blue",
+                        "mode": "fixed"
+                    },
+                    "noValue": "0",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "blue",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 20,
+                "y": 32
+            },
+            "id": 209,
+            "transparent": true,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "reduceOptions": {
+                    "calcs": [
+                        "last"
+                    ],
+                    "fields": "/^Count$/",
+                    "values": false
+                },
+                "textMode": "auto"
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "totalCount",
+                            "text": "Count",
+                            "type": "number"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-low",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], severity: [LOW], project: ${Project:json} }\n    first: 1\n  ) {\n    totalCount\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Low",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "yesoreyeram-infinity-datasource",
+                "uid": "${DS_WIZ}"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "custom": {
+                        "align": "auto",
+                        "cellOptions": {
+                            "type": "auto"
+                        },
+                        "filterable": true,
+                        "inspect": false
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Severity"
+                        },
+                        "properties": [
+                            {
+                                "id": "mappings",
+                                "value": [
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "CRITICAL": {
+                                                "text": "CRITICAL",
+                                                "color": "dark-red",
+                                                "index": 0
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "HIGH": {
+                                                "text": "HIGH",
+                                                "color": "orange",
+                                                "index": 1
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "MEDIUM": {
+                                                "text": "MEDIUM",
+                                                "color": "yellow",
+                                                "index": 2
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "LOW": {
+                                                "text": "LOW",
+                                                "color": "blue",
+                                                "index": 3
+                                            }
+                                        }
+                                    },
+                                    {
+                                        "type": "value",
+                                        "options": {
+                                            "INFORMATIONAL": {
+                                                "text": "INFORMATIONAL",
+                                                "color": "gray",
+                                                "index": 4
+                                            }
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "color-background"
+                                }
+                            },
+                            {
+                                "id": "custom.width",
+                                "value": 120
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Created"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 180
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Status"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Cloud"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 100
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Project"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 160
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Subscription"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 200
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Rule"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "auto",
+                                    "wrapText": false
+                                }
+                            },
+                            {
+                                "id": "links",
+                                "value": [
+                                    {
+                                        "title": "Open in Wiz",
+                                        "url": "https://app.wiz.io/issues?filters=%7B%22status%22%3A%7B%22equals%22%3A%5B%22OPEN%22%2C%22IN_PROGRESS%22%5D%7D%7D#%7E%28issue%7E%27${__data.fields.id}%29",
+                                        "targetBlank": true
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "id"
+                        },
+                        "properties": [
+                            {
+                                "id": "custom.width",
+                                "value": 100
+                            },
+                            {
+                                "id": "custom.cellOptions",
+                                "value": {
+                                    "type": "auto"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            },
+            "gridPos": {
+                "h": 15,
+                "w": 24,
+                "x": 0,
+                "y": 36
+            },
+            "id": 204,
+            "options": {
+                "cellHeight": "sm",
+                "showHeader": true,
+                "sortBy": [
+                    {
+                        "displayName": "Severity",
+                        "desc": false
+                    }
+                ]
+            },
+            "pluginVersion": "13.2.1",
+            "targets": [
+                {
+                    "columns": [
+                        {
+                            "selector": "createdAt",
+                            "text": "Created",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "projects.0.name",
+                            "text": "Project",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "control.name",
+                            "text": "Rule",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "severity",
+                            "text": "Severity",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "status",
+                            "text": "Status",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.subscriptionName",
+                            "text": "Subscription",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.name",
+                            "text": "Resource",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.type",
+                            "text": "Type",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "entitySnapshot.cloudPlatform",
+                            "text": "Cloud",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "id",
+                            "text": "id",
+                            "type": "string"
+                        }
+                    ],
+                    "datasource": {
+                        "type": "yesoreyeram-infinity-datasource",
+                        "uid": "${DS_WIZ}"
+                    },
+                    "filters": [],
+                    "format": "table",
+                    "key": "Q-i-table",
+                    "parser": "backend",
+                    "refId": "A",
+                    "root_selector": "data.issues.nodes",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_content_type": "application/json",
+                        "body_graphql_query": "{\n  issues(\n    filterBy: { status: [OPEN, IN_PROGRESS], project: ${Project:json} }\n    orderBy: { field: SEVERITY, direction: DESC }\n    first: 500\n  ) {\n    nodes {\n      id\n      status\n      severity\n      createdAt\n      projects { name }\n      entitySnapshot {\n        name\n        type\n        subscriptionName\n        cloudPlatform\n      }\n      control { name }\n    }\n  }\n}",
+                        "body_type": "graphql",
+                        "data": "",
+                        "method": "POST"
+                    }
+                }
+            ],
+            "title": "Active Issues (top 500 by severity)",
+            "transformations": [
+                {
+                    "id": "filterByValue",
+                    "options": {
+                        "filters": [
+                            {
+                                "fieldName": "Severity",
+                                "config": {
+                                    "id": "regex",
+                                    "options": {
+                                        "value": "${Severity:regex}"
+                                    }
+                                }
+                            }
+                        ],
+                        "type": "include",
+                        "match": "all"
+                    }
+                },
+                {
+                    "id": "organize",
+                    "options": {
+                        "excludeByName": {},
+                        "indexByName": {
+                            "Created": 0,
+                            "Project": 1,
+                            "Rule": 2,
+                            "Severity": 3,
+                            "Status": 4,
+                            "Subscription": 5,
+                            "Resource": 6,
+                            "Type": 7,
+                            "Cloud": 8,
+                            "id": 9
+                        },
+                        "renameByName": {}
+                    }
+                }
+            ],
+            "transparent": true,
+            "type": "table"
+        }
+    ],
+    "preload": false,
+    "refresh": "5m",
+    "schemaVersion": 42,
+    "tags": [
+        "wiz",
+        "security"
+    ],
+    "templating": {
+        "list": [
+            {
+                "current": {
+                    "selected": true,
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "description": "Filter by severity",
+                "hide": 0,
+                "includeAll": true,
+                "allValue": ".*",
+                "multi": true,
+                "name": "Severity",
+                "options": [
+                    {
+                        "selected": false,
+                        "text": "CRITICAL",
+                        "value": "CRITICAL"
+                    },
+                    {
+                        "selected": false,
+                        "text": "HIGH",
+                        "value": "HIGH"
+                    },
+                    {
+                        "selected": false,
+                        "text": "MEDIUM",
+                        "value": "MEDIUM"
+                    },
+                    {
+                        "selected": false,
+                        "text": "LOW",
+                        "value": "LOW"
+                    },
+                    {
+                        "selected": false,
+                        "text": "INFORMATIONAL",
+                        "value": "INFORMATIONAL"
+                    }
+                ],
+                "query": "CRITICAL,HIGH,MEDIUM,LOW,INFORMATIONAL",
+                "queryValue": "",
+                "skipUrlSync": false,
+                "type": "custom"
+            },
+            {
+                "allowCustomValue": true,
+                "current": {
+                    "selected": true,
+                    "text": "All",
+                    "value": "$__all"
+                },
+                "datasource": {
+                    "type": "yesoreyeram-infinity-datasource",
+                    "uid": "${DS_WIZ}"
+                },
+                "definition": "",
+                "description": "Filter by project",
+                "hide": 0,
+                "includeAll": true,
+                "label": "Project",
+                "multi": true,
+                "name": "Project",
+                "options": [],
+                "query": {
+                    "columns": [
+                        {
+                            "selector": "id",
+                            "text": "__value",
+                            "type": "string"
+                        },
+                        {
+                            "selector": "name",
+                            "text": "__text",
+                            "type": "string"
+                        }
+                    ],
+                    "format": "table",
+                    "infinityQuery": {
+                        "columns": [
+                            {
+                                "selector": "id",
+                                "text": "__value",
+                                "type": "string"
+                            },
+                            {
+                                "selector": "name",
+                                "text": "__text",
+                                "type": "string"
+                            }
+                        ],
+                        "filters": [],
+                        "format": "table",
+                        "parser": "backend",
+                        "refId": "",
+                        "root_selector": "$distinct(data.issues.nodes.projects)",
+                        "source": "url",
+                        "type": "graphql",
+                        "url": "https://api.eu8.app.wiz.io/graphql",
+                        "url_options": {
+                            "body_content_type": "application/json",
+                            "body_graphql_query": "{ issues(first: 500) { nodes { projects { id name } } } }",
+                            "body_type": "graphql",
+                            "data": "",
+                            "method": "POST"
+                        }
+                    },
+                    "parser": "backend",
+                    "queryType": "infinity",
+                    "refId": "Project",
+                    "root_selector": "$distinct(data.issues.nodes.projects)",
+                    "source": "url",
+                    "type": "graphql",
+                    "url": "https://api.eu8.app.wiz.io/graphql",
+                    "url_options": {
+                        "body_graphql_query": "{ issues(first: 500) { nodes { projects { id name } } } }",
+                        "body_type": "graphql",
+                        "method": "POST"
+                    }
+                },
+                "refresh": 1,
+                "regex": "",
+                "regexApplyTo": "value",
+                "skipUrlSync": false,
+                "sort": 1,
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-30d",
+        "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Wiz Security",
+    "uid": "wiz-security",
+    "version": 1,
+    "weekStart": ""
+}

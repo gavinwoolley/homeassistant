@@ -1,0 +1,72 @@
+# Self-health of the observability stack: Mimir, Loki, Alloy, Grafana.
+# (Mimir uses the cortex_* metric prefix.)
+namespace: lgtm-stack
+groups:
+  - name: mimir
+    rules:
+      - alert: MimirIngesterUnhealthy
+        expr: cortex_ring_members{name="ingester", state="Unhealthy"} > 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Mimir has an unhealthy ingester"
+          description: "{{ $value }} ingester(s) reported Unhealthy in the ring."
+
+      - alert: MimirCompactionStalled
+        expr: time() - cortex_compactor_last_successful_run_timestamp_seconds > 6 * 3600
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mimir compactor has not run successfully in 6h"
+          description: "Blocks are not being compacted - storage growth and slow queries follow."
+
+      - alert: MimirServerErrors
+        expr: |
+          sum(rate(cortex_request_duration_seconds_count{status_code=~"5.."}[5m]))
+          /
+          sum(rate(cortex_request_duration_seconds_count[5m])) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mimir is returning 5xx on {{ $value | humanizePercentage }} of requests"
+          description: "Check Mimir logs and host memory (see mimir_metric_gaps)."
+
+  - name: loki
+    rules:
+      - alert: LokiServerErrors
+        expr: |
+          sum(rate(loki_request_duration_seconds_count{status_code=~"5.."}[5m]))
+          /
+          sum(rate(loki_request_duration_seconds_count[5m])) > 0.05
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Loki is returning 5xx on {{ $value | humanizePercentage }} of requests"
+          description: "Check Loki logs."
+
+  - name: alloy
+    rules:
+      - alert: AlloyConfigNotLoaded
+        expr: alloy_config_last_load_successful == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Alloy failed to load its configuration"
+          description: "config.alloy is invalid or unreadable - metrics/log shipping may be degraded."
+
+      - alert: AlloyComponentEvaluationSlow
+        expr: |
+          sum by (instance) (rate(alloy_component_evaluation_seconds_sum[10m]))
+          /
+          sum by (instance) (rate(alloy_component_evaluation_seconds_count[10m])) > 1
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alloy component evaluations are slow on {{ $labels.instance }}"
+          description: "Mean evaluation time {{ $value | printf \"%.1f\" }}s."

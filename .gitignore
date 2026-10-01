@@ -1,0 +1,17 @@
+# This is a sanitized mirror, force-pushed as a single commit each sync -
+# this .gitignore only matters if you clone it and run things locally
+# (e.g. demo/).
+
+__pycache__/
+*.pyc
+.venv/
+env/
+node_modules/
+
+# Home Assistant runtime state, if you run this config yourself
+.storage/
+*.log
+home-assistant_v2.db*
+
+# Demo instance runtime data
+demo/out/

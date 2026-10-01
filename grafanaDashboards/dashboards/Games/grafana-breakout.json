@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "Burn Down the Incident Queue: a Breakout-style on-call game where operational incidents are cleared from the board.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "Burn Down the Incident Queue: a Breakout-style on-call game where operational incidents are cleared from the board.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Arcade: self-contained Business Text panel. No datasource required.\nif (this.arcadeCleanup) this.arcadeCleanup();\nconst root = context.element.querySelector('.arcade-root');\nif (!root) throw new Error('Grafana Arcade root was not found');\nroot.innerHTML = ''; root.tabIndex = 0;\nObject.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div'); Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});\nconst header=document.createElement('div'); Object.assign(header.style,{display:'flex',justifyContent:'space-between',gap:'10px',alignItems:'center',marginBottom:'10px'});\nconst title=document.createElement('div'); title.textContent=\"Grafana Incident Queue\"; Object.assign(title.style,{fontWeight:'700',letterSpacing:'.08em',fontSize:'17px'});\nconst status=document.createElement('div'); Object.assign(status.style,{font:'12px Roboto Mono,monospace',color:'#73bf69'}); header.append(title,status); app.appendChild(header);\nconst metrics=document.createElement('div'); Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(125px,1fr))',gap:'8px',marginBottom:'10px'}); app.appendChild(metrics);\nconst cards={}; function metric(name,value){const c=document.createElement('div');Object.assign(c.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});c.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+name+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(c);cards[name]=c.lastChild;}\n\nconst stage=document.createElement('div'); Object.assign(stage.style,{height:'calc(100% - 105px)',minHeight:'420px',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden',position:'relative'});app.appendChild(stage);root.appendChild(app);\nfunction set(name,value){if(cards[name])cards[name].textContent=value} function state(text,color='#73bf69'){status.textContent=text;status.style.color=color}\nroot.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));\nlet raf=0, dead=false; this.arcadeCleanup=()=>{cancelAnimationFrame(raf);root.replaceChildren()};\nconst canvas=document.createElement('canvas'), ctx=canvas.getContext('2d'); canvas.width=800;canvas.height=500;Object.assign(canvas.style,{width:'100%',height:'100%',maxWidth:'900px',objectFit:'contain',imageRendering:'pixelated'});stage.appendChild(canvas);var arcadeMuteButton=document.createElement('button');let arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';function renderArcadeMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.borderColor=arcadeMuted?'#777d86':'#5794f2';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});stage.appendChild(arcadeMuteButton);arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderArcadeMute()});renderArcadeMute();function arcadeTone(freq=440,duration=.07,wave='square'){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const oscillator=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();oscillator.type=wave;oscillator.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.045,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);oscillator.connect(gain).connect(arcadeAudio.destination);oscillator.start();oscillator.stop(arcadeAudio.currentTime+duration+.02)}catch(_){/* Sound is optional when browser policy blocks audio. */}}\nfunction bg(){ctx.fillStyle='#0b0c0e';ctx.fillRect(0,0,800,500);ctx.strokeStyle='rgba(255,255,255,.045)';for(let x=0;x<800;x+=25){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,500);ctx.stroke()}for(let y=0;y<500;y+=25){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke()}}\nlet paddle=350,ball,score=0,engineer_focus_remaining=3,gameOver=false,keys={},bricks=[],breakoutLastSound=0,paddleSoundArmed=true;function breakoutTone(...args){const now=performance.now();if(now-breakoutLastSound<140)return;breakoutLastSound=now;arcadeTone(...args)}function makeBricks(){bricks=[];for(let y=0;y<5;y++)for(let x=0;x<10;x++)bricks.push({x:85+x*64,y:55+y*28,on:true,c:['#5794f2','#73bf69','#ff9830','#b877d9','#f2495c'][y]})}function resetBall(){ball={x:400,y:390,vx:4,vy:-4};paddle=350;paddleSoundArmed=true}function restart(){score=0;engineer_focus_remaining=3;gameOver=false;makeBricks();resetBall();state('RUNNING - LEFT/RIGHT or A/D; mouse also supported')}makeBricks();resetBall();metric('incidents_resolved_total','0');metric('active_incidents','50');metric('engineer_focus_remaining','3');metric('best_shift_score',localStorage.getItem('arcade-breakout')||'0');state('RUNNING - LEFT/RIGHT or A/D; mouse also supported');root.addEventListener('keydown',e=>{if(e.code==='Space'&&gameOver){restart();e.preventDefault();return}if(['ArrowLeft','ArrowRight','KeyA','KeyD'].includes(e.code)){keys[e.code]=true;e.preventDefault()}});root.addEventListener('keyup',e=>{if(['ArrowLeft','ArrowRight','KeyA','KeyD'].includes(e.code)){keys[e.code]=false;e.preventDefault()}});canvas.addEventListener('pointermove',e=>{let r=canvas.getBoundingClientRect();paddle=Math.max(0,Math.min(680,(e.clientX-r.left)*800/r.width-60))});function f(){if(!root.isConnected){cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }return}if(!gameOver){if(keys.ArrowLeft||keys.KeyA)paddle-=8;if(keys.ArrowRight||keys.KeyD)paddle+=8;paddle=Math.max(0,Math.min(680,paddle));ball.x+=ball.vx;ball.y+=ball.vy;if(ball.x<8||ball.x>792)ball.vx*=-1;if(ball.y<8)ball.vy*=-1;if(ball.y<400)paddleSoundArmed=true;if(ball.y>430&&ball.x>paddle&&ball.x<paddle+120&&ball.vy>0){ball.vy=-Math.abs(ball.vy);if(paddleSoundArmed){breakoutTone(329.63,.025,'sine');paddleSoundArmed=false}}bricks.forEach(z=>{if(z.on&&ball.x>z.x&&ball.x<z.x+55&&ball.y>z.y&&ball.y<z.y+20){z.on=false;ball.vy*=-1;score+=10;breakoutTone(523.25,.035,'sine')}});if(ball.y>510){engineer_focus_remaining--;breakoutTone(164.81,.11,'triangle');if(engineer_focus_remaining<=0){engineer_focus_remaining=0;gameOver=true;state('ON-CALL BURNOUT - PRESS SPACE TO RESTART','#f2495c')}else{resetBall();state('LIFE LOST - '+engineer_focus_remaining+' REMAIN','#ff9830')}}let left=bricks.filter(x=>x.on).length;if(!left){makeBricks();resetBall();state('INCIDENT QUEUE CLEARED - NEW WAVE')}set('incidents_resolved_total',score);set('active_incidents',left);set('engineer_focus_remaining',engineer_focus_remaining);let h=Math.max(+localStorage.getItem('arcade-breakout')||0,score);localStorage.setItem('arcade-breakout',h);set('best_shift_score',h)}bg();bricks.forEach(z=>{if(z.on){ctx.fillStyle=z.c;ctx.fillRect(z.x,z.y,55,20)}});ctx.fillStyle='#73bf69';ctx.fillRect(paddle,440,120,14);ctx.fillStyle='#d8d9da';ctx.beginPath();ctx.arc(ball.x,ball.y,7,0,7);ctx.fill();if(gameOver){ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(0,0,800,500);ctx.fillStyle='#f2495c';ctx.font='700 28px monospace';ctx.textAlign='center';ctx.fillText('ENGINEER EXHAUSTED',400,230);ctx.fillStyle='#d8d9da';ctx.font='16px monospace';ctx.fillText('Press SPACE to restart',400,265);ctx.textAlign='left'}raf=requestAnimationFrame(f)}f();",
+        "content": "<div class=\"arcade-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"arcade-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Burn Down the Incident Queue",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Incident Queue",
+  "uid": "grafana-breakout",
+  "version": 2,
+  "weekStart": ""
+}

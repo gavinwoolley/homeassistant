@@ -1,0 +1,14 @@
+*.sh text eol=lf
+# Confirmed live (2026-09-22, widened 2026-09-23): without this, a Windows
+# checkout's core.autocrlf converts these to CRLF, which then fails Gate D
+# (yamllint's new-lines rule) on every local dry-run of publish/sanitize.py -
+# apply_templates() copies everything under publish/templates/ into the
+# output tree with shutil.copy2, which faithfully copies whatever's already
+# on disk, CRLF included. The real CI never hits this (Linux checkout,
+# core.autocrlf doesn't apply), but local testing on Windows always did.
+# Originally scoped to just .yamllint (the first file this broke); widened
+# to the whole directory after a full yamllint run against the whole output
+# tree (not sanitize.py's own truncated 2000-char gate printout) turned up
+# the exact same problem in 6 more files: secrets.yaml's own template, and
+# 5 files under .github/workflows/.
+publish/templates/** text eol=lf

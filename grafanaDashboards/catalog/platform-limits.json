@@ -1,0 +1,1871 @@
+{
+    "__inputs": [
+        {
+            "name": "DS_PROMETHEUS",
+            "label": "Prometheus",
+            "description": "",
+            "type": "datasource",
+            "pluginId": "prometheus",
+            "pluginName": "Prometheus"
+        }
+    ],
+    "__elements": {},
+    "__requires": [
+        {
+            "type": "grafana",
+            "id": "grafana",
+            "name": "Grafana",
+            "version": "13.2.0"
+        },
+        {
+            "type": "datasource",
+            "id": "prometheus",
+            "name": "Prometheus",
+            "version": "13.1.7"
+        },
+        {
+            "type": "panel",
+            "id": "stat",
+            "name": "Stat",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "table",
+            "name": "Table",
+            "version": ""
+        },
+        {
+            "type": "panel",
+            "id": "text",
+            "name": "Text",
+            "version": ""
+        }
+    ],
+    "annotations": {
+        "list": [
+            {
+                "builtIn": 1,
+                "datasource": {
+                    "type": "grafana",
+                    "uid": "-- Grafana --"
+                },
+                "enable": true,
+                "hide": true,
+                "iconColor": "rgba(0, 211, 255, 1)",
+                "name": "Annotations & Alerts",
+                "type": "dashboard"
+            }
+        ]
+    },
+    "description": "Configured per-tenant limits (ingestion rate/burst, series, retention, query limits, etc.) for Mimir, Loki and Tempo, per cluster.",
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "links": [],
+    "liveNow": false,
+    "panels": [
+        {
+            "collapsed": false,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "id": 24,
+            "title": "Limits",
+            "type": "row"
+        },
+        {
+            "gridPos": {
+                "h": 2,
+                "w": 24,
+                "x": 0,
+                "y": 1
+            },
+            "id": 1,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "<div style=\"font-size:13px; opacity:0.85; line-height:1.55; padding: 4px 2px;\">These are the current platform-wide limits for ingestion and querying across Loki (logs), Mimir (metrics), and Tempo (traces). Values are sourced directly from the running services.</div>",
+                "mode": "html"
+            },
+            "pluginVersion": "13.0.1",
+            "transparent": true,
+            "type": "text"
+        },
+        {
+            "gridPos": {
+                "h": 2,
+                "w": 8,
+                "x": 0,
+                "y": 3
+            },
+            "id": 2,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "<div style=\"font-size:15px;font-weight:800;padding:6px 2px 2px 2px;\">Loki<span style=\"font-size:12px;opacity:0.55;font-weight:400;margin-left:6px;\">logs</span></div>",
+                "mode": "html"
+            },
+            "pluginVersion": "13.0.1",
+            "transparent": true,
+            "type": "text"
+        },
+        {
+            "gridPos": {
+                "h": 2,
+                "w": 8,
+                "x": 8,
+                "y": 3
+            },
+            "id": 3,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "<div style=\"font-size:15px;font-weight:800;padding:6px 2px 2px 2px;\">Mimir<span style=\"font-size:12px;opacity:0.55;font-weight:400;margin-left:6px;\">metrics</span></div>",
+                "mode": "html"
+            },
+            "pluginVersion": "13.0.1",
+            "transparent": true,
+            "type": "text"
+        },
+        {
+            "gridPos": {
+                "h": 2,
+                "w": 8,
+                "x": 16,
+                "y": 3
+            },
+            "id": 4,
+            "options": {
+                "code": {
+                    "language": "plaintext",
+                    "showLineNumbers": false,
+                    "showMiniMap": false
+                },
+                "content": "<div style=\"font-size:15px;font-weight:800;padding:6px 2px 2px 2px;\">Tempo<span style=\"font-size:12px;opacity:0.55;font-weight:400;margin-left:6px;\">traces</span></div>",
+                "mode": "html"
+            },
+            "pluginVersion": "13.0.1",
+            "transparent": true,
+            "type": "text"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum log ingestion rate per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MB/s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 5
+            },
+            "id": 5,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"ingestion_rate_mb\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion rate",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum samples per second the tenant can ingest",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 5
+            },
+            "id": 11,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"ingestion_rate\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion rate",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum trace data ingestion rate per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MB/s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 16,
+                "y": 5
+            },
+            "id": 17,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\", limit_name=\"ingestion_rate_limit_bytes\"}) / 1000000",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion rate limit",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum burst size for log ingestion",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MB"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 8
+            },
+            "id": 6,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"ingestion_burst_size_mb\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion burst",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum burst of samples allowed above the ingestion rate",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 8
+            },
+            "id": 12,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"ingestion_burst_size\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion burst",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum burst size for trace ingestion",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MB"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 16,
+                "y": 8
+            },
+            "id": 18,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\", limit_name=\"ingestion_burst_size_bytes\"}) / 1000000",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Ingestion burst size",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum ingestion rate for a single log stream",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MiB/s"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 11
+            },
+            "id": 7,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"per_stream_rate_limit\"}) / 1048576",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Per-stream rate limit",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum number of active metric series per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 11
+            },
+            "id": 13,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"max_global_series_per_user\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max series per user",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum number of active traces stored per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 16,
+                "y": 11
+            },
+            "id": 19,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\", limit_name=\"max_local_traces_per_user\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max traces per user",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum number of label names allowed per log stream",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 14
+            },
+            "id": 8,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"max_label_names_per_series\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max labels per series",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum active series for a single metric name",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 14
+            },
+            "id": 14,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"max_global_series_per_metric\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max series per metric",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum size of a single trace",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "MiB"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 16,
+                "y": 14
+            },
+            "id": 20,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\", limit_name=\"max_bytes_per_trace\"}) / 1048576",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max bytes per trace",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum sub-queries executed in parallel per query",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 17
+            },
+            "id": 9,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"max_query_parallelism\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max query parallelism",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum number of rules allowed in a single rule group",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 17
+            },
+            "id": 15,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"ruler_max_rules_per_rule_group\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max rules per group",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum unique label value combinations per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 20
+            },
+            "id": 10,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"cardinality_limit\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Cardinality limit",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Maximum number of rule groups per tenant",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "short"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 20
+            },
+            "id": 16,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"ruler_max_rule_groups_per_tenant\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Max rule groups",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Default log retention period",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "dtdurations"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 0,
+                "y": 23
+            },
+            "id": 26,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\", limit_name=\"retention_period\"}) / 1000000000",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Retention period",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Default metrics retention period",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "dtdurations"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 8,
+                "y": 23
+            },
+            "id": 27,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\", limit_name=\"compactor_blocks_retention_period\"})",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Retention period",
+            "type": "stat"
+        },
+        {
+            "datasource": {
+                "type": "prometheus",
+                "uid": "${DS_PROMETHEUS}"
+            },
+            "description": "Default trace retention period",
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "fixedColor": "#3274d9",
+                        "mode": "fixed"
+                    },
+                    "noValue": "N/A",
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": 0
+                            }
+                        ]
+                    },
+                    "unit": "dtdurations"
+                },
+                "overrides": []
+            },
+            "gridPos": {
+                "h": 3,
+                "w": 8,
+                "x": 16,
+                "y": 23
+            },
+            "id": 28,
+            "options": {
+                "colorMode": "value",
+                "graphMode": "none",
+                "justifyMode": "auto",
+                "orientation": "auto",
+                "percentChangeColorMode": "standard",
+                "reduceOptions": {
+                    "calcs": [
+                        "lastNotNull"
+                    ],
+                    "fields": "",
+                    "values": false
+                },
+                "showPercentChange": false,
+                "textMode": "value",
+                "wideLayout": true
+            },
+            "pluginVersion": "13.0.1",
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "editorMode": "code",
+                    "expr": "max(tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\", limit_name=\"block_retention\"}) / 1000000000",
+                    "instant": true,
+                    "legendFormat": "__auto",
+                    "range": false,
+                    "refId": "A"
+                }
+            ],
+            "title": "Retention period",
+            "type": "stat"
+        },
+        {
+            "collapsed": true,
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 26
+            },
+            "id": 25,
+            "panels": [
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "custom": {
+                                "align": "auto",
+                                "cellOptions": {
+                                    "type": "auto"
+                                },
+                                "filterable": true,
+                                "footer": {
+                                    "reducers": []
+                                },
+                                "inspect": false
+                            },
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "text",
+                                        "value": 0
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Time"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.hideFrom.viz",
+                                        "value": true
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "limit_name"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Limit"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 310
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Value"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Default value"
+                                    },
+                                    {
+                                        "id": "custom.align",
+                                        "value": "right"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 140
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 24,
+                        "w": 8,
+                        "x": 0,
+                        "y": 27
+                    },
+                    "id": 23,
+                    "options": {
+                        "cellHeight": "sm",
+                        "showHeader": true,
+                        "sortBy": [
+                            {
+                                "desc": false,
+                                "displayName": "Limit"
+                            }
+                        ]
+                    },
+                    "pluginVersion": "13.0.1",
+                    "targets": [
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "editorMode": "code",
+                            "expr": "max by (limit_name) (loki_overrides_defaults{job=\"integrations/loki\", cluster=\"$cluster\"})",
+                            "format": "table",
+                            "instant": true,
+                            "legendFormat": "__auto",
+                            "range": false,
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Loki limits (logs)",
+                    "type": "table"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "custom": {
+                                "align": "auto",
+                                "cellOptions": {
+                                    "type": "auto"
+                                },
+                                "filterable": true,
+                                "footer": {
+                                    "reducers": []
+                                },
+                                "inspect": false
+                            },
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "text",
+                                        "value": 0
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Time"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.hideFrom.viz",
+                                        "value": true
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "limit_name"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Limit"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 310
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Value"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Default value"
+                                    },
+                                    {
+                                        "id": "custom.align",
+                                        "value": "right"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 140
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 24,
+                        "w": 8,
+                        "x": 8,
+                        "y": 27
+                    },
+                    "id": 21,
+                    "options": {
+                        "cellHeight": "sm",
+                        "showHeader": true,
+                        "sortBy": [
+                            {
+                                "desc": false,
+                                "displayName": "Limit"
+                            }
+                        ]
+                    },
+                    "pluginVersion": "13.0.1",
+                    "targets": [
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "editorMode": "code",
+                            "expr": "max by (limit_name) (cortex_limits_defaults{job=~\"mimir/.+\", cluster=\"$cluster\"})",
+                            "format": "table",
+                            "instant": true,
+                            "legendFormat": "__auto",
+                            "range": false,
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Mimir limits (metrics)",
+                    "type": "table"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus",
+                        "uid": "${DS_PROMETHEUS}"
+                    },
+                    "fieldConfig": {
+                        "defaults": {
+                            "color": {
+                                "mode": "thresholds"
+                            },
+                            "custom": {
+                                "align": "auto",
+                                "cellOptions": {
+                                    "type": "auto"
+                                },
+                                "filterable": true,
+                                "footer": {
+                                    "reducers": []
+                                },
+                                "inspect": false
+                            },
+                            "thresholds": {
+                                "mode": "absolute",
+                                "steps": [
+                                    {
+                                        "color": "text",
+                                        "value": 0
+                                    }
+                                ]
+                            }
+                        },
+                        "overrides": [
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Time"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "custom.hideFrom.viz",
+                                        "value": true
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "limit_name"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Limit"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 310
+                                    }
+                                ]
+                            },
+                            {
+                                "matcher": {
+                                    "id": "byName",
+                                    "options": "Value"
+                                },
+                                "properties": [
+                                    {
+                                        "id": "displayName",
+                                        "value": "Default value"
+                                    },
+                                    {
+                                        "id": "custom.align",
+                                        "value": "right"
+                                    },
+                                    {
+                                        "id": "custom.width",
+                                        "value": 140
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "gridPos": {
+                        "h": 24,
+                        "w": 8,
+                        "x": 16,
+                        "y": 27
+                    },
+                    "id": 22,
+                    "options": {
+                        "cellHeight": "sm",
+                        "showHeader": true,
+                        "sortBy": [
+                            {
+                                "desc": false,
+                                "displayName": "Limit"
+                            }
+                        ]
+                    },
+                    "pluginVersion": "13.0.1",
+                    "targets": [
+                        {
+                            "datasource": {
+                                "type": "prometheus",
+                                "uid": "${DS_PROMETHEUS}"
+                            },
+                            "editorMode": "code",
+                            "expr": "max by (limit_name) (tempo_limits_defaults{job=~\"integrations/tempo\", cluster=\"$cluster\"})",
+                            "format": "table",
+                            "instant": true,
+                            "legendFormat": "__auto",
+                            "range": false,
+                            "refId": "A"
+                        }
+                    ],
+                    "title": "Tempo limits (traces)",
+                    "type": "table"
+                }
+            ],
+            "title": "All Limits",
+            "type": "row"
+        }
+    ],
+    "preload": false,
+    "refresh": "",
+    "schemaVersion": 42,
+    "tags": [
+        "mimir",
+        "loki",
+        "tempo",
+        "limits"
+    ],
+    "templating": {
+        "list": [
+            {
+                "allowCustomValue": true,
+                "current": {},
+                "datasource": {
+                    "type": "prometheus",
+                    "uid": "${DS_PROMETHEUS}"
+                },
+                "definition": "label_values(cortex_build_info,cluster)",
+                "includeAll": false,
+                "label": "cluster",
+                "name": "cluster",
+                "options": [],
+                "query": {
+                    "query": "label_values(cortex_build_info,cluster)",
+                    "refId": "PrometheusVariableQueryEditor-VariableQuery"
+                },
+                "refresh": 1,
+                "regex": "",
+                "regexApplyTo": "value",
+                "type": "query"
+            }
+        ]
+    },
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "timepicker": {
+        "hidden": true
+    },
+    "timezone": "browser",
+    "title": "Platform Limits",
+    "uid": "platform-limits",
+    "version": 1,
+    "weekStart": ""
+}

@@ -1,0 +1,25 @@
+title: HACS
+views:
+  - title: HACS
+    path: hacs
+    icon: mdi:puzzle
+    type: panel
+    cards:
+      - type: picture
+        image: /local/panels/hacs.jpg
+        card_mod:
+          style: |
+            ha-card {
+              margin: 0;
+              border-radius: 0;
+              box-shadow: none;
+              height: calc(100vh - var(--header-height, 56px));
+              min-height: calc(100vh - var(--header-height, 56px));
+              overflow: auto;
+            }
+            img {
+              width: 100%;
+              min-height: 100%;
+              object-fit: cover;
+              object-position: top;
+            }

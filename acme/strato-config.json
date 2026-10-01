@@ -1,0 +1,7 @@
+{
+  "location": "uk",
+  "credentials": {
+    "username": "#{strato_username}#",
+    "password": "REDACTED}#"
+  }
+}

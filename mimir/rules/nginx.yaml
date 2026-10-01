@@ -1,0 +1,44 @@
+# nginx reverse-proxy alerts. nginx/nginx-prometheus-exporter, job="nginx".
+# Exporter lands in PR3 - verify metric names once it is scraping
+# (nginx_up, nginx_connections_active, nginx_connections_accepted/handled).
+namespace: nginx
+groups:
+  - name: nginx
+    rules:
+      - alert: NginxExporterDown
+        expr: up{job="nginx"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "nginx exporter is down"
+          description: "No visibility into the reverse proxy."
+
+      - alert: NginxDown
+        expr: nginx_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "nginx is not responding to its own status check"
+          description: "Every externally-published service (Grafana, BlueIris, UniFi, HA remote) is proxied through nginx."
+          runbook_url: "https://dev.azure.com/example/Home/_git/HomeAssistant?path=/mimir/README.md&version=GBmaster&_a=preview&anchor=nginxdown"
+
+      - alert: NginxDroppingConnections
+        expr: |
+          rate(nginx_connections_accepted[5m]) - rate(nginx_connections_handled[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "nginx is dropping connections"
+          description: "{{ $value | printf \"%.2f\" }} conn/s accepted but not handled - hitting a resource limit."
+
+      - alert: NginxHighActiveConnections
+        expr: nginx_connections_active > 500
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "nginx has {{ $value | printf \"%.0f\" }} active connections"
+          description: "Unusually high - a client storm or a backend that stopped responding."

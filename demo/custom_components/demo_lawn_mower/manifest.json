@@ -1,0 +1,8 @@
+{
+  "domain": "demo_lawn_mower",
+  "name": "Demo Lawn Mower",
+  "codeowners": [],
+  "documentation": "https://github.com/gavinwoolley/homeassistant",
+  "iot_class": "calculated",
+  "version": "1.0.0"
+}

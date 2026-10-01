@@ -1,0 +1,121 @@
+{
+  "uid": "alerting-overview",
+  "title": "Alerting Overview",
+  "tags": ["alerting", "mimir"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "1m",
+  "time": { "from": "now-24h", "to": "now" },
+  "templating": { "list": [] },
+  "annotations": {
+    "list": [
+      {
+        "name": "Deploys",
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "iconColor": "blue",
+        "tags": ["Deploy"]
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Firing (critical)",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "count(ALERTS{alertstate=\"firing\", severity=\"critical\"}) or vector(0)" }
+      ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "color": { "mode": "thresholds" } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat",
+      "title": "Firing (warning)",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "count(ALERTS{alertstate=\"firing\", severity=\"warning\"}) or vector(0)" }
+      ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 1 } ] }, "color": { "mode": "thresholds" } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat",
+      "title": "Pending",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "count(ALERTS{alertstate=\"pending\"}) or vector(0)" }
+      ],
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "stat",
+      "title": "Targets down",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "count(up == 0) or vector(0)" }
+      ],
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }, "color": { "mode": "thresholds" } } },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "type": "table",
+      "title": "Firing alerts",
+      "gridPos": { "h": 11, "w": 24, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\"}", "instant": true, "format": "table" }
+      ],
+      "transformations": [
+        { "id": "organize", "options": {
+          "excludeByName": { "Time": true, "Value": true, "__name__": true, "alertstate": true },
+          "renameByName": { "alertname": "Alert", "severity": "Severity", "instance": "Instance", "job": "Job", "tier": "Tier" }
+        } },
+        { "id": "sortBy", "options": { "fields": {}, "sort": [ { "field": "Severity" } ] } }
+      ],
+      "fieldConfig": { "defaults": {}, "overrides": [
+        { "matcher": { "id": "byName", "options": "Severity" }, "properties": [
+          { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+          { "id": "mappings", "value": [
+            { "type": "value", "options": { "critical": { "color": "red", "index": 0 }, "warning": { "color": "yellow", "index": 1 }, "info": { "color": "blue", "index": 2 } } }
+          ] }
+        ] }
+      ] }
+    },
+    {
+      "type": "timeseries",
+      "title": "Firing alert count (24h)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "sum by (severity) (ALERTS{alertstate=\"firing\", alertname!=\"Watchdog\"})", "legendFormat": "{{severity}}" }
+      ],
+      "fieldConfig": { "defaults": { "custom": { "drawStyle": "bars", "fillOpacity": 40, "stacking": { "mode": "normal" } } } }
+    },
+    {
+      "type": "timeseries",
+      "title": "Alertmanager notifications",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "datasource": { "type": "prometheus", "uid": "PAE45454D0EDB9216" },
+      "targets": [
+        { "refId": "A", "expr": "sum(rate(cortex_alertmanager_notifications_total[5m]))", "legendFormat": "sent" },
+        { "refId": "B", "expr": "sum(rate(cortex_alertmanager_notifications_failed_total[5m]))", "legendFormat": "failed" }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Grafana / Mimir alerting logs",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 23 },
+      "datasource": { "type": "loki", "uid": "P8E80F9AEF21F6940" },
+      "targets": [
+        { "refId": "A", "expr": "{service_name=~\"mimir|grafana\"} |~ \"(?i)alert|ruler|notif\"" }
+      ],
+      "options": { "showTime": true, "wrapLogMessage": true, "dedupStrategy": "none" }
+    }
+  ]
+}

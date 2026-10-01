@@ -1,0 +1,107 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A self-contained Grafana Snake game with score, high score, length, food metrics, and Grafana-style visuals.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "A self-contained Grafana Snake game with score, high score, length, food metrics, and Grafana-style visuals.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Snake - Business Text panel \"After Content Ready\"\n// No datasource or external JavaScript libraries are required.\n\nif (this.grafanaSnakeCleanup) {\n  this.grafanaSnakeCleanup();\n}\n\nconst host = context.element.querySelector(\".grafana-snake-root\");\nif (!host) {\n  throw new Error(\"Grafana Snake root element was not found.\");\n}\n\nhost.innerHTML = \"\";\nhost.tabIndex = 0;\nhost.setAttribute(\"role\", \"application\");\nhost.setAttribute(\"aria-label\", \"Grafana Snake game. Use arrow keys or WASD to move.\");\n\nObject.assign(host.style, {\n  height: \"100%\",\n  minHeight: \"560px\",\n  boxSizing: \"border-box\",\n  display: \"flex\",\n  alignItems: \"center\",\n  justifyContent: \"center\",\n  outline: \"none\",\n  fontFamily: \"Inter, Roboto, Helvetica, Arial, sans-serif\",\n  background: \"transparent\",\n  color: \"#d8d9da\"\n});\n\nconst shell = document.createElement(\"div\");\nObject.assign(shell.style, {\n  width: \"min(980px, 100%)\",\n  boxSizing: \"border-box\",\n  display: \"grid\",\n  gridTemplateColumns: \"minmax(0, 1fr) 210px\",\n  gap: \"14px\",\n  padding: \"14px\"\n});\n\nconst gameCard = document.createElement(\"div\");\nObject.assign(gameCard.style, {\n  background: \"#111217\",\n  border: \"1px solid #34373d\",\n  borderRadius: \"4px\",\n  padding: \"14px\",\n  boxShadow: \"0 1px 3px rgba(0,0,0,.35)\"\n});\n\nconst title = document.createElement(\"div\");\ntitle.textContent = \"GRAFANA SNAKE\";\nObject.assign(title.style, {\n  fontSize: \"18px\",\n  fontWeight: \"600\",\n  letterSpacing: \".08em\",\n  marginBottom: \"10px\"\n});\n\nconst canvasWrap = document.createElement(\"div\");\nObject.assign(canvasWrap.style, {\n  width: \"100%\",\n  aspectRatio: \"4 / 3\",\n  maxHeight: \"650px\",\n  background: \"#0b0c0e\",\n  border: \"1px solid #2f3238\",\n  position: \"relative\",\n  overflow: \"hidden\"\n});\n\nconst canvas = document.createElement(\"canvas\");\ncanvas.width = 640;\ncanvas.height = 480;\nObject.assign(canvas.style, {\n  width: \"100%\",\n  height: \"100%\",\n  display: \"block\",\n  imageRendering: \"pixelated\"\n});\ncanvasWrap.appendChild(canvas);var arcadeMuteButton=document.createElement('button');let arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';function renderArcadeMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.borderColor=arcadeMuted?'#777d86':'#5794f2';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});canvasWrap.appendChild(arcadeMuteButton);arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderArcadeMute()});renderArcadeMute();function arcadeTone(freq=440,duration=.07,wave='square'){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const oscillator=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();oscillator.type=wave;oscillator.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.045,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);oscillator.connect(gain).connect(arcadeAudio.destination);oscillator.start();oscillator.stop(arcadeAudio.currentTime+duration+.02)}catch(_){/* Sound is optional when browser policy blocks audio. */}}\n\nconst help = document.createElement(\"div\");\nhelp.innerHTML = \"<b>Controls:</b> Arrow keys / WASD &nbsp; • &nbsp; <b>Space:</b> restart &nbsp; • &nbsp; Click the game first if keys do not respond.\";\nObject.assign(help.style, {\n  marginTop: \"10px\",\n  color: \"#9fa7b3\",\n  fontSize: \"12px\"\n});\n\ngameCard.appendChild(title);\ngameCard.appendChild(canvasWrap);\ngameCard.appendChild(help);\n\nconst side = document.createElement(\"div\");\nObject.assign(side.style, {\n  display: \"flex\",\n  flexDirection: \"column\",\n  gap: \"10px\"\n});\n\nfunction metricCard(label, initial, subtext) {\n  const card = document.createElement(\"div\");\n  Object.assign(card.style, {\n    background: \"#181b1f\",\n    border: \"1px solid #34373d\",\n    borderRadius: \"4px\",\n    padding: \"13px 14px\"\n  });\n\n  const name = document.createElement(\"div\");\n  name.textContent = label;\n  Object.assign(name.style, {\n    color: \"#9fa7b3\",\n    fontSize: \"11px\",\n    fontWeight: \"600\",\n    letterSpacing: \".08em\",\n    marginBottom: \"5px\"\n  });\n\n  const value = document.createElement(\"div\");\n  value.textContent = initial;\n  Object.assign(value.style, {\n    fontFamily: \"Roboto Mono, Consolas, monospace\",\n    fontSize: \"24px\",\n    fontWeight: \"500\",\n    lineHeight: \"1.25\"\n  });\n\n  card.appendChild(name);\n  card.appendChild(value);\n\n  if (subtext) {\n    const sub = document.createElement(\"div\");\n    sub.textContent = subtext;\n    Object.assign(sub.style, {\n      color: \"#777d86\",\n      fontFamily: \"Roboto Mono, Consolas, monospace\",\n      fontSize: \"10px\",\n      marginTop: \"5px\"\n    });\n    card.appendChild(sub);\n  }\n\n  side.appendChild(card);\n  return value;\n}\n\nconst scoreEl = metricCard(\"SCORE\", \"000000\", \"snake_score\");\nconst highEl = metricCard(\"HIGH SCORE\", \"000000\", \"snake_high_score\");\nconst lengthEl = metricCard(\"SNAKE LENGTH\", \"3\", \"snake_length\");\nconst foodEl = metricCard(\"FOOD CONSUMED\", \"0\", \"snake_food_consumed_total\");\n\nconst statusCard = document.createElement(\"div\");\nObject.assign(statusCard.style, {\n  background: \"#181b1f\",\n  border: \"1px solid #34373d\",\n  borderRadius: \"4px\",\n  padding: \"13px 14px\"\n});\nconst statusLabel = document.createElement(\"div\");\nstatusLabel.textContent = \"GAME STATUS\";\nObject.assign(statusLabel.style, {\n  color: \"#9fa7b3\",\n  fontSize: \"11px\",\n  fontWeight: \"600\",\n  letterSpacing: \".08em\",\n  marginBottom: \"8px\"\n});\nconst statusValue = document.createElement(\"div\");\nObject.assign(statusValue.style, {\n  display: \"flex\",\n  alignItems: \"center\",\n  gap: \"7px\",\n  fontSize: \"13px\",\n  fontWeight: \"600\"\n});\nconst dot = document.createElement(\"span\");\nObject.assign(dot.style, {\n  width: \"9px\",\n  height: \"9px\",\n  borderRadius: \"50%\",\n  background: \"#73bf69\",\n  boxShadow: \"0 0 8px rgba(115,191,105,.45)\"\n});\nconst statusText = document.createElement(\"span\");\nstatusText.textContent = \"RUNNING\";\nstatusValue.appendChild(dot);\nstatusValue.appendChild(statusText);\nstatusCard.appendChild(statusLabel);\nstatusCard.appendChild(statusValue);\nside.appendChild(statusCard);\n\nshell.appendChild(gameCard);\nshell.appendChild(side);\nhost.appendChild(shell);\n\nconst ctx = canvas.getContext(\"2d\");\nconst COLS = 32;\nconst ROWS = 24;\nconst CELL = 20;\nconst STEP_MS = 105;\n\nlet snake;\nlet dir;\nlet pendingDir;\nlet food;\nlet score;\nlet foods;\nlet running;\nlet timer;\nlet lastTick = 0;\nlet raf = 0;\n\nlet highScore = Number(sessionStorage.getItem(\"grafana-snake-high-score\") || 0);\n\nfunction pad(n) {\n  return String(n).padStart(6, \"0\");\n}\n\nfunction randomFood() {\n  let candidate;\n  do {\n    candidate = {\n      x: Math.floor(Math.random() * COLS),\n      y: Math.floor(Math.random() * ROWS)\n    };\n  } while (snake.some((p) => p.x === candidate.x && p.y === candidate.y));\n  return candidate;\n}\n\nfunction updateMetrics() {\n  scoreEl.textContent = pad(score);\n  highEl.textContent = pad(highScore);\n  lengthEl.textContent = String(snake.length);\n  foodEl.textContent = String(foods);\n\n  if (running) {\n    statusText.textContent = \"RUNNING\";\n    dot.style.background = \"#73bf69\";\n    dot.style.boxShadow = \"0 0 8px rgba(115,191,105,.45)\";\n  } else {\n    statusText.textContent = \"GAME OVER\";\n    dot.style.background = \"#f2495c\";\n    dot.style.boxShadow = \"0 0 8px rgba(242,73,92,.45)\";\n  }\n}\n\nfunction reset() {\n  snake = [\n    { x: 10, y: 12 },\n    { x: 9, y: 12 },\n    { x: 8, y: 12 }\n  ];\n  dir = { x: 1, y: 0 };\n  pendingDir = { x: 1, y: 0 };\n  score = 0;\n  foods = 0;\n  running = true;\n  lastTick = performance.now();\n  food = randomFood();\n  updateMetrics();\n  draw();\n  host.focus({ preventScroll: true });\n}\n\nfunction gameOver() {\n  running = false;\n  arcadeTone(110,.24,'sawtooth');\n  if (score > highScore) {\n    highScore = score;\n    sessionStorage.setItem(\"grafana-snake-high-score\", String(highScore));\n  }\n  updateMetrics();\n  draw();\n}\n\nfunction tick() {\n  if (!running) return;\n\n  dir = pendingDir;\n  const head = {\n    x: snake[0].x + dir.x,\n    y: snake[0].y + dir.y\n  };\n\n  if (\n    head.x < 0 ||\n    head.x >= COLS ||\n    head.y < 0 ||\n    head.y >= ROWS ||\n    snake.some((p) => p.x === head.x && p.y === head.y)\n  ) {\n    gameOver();\n    return;\n  }\n\n  snake.unshift(head);\n\n  if (head.x === food.x && head.y === food.y) {\n    foods += 1;\n    score += 10;\n    arcadeTone(740,.08,'sine');\n    if (score > highScore) {\n      highScore = score;\n      sessionStorage.setItem(\"grafana-snake-high-score\", String(highScore));\n    }\n    food = randomFood();\n  } else {\n    snake.pop();\n  }\n\n  updateMetrics();\n}\n\nfunction drawGrid() {\n  ctx.strokeStyle = \"rgba(255,255,255,0.035)\";\n  ctx.lineWidth = 1;\n  for (let x = 0; x <= canvas.width; x += CELL) {\n    ctx.beginPath();\n    ctx.moveTo(x + 0.5, 0);\n    ctx.lineTo(x + 0.5, canvas.height);\n    ctx.stroke();\n  }\n  for (let y = 0; y <= canvas.height; y += CELL) {\n    ctx.beginPath();\n    ctx.moveTo(0, y + 0.5);\n    ctx.lineTo(canvas.width, y + 0.5);\n    ctx.stroke();\n  }\n}\n\nfunction draw() {\n  ctx.fillStyle = \"#0b0c0e\";\n  ctx.fillRect(0, 0, canvas.width, canvas.height);\n  drawGrid();\n\n  // Food: Grafana-orange \"data point\".\n  ctx.fillStyle = \"#ff9830\";\n  ctx.beginPath();\n  ctx.arc(\n    food.x * CELL + CELL / 2,\n    food.y * CELL + CELL / 2,\n    CELL * 0.34,\n    0,\n    Math.PI * 2\n  );\n  ctx.fill();\n\n  snake.forEach((p, i) => {\n    ctx.fillStyle = i === 0 ? \"#73bf69\" : \"#5794f2\";\n    const inset = i === 0 ? 2 : 3;\n    ctx.fillRect(\n      p.x * CELL + inset,\n      p.y * CELL + inset,\n      CELL - inset * 2,\n      CELL - inset * 2\n    );\n  });\n\n  if (!running) {\n    ctx.fillStyle = \"rgba(11,12,14,.78)\";\n    ctx.fillRect(0, 0, canvas.width, canvas.height);\n\n    ctx.textAlign = \"center\";\n    ctx.fillStyle = \"#f2495c\";\n    ctx.font = \"600 34px Inter, Arial, sans-serif\";\n    ctx.fillText(\"ALERTING: SNAKE DOWN\", canvas.width / 2, canvas.height / 2 - 18);\n\n    ctx.fillStyle = \"#d8d9da\";\n    ctx.font = \"16px Roboto Mono, monospace\";\n    ctx.fillText(\"Press SPACE to restart\", canvas.width / 2, canvas.height / 2 + 24);\n  }\n}\n\nfunction frame(now) {\n  if (!host.isConnected) {\n    cancelAnimationFrame(raf);\n    try { if (arcadeAudio) arcadeAudio.close(); } catch (_) {}\n    return;\n  }\n  if (running && now - lastTick >= STEP_MS) {\n    tick();\n    lastTick = now;\n  }\n  draw();\n  raf = requestAnimationFrame(frame);\n}\n\nfunction setDirection(x, y) {\n  // Block 180-degree reversals.\n  if (x === -dir.x && y === -dir.y) return;\n  pendingDir = { x, y };\n}\n\nfunction onKeyDown(event) {\n  const key = event.key.toLowerCase();\n  const gameKeys = [\"arrowup\", \"arrowdown\", \"arrowleft\", \"arrowright\", \"w\", \"a\", \"s\", \"d\", \" \"];\n\n  if (!gameKeys.includes(key)) return;\n\n  event.preventDefault();\n  event.stopPropagation();\n\n  if (key === \"arrowup\" || key === \"w\") setDirection(0, -1);\n  if (key === \"arrowdown\" || key === \"s\") setDirection(0, 1);\n  if (key === \"arrowleft\" || key === \"a\") setDirection(-1, 0);\n  if (key === \"arrowright\" || key === \"d\") setDirection(1, 0);\n  if (key === \" \") reset();\n}\n\nfunction onPointerDown() {\n  host.focus({ preventScroll: true });\n}\n\nhost.addEventListener(\"keydown\", onKeyDown);\nhost.addEventListener(\"pointerdown\", onPointerDown);\n\nthis.grafanaSnakeCleanup = () => {\n  host.removeEventListener(\"keydown\", onKeyDown);\n  host.removeEventListener(\"pointerdown\", onPointerDown);\n  if (raf) cancelAnimationFrame(raf);\n  if (timer) clearInterval(timer);\n};\n\nreset();\nraf = requestAnimationFrame(frame);",
+        "content": "<div class=\"grafana-snake-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"grafana-snake-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Snake",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Snake",
+  "uid": "grafana-snake",
+  "version": 2,
+  "weekStart": ""
+}

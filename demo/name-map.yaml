@@ -1,0 +1,35 @@
+# Not secret - the fictional mapping the demo uses, documented here for
+# reference. Applied cosmetically by demo/tools/generate_demo_entities.py
+# (to generated entity/helper display names) and by the one-off text pass
+# that produced demo/ui-lovelace.yaml from the real ui-lovelace.yaml -
+# entity_ids themselves are never changed, only human-readable "name:" text,
+# EXCEPT the 5 household/pet entries this file used to list here (Homer Simpson,
+# Marge Simpson, Bart Simpson, Lisa Simpson, Dog): removed 2026-09-23, since those are no
+# longer a cosmetic-only display swap - demo/configuration.yaml's person:
+# block now sets `name:` directly to the Simpsons decoy (Homer Simpson, Marge
+# Simpson, Bart Simpson, Lisa Simpson, Dog), so entity_id itself is the decoy
+# too (see demo/tools/generate_demo_entities.py's OBJECT_ID_SANITIZE for why:
+# the public mirror's sanitizer redacts these names inside the real
+# dashboard's entity_id text as well as display text, so the demo's own
+# entities have to match that or every panel keyed on a family member/the dog
+# silently returns no data). Homer Simpson/Marge Simpson (the real first names used
+# incidentally in a couple of other, non-entity-id contexts) stay cosmetic-
+# only and are still in demo/tools/generate_demo_entities.py's NAME_MAP, just
+# no longer duplicated here since they were never household/pets entries.
+# Shared conceptually with publish/config/replacements.local.yaml's
+# "names"/"zones" sections, which holds the real -> fictional mapping for
+# the static public mirror; this file only ever holds the fictional side.
+
+other_people:
+  Patty Bouvier: Patty Bouvier
+  Comic Book Guy: Comic Book Guy
+  Barney Gumble: Barney Gumble
+  Ned Flanders: Ned Flanders
+  Abraham Simpson: Abraham "Grampa" Simpson
+  Mona Simpson: Mona Simpson
+
+zones:
+  Home: 742 Evergreen Terrace
+  Work: Springfield Nuclear Power Plant
+  School: Springfield Elementary
+  Moe's Tavern: Moe's Tavern

@@ -1,0 +1,47 @@
+# Mosquitto broker alerts. sapcc/mosquitto-exporter emits broker_* metrics
+# (no mosquitto_ prefix), job="mosquitto".
+namespace: mosquitto
+groups:
+  - name: mosquitto
+    rules:
+      - alert: MosquittoExporterDown
+        expr: up{job="mosquitto"} == 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mosquitto exporter is down"
+          description: "No broker metrics - can't tell if MQTT is healthy. HA/BlueIris integrations ride on this broker."
+
+      # A single restart is expected noise (every docker-compose deploy
+      # recreates the mosquitto container) and isn't actionable, so alert on
+      # a crash loop instead: resets() counts how many times broker_uptime
+      # has gone backwards in the window. One deploy = one reset = no alert;
+      # 2+ resets inside an hour = something is actually restarting the
+      # broker repeatedly.
+      - alert: MosquittoBrokerRestarted
+        expr: resets(broker_uptime[1h]) > 1
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mosquitto broker is crash-looping"
+          description: "{{ $value | printf \"%.0f\" }} restarts in the last hour - a crash loop drops every MQTT integration. A single restart from a normal deploy is expected and won't fire this."
+
+      - alert: MosquittoNoClientsConnected
+        expr: broker_clients_connected == 0
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No clients connected to Mosquitto"
+          description: "HA, BlueIris and every MQTT device have dropped off the broker."
+
+      - alert: MosquittoMessagesDropped
+        expr: rate(broker_publish_messages_dropped[15m]) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Mosquitto is dropping published messages"
+          description: "{{ $value | printf \"%.2f\" }} msg/s dropped - a slow/overloaded subscriber."

@@ -1,0 +1,35 @@
+---
+# Lenient by design - this lints a Home Assistant / Grafana / Docker Compose
+# config tree with its own established conventions, not a from-scratch
+# project. Catching real syntax problems matters more than house style.
+extends: default
+
+rules:
+  line-length: disable
+  document-start: disable
+  truthy:
+    allowed-values: ["true", "false", "on", "off", "yes", "no"]
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  braces:
+    max-spaces-inside: 1
+  brackets:
+    max-spaces-inside: 1
+  indentation:
+    indent-sequences: whatever
+  # Several pipeline YAMLs (azure-pipelines.yml, azure-pipelines-docker.yml)
+  # deliberately vertically-align a block of `key: value` variable
+  # assignments with extra spaces after the colon - real, intentional
+  # formatting, not a typo. docker-compose.yml's inline JSON-style command
+  # arrays (["a","b","c"]) are compact by choice too. House style, not a
+  # syntax problem - same reasoning as line-length/document-start above.
+  colons:
+    max-spaces-after: -1
+  commas:
+    min-spaces-after: 0
+
+ignore: |
+  node_modules/
+  grafanaDashboards/mermaid-validate/node_modules/
+  demo/

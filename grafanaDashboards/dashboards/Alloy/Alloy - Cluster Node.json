@@ -1,0 +1,1016 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      },
+      {
+        "datasource": "$loki_datasource",
+        "enable": true,
+        "expr": "{cluster=\"$cluster\", container=\"kube-diff-logger\"} | json | namespace_extracted=\"alloy\" | name_extracted=~\"alloy.*\"",
+        "hide": false,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "instant": false,
+        "name": "Deployments",
+        "titleFormat": "{{cluster}}/{{namespace}}"
+      },
+      {
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "green",
+        "name": "smoke test pass",
+        "target": {
+          "expr": "",
+          "interval": "",
+          "refId": "Anno",
+          "tags": [
+            "PASS"
+          ],
+          "type": "tags"
+        }
+      },
+      {
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "red",
+        "name": "smoke tests fail",
+        "target": {
+          "expr": "",
+          "interval": "",
+          "refId": "Anno",
+          "tags": [
+            "FAIL"
+          ],
+          "type": "tags"
+        }
+      },
+      {
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": false,
+        "iconColor": "#73BF69",
+        "limit": 100,
+        "matchAny": false,
+        "name": "Deploy",
+        "tags": [
+          "Deploy"
+        ],
+        "type": "tags"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "icon": "doc",
+      "targetBlank": true,
+      "title": "Documentation",
+      "tooltip": "Clustering documentation",
+      "type": "link",
+      "url": "https://grafana.com/docs/alloy/latest/reference/cli/run/#clustering"
+    },
+    {
+      "asDropdown": true,
+      "icon": "external link",
+      "includeVars": true,
+      "keepTime": true,
+      "tags": [
+        "alloy-health-integration"
+      ],
+      "targetBlank": false,
+      "title": "Dashboards",
+      "type": "dashboards"
+    }
+  ],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "panels": [],
+      "title": "Node Info",
+      "type": "row"
+    },
+    {
+      "datasource": "${datasource}",
+      "description": "Information about a specific cluster node.\n\n* Lamport clock time: The observed Lamport time on the specific node's clock used to provide partial ordering around gossip messages. Nodes should ideally be observing roughly the same time, meaning they are up-to-date on the cluster state. If a node is falling behind, it means that it has not recently processed the same number of messages and may have an outdated view of its peers.\n\n* Internal cluster state observers: The number of Observer functions that are registered to run whenever the node detects a cluster change.\n\n* Gossip health score: A health score assigned to this node by the memberlist implementation. The lower, the better.\n\n* Gossip protocol version: The protocol version used by nodes to communicate with one another. It should match across all nodes.\n",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "sum(cluster_node_lamport_time{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}) \n",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Lamport clock time"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "sum(cluster_node_update_observers{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"})\n",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Internal cluster state observers"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "sum(cluster_node_gossip_health_score{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"})\n",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Gossip health score"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "sum(cluster_node_gossip_proto_version{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"})\n",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "Gossip protocol version"
+        }
+      ],
+      "title": "Node Info",
+      "transformations": [
+        {
+          "id": "renameByRegex",
+          "options": {
+            "regex": "Value #(.*)",
+            "renamePattern": "$1"
+          }
+        },
+        {
+          "id": "reduce",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {},
+            "renameByName": {
+              "Field": "Metric",
+              "Max": "Value"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "rate(cluster_node_gossip_received_events_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n",
+          "instant": false,
+          "legendFormat": "{{event}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Gossip ops/s",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "description": "Known peers to the node (including the local node).\n",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "suffix:peers"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "sum(cluster_node_peers{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"})\n",
+          "instant": false,
+          "legendFormat": "__auto",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Known peers",
+      "type": "stat"
+    },
+    {
+      "datasource": "${datasource}",
+      "description": "Known peers to the node by state (including the local node).\n",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "suffix:nodes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "cluster_node_peers{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}\n",
+          "instant": false,
+          "legendFormat": "{{state}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Peers by state",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 17
+      },
+      "id": 6,
+      "panels": [],
+      "title": "Gossip Transport",
+      "type": "row"
+    },
+    {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": true,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 18
+      },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "rate(cluster_transport_rx_bytes_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n",
+          "instant": false,
+          "legendFormat": "rx",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "-1 * rate(cluster_transport_tx_bytes_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n",
+          "instant": false,
+          "legendFormat": "tx",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Transport bandwidth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 18
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "1 - (\n  rate(cluster_transport_tx_packets_failed_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) /\n  rate(cluster_transport_tx_packets_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n)\n",
+          "instant": false,
+          "legendFormat": "Tx success %",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "1 - (\n  rate(cluster_transport_rx_packets_failed_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) /\n  rate(cluster_transport_rx_packets_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n)\n",
+          "instant": false,
+          "legendFormat": "Rx success %",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Packet write success rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "description": "The number of packets enqueued currently to be decoded or encoded and sent during communication with other nodes.\n\nThe incoming and outgoing packet queue should be as empty as possible; a growing queue means that Alloy cannot keep up with the number of messages required to have all nodes informed of cluster changes, and the nodes may not converge in a timely fashion.\n",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "pkts"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 18
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.1.0-89438",
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "cluster_transport_tx_packet_queue_length{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}\n",
+          "instant": false,
+          "legendFormat": "tx queue",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "cluster_transport_rx_packet_queue_length{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}\n",
+          "instant": false,
+          "legendFormat": "rx queue",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Pending packet queue",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "axisCenteredZero": true
+          },
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 26
+      },
+      "id": 10,
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "rate(cluster_transport_stream_rx_bytes_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n",
+          "instant": false,
+          "legendFormat": "rx",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "-1 * rate(cluster_transport_stream_tx_bytes_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n",
+          "instant": false,
+          "legendFormat": "tx",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Stream bandwidth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 26
+      },
+      "id": 11,
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "1 - (\n  rate(cluster_transport_stream_tx_packets_failed_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) /\n  rate(cluster_transport_stream_tx_packets_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n)\n",
+          "instant": false,
+          "legendFormat": "Tx success %",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": "${datasource}",
+          "expr": "1 - (\n  rate(cluster_transport_stream_rx_packets_failed_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) /\n  rate(cluster_transport_stream_rx_packets_total{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])\n)\n",
+          "instant": false,
+          "legendFormat": "Rx success %",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Stream write success rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "${datasource}",
+      "description": "The number of open connections from this node to its peers.\n\nEach node picks up a subset of its peers to continuously gossip messages around cluster status using streaming HTTP/2 connections. This panel can be used to detect networking failures that result in cluster communication being disrupted and convergence taking longer than expected or outright failing.\n",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 26
+      },
+      "id": 12,
+      "targets": [
+        {
+          "datasource": "${datasource}",
+          "expr": "cluster_transport_streams{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\", instance=~\"$instance\"}\n",
+          "instant": false,
+          "legendFormat": "Open streams",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Open transport streams",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "alloy-health-integration"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "Mimir",
+          "value": "PAE45454D0EDB9216"
+        },
+        "label": "Data Source",
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "(?!grafanacloud-usage|grafanacloud-ml-metrics).+",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "Loki",
+          "value": "P8E80F9AEF21F6940"
+        },
+        "label": "Loki Data Source",
+        "name": "loki_datasource",
+        "options": [],
+        "query": "loki",
+        "refresh": 1,
+        "regex": "(?!grafanacloud.+usage-insights|grafanacloud.+alert-state-history).+",
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": "${datasource}",
+        "label": "Cluster",
+        "name": "cluster",
+        "options": [],
+        "query": {
+          "query": "label_values(alloy_component_controller_running_components{job=~\"alloy\"}, cluster)\n",
+          "refId": "cluster"
+        },
+        "refresh": 2,
+        "sort": 2,
+        "type": "query",
+        "allValue": ".*",
+        "includeAll": true
+      },
+      {
+        "current": {
+          "text": "",
+          "value": ""
+        },
+        "datasource": "${datasource}",
+        "label": "Namespace",
+        "name": "namespace",
+        "options": [],
+        "query": {
+          "query": "label_values(alloy_component_controller_running_components{job=~\"alloy\", cluster=~\"$cluster\"}, namespace)\n",
+          "refId": "namespace"
+        },
+        "refresh": 2,
+        "sort": 2,
+        "type": "query",
+        "allValue": ".*",
+        "includeAll": true
+      },
+      {
+        "current": {
+          "text": "alloy",
+          "value": "alloy",
+          "selected": true
+        },
+        "datasource": "${datasource}",
+        "label": "Job",
+        "name": "job",
+        "options": [],
+        "query": {
+          "query": "label_values(alloy_component_controller_running_components{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\"}, job)\n",
+          "refId": "job"
+        },
+        "refresh": 2,
+        "sort": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "${datasource}",
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values(alloy_component_controller_running_components{job=~\"alloy\", cluster=~\"$cluster\", namespace=~\"$namespace\", job=~\"$job\"}, instance)\n",
+          "refId": "instance"
+        },
+        "refresh": 2,
+        "sort": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "utc",
+  "title": "Alloy / Cluster Node",
+  "uid": "4047e755d822da63c8158cde32ae4dce",
+  "version": 1,
+  "weekStart": ""
+}

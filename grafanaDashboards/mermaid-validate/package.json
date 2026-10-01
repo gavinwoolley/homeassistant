@@ -1,0 +1,9 @@
+{
+  "name": "mermaid-validate",
+  "private": true,
+  "description": "Validates the jdbranham-diagram-panel mermaid content in dashboards/*.json against the EXACT mermaid version that plugin bundles (8.8.0 - confirmed from the published plugin .zip, not npm's current ^8.8.0 resolution). Run `npm install` here once, then `node validate.js` after any change to build_ha_dashboard.py's diagram content.",
+  "dependencies": {
+    "jsdom": "^24.0.0",
+    "mermaid": "8.8.0"
+  }
+}

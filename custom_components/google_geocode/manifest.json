@@ -1,0 +1,11 @@
+{
+    "domain": "google_geocode",
+    "name": "Google Geocode",
+    "documentation": "https://github.com/michaelmcarthur/GoogleGeocode-HASS",
+    "dependencies": [],
+    "codeowners": [
+        "@michaelmcarthur"
+    ],
+    "requirements": [],
+    "version": "1.0.0"
+}

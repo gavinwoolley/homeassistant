@@ -1,0 +1,31 @@
+midnight_homer_simpson:
+  modes:
+    dark:
+      # Accent and brand colours
+      accent-color: "#E45E65"
+      dark-primary-color: "var(--accent-color)"
+      light-primary-color: "var(--accent-color)"
+      paper-card-header-color: "var(--accent-color)"
+      label-badge-red: "var(--accent-color)"
+      google-red-500: "#E45E65"
+      google-green-500: "#39E949"
+      # Sidebar
+      app-header-background-color: "#2d2c2c"
+      app-header-text-color: "#FFFFFF"
+      app-header-icon-color: "#FFFFFF"
+      sidebar-background-color: "#2d2c2c"
+      sidebar-selected-background-color: "#2d2c2c"
+      sidebar-icon-color: "#FFFFFF"
+      sidebar-text-color: "#FFFFFF"
+      sidebar-selected-icon-color: "#FFFFFF"
+      sidebar-selected-text-color: "#FFFFFF"
+      # Backgrounds
+      primary-background-color: "#000000"
+      secondary-background-color: "#383C45"
+      card-background-color: "#0d0d0d"
+      paper-dialog-background-color: "#0d0d0d"
+      paper-item-selected_-_background-color: "#000000"
+      table-row-background-color: "#353840"
+      table-row-alternative-background-color: "#3E424B"
+      # Card appearance
+      ha-card-border-radius: "20px"

@@ -1,0 +1,111 @@
+{
+  "__inputs": [],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.4.9"
+    },
+    {
+      "type": "panel",
+      "id": "marcusolsson-dynamictext-panel",
+      "name": "Business Text",
+      "version": "6.3.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "A self-contained Pac-Man-style maze game with pellets, power pills, frightened ghosts, score, lives, and high score.",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "links": [],
+  "panels": [
+    {
+      "description": "Self-contained Pac-Man game. The controls are displayed below the board so they never cover the maze; focus the board, use arrows or WASD to move, and Space to restart.",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 24,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "afterRender": "// Grafana Pac-Man - self-contained Business Text panel, no datasource required.\nif (this.grafanaPacmanCleanup) this.grafanaPacmanCleanup();\nconst root=context.element.querySelector('.pacman-root');\nif(!root)throw new Error('Grafana Pac-Man root was not found');\nroot.innerHTML='';root.tabIndex=0;Object.assign(root.style,{height:'100%',minHeight:'560px',boxSizing:'border-box',fontFamily:'Inter,Roboto,Arial,sans-serif',color:'#d8d9da',outline:'none'});\nconst app=document.createElement('div');Object.assign(app.style,{height:'100%',boxSizing:'border-box',padding:'12px',background:'#0b0c0e'});root.appendChild(app);\nconst header=document.createElement('div');header.innerHTML='<div style=\"font-weight:700;letter-spacing:.08em;font-size:17px\">GRAFANA PAC-MAN</div><div id=\"pm-status\" style=\"font:12px Roboto Mono,monospace;color:#73bf69\">RUNNING</div>';Object.assign(header.style,{display:'flex',justifyContent:'space-between',marginBottom:'10px'});app.appendChild(header);const status=header.querySelector('#pm-status');\nconst metrics=document.createElement('div');Object.assign(metrics.style,{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:'8px',marginBottom:'10px'});app.appendChild(metrics);const values={};function metric(label,value){const card=document.createElement('div');Object.assign(card.style,{background:'#181b1f',border:'1px solid #34373d',borderRadius:'4px',padding:'8px 10px'});card.innerHTML='<div style=\"color:#9fa7b3;font-size:10px;font-weight:700;letter-spacing:.08em\">'+label+'</div><div style=\"font:22px Roboto Mono,monospace;margin-top:3px\">'+value+'</div>';metrics.appendChild(card);values[label]=card.lastChild}function set(label,value){values[label].textContent=value}metric('pac_score','0');metric('pellets_remaining','0');metric('lives','3');metric('power_mode','OFF');metric('high_score',localStorage.getItem('grafana-pacman-high-score')||'0');\nconst stage=document.createElement('div');Object.assign(stage.style,{height:'calc(100% - 145px)',minHeight:'0',position:'relative',display:'flex',alignItems:'center',justifyContent:'center',background:'#111217',border:'1px solid #34373d',borderRadius:'4px',overflow:'hidden'});app.appendChild(stage);const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');canvas.width=800;canvas.height=500;Object.assign(canvas.style,{width:'100%',height:'100%',maxWidth:'900px',objectFit:'contain',imageRendering:'pixelated'});stage.appendChild(canvas);var arcadeMuteButton=document.createElement('button'),arcadeAudio,arcadeMuted=localStorage.getItem('grafana-arcade-muted')!=='false';Object.assign(arcadeMuteButton.style,{position:'absolute',right:'10px',bottom:'10px',zIndex:'3',padding:'6px 8px',border:'1px solid #5794f2',borderRadius:'3px',background:'rgba(17,18,23,.9)',font:'700 10px Roboto Mono,monospace',cursor:'pointer'});function renderMute(){arcadeMuteButton.textContent=arcadeMuted?'AUDIO: OFF':'AUDIO: ON';arcadeMuteButton.style.color=arcadeMuted?'#9fa7b3':'#d8d9da'}arcadeMuteButton.addEventListener('click',e=>{e.stopPropagation();arcadeMuted=!arcadeMuted;localStorage.setItem('grafana-arcade-muted',String(arcadeMuted));if(arcadeMuted&&arcadeAudio)arcadeAudio.suspend();if(!arcadeMuted&&arcadeAudio)arcadeAudio.resume();renderMute();root.focus({preventScroll:true})});renderMute();stage.appendChild(arcadeMuteButton);const instructions=document.createElement('div');instructions.textContent='ARROWS / WASD move  ?  SPACE restart  ?  click board to focus';Object.assign(instructions.style,{height:'30px',boxSizing:'border-box',padding:'8px 10px',textAlign:'center',color:'#9fa7b3',font:'12px Roboto Mono,monospace'});app.appendChild(instructions);function pacTone(freq,duration,wave){if(arcadeMuted)return;try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;if(!arcadeAudio)arcadeAudio=new Audio();if(arcadeAudio.state==='suspended')arcadeAudio.resume();const osc=arcadeAudio.createOscillator(),gain=arcadeAudio.createGain();osc.type=wave||'sine';osc.frequency.value=freq;gain.gain.setValueAtTime(.0001,arcadeAudio.currentTime);gain.gain.exponentialRampToValueAtTime(.035,arcadeAudio.currentTime+.008);gain.gain.exponentialRampToValueAtTime(.0001,arcadeAudio.currentTime+duration);osc.connect(gain).connect(arcadeAudio.destination);osc.start();osc.stop(arcadeAudio.currentTime+duration+.02)}catch(_){}}\nconst COLS=28,ROWS=31,CELL=15,OX=190,OY=17.5;let grid,pac,ghosts,score=0,lives=3,dir={x:1,y:0},want={x:1,y:0},lastMove=0,lastGhost=0,poweredUntil=0,ended=false,raf=0;const ghostColours=['#f2495c','#ffb6c1','#36c5f0','#ff9830'];function cell(x,y){return grid[y]&&grid[y][x]}function wall(x,y){return !cell(x,y)||cell(x,y)==='#'}function nextCell(x,y,d){let nx=x+d.x,ny=y+d.y;if(ny<0||ny>=ROWS)return{x,y};if(nx<0)nx=COLS-1;if(nx>=COLS)nx=0;return{x:nx,y:ny}}function buildMaze(){grid=Array.from({length:ROWS},(_,y)=>Array.from({length:COLS},(_,x)=>x===0||y===0||x===COLS-1||y===ROWS-1?'#':'.'));const block=(x,y,w,h)=>{for(let yy=y;yy<y+h;yy++)for(let xx=x;xx<x+w;xx++)grid[yy][xx]='#'};const mirror=(x,y,w,h)=>block(COLS-x-w,y,w,h);block(2,2,5,3);mirror(2,2,5,3);block(10,2,8,3);block(2,7,4,3);mirror(2,7,4,3);block(8,6,4,2);mirror(8,6,4,2);block(11,7,6,2);block(2,12,6,2);mirror(2,12,6,2);block(10,12,1,5);block(17,12,1,5);block(10,12,8,1);block(10,16,8,1);grid[12][13]=' ';grid[12][14]=' ';block(2,18,4,2);mirror(2,18,4,2);block(8,18,4,2);mirror(8,18,4,2);block(2,23,6,2);mirror(2,23,6,2);block(10,23,8,2);block(2,27,5,2);mirror(2,27,5,2);block(10,27,8,2);grid[15][0]=' ';grid[15][COLS-1]=' ';[[1,3],[COLS-2,3],[1,ROWS-4],[COLS-2,ROWS-4]].forEach(([x,y])=>grid[y][x]='o');} function resetActors(){pac={x:13,y:26};dir={x:1,y:0};want={x:1,y:0};ghosts=[{name:'BLINKY',x:13,y:14,dx:0,dy:-1,c:ghostColours[0],corner:{x:COLS-2,y:1}},{name:'PINKY',x:14,y:14,dx:0,dy:-1,c:ghostColours[1],corner:{x:1,y:1}},{name:'INKY',x:13,y:15,dx:1,dy:0,c:ghostColours[2],corner:{x:COLS-2,y:ROWS-2}},{name:'CLYDE',x:14,y:15,dx:-1,dy:0,c:ghostColours[3],corner:{x:1,y:ROWS-2}}]}function resetGame(){buildMaze();score=0;lives=3;poweredUntil=0;ended=false;resetActors();status.textContent='RUNNING - ARROWS/WASD';status.style.color='#73bf69';update()}function pellets(){return grid.flat().filter(v=>v==='.'||v==='o').length}function update(){set('pac_score',score);set('pellets_remaining',pellets());set('lives',lives);set('power_mode',performance.now()<poweredUntil?'FRIGHTENED':'OFF');let h=Math.max(+localStorage.getItem('grafana-pacman-high-score')||0,score);localStorage.setItem('grafana-pacman-high-score',h);set('high_score',h)}function movePac(){pac.prevX=pac.x;pac.prevY=pac.y;let desired=nextCell(pac.x,pac.y,want);if(!wall(desired.x,desired.y))dir={...want};let next=nextCell(pac.x,pac.y,dir);if(!wall(next.x,next.y)){pac.x=next.x;pac.y=next.y}let snack=grid[pac.y][pac.x];if(snack==='.'){grid[pac.y][pac.x]=' ';score+=10;pacTone(620,.035,'sine')}if(snack==='o'){grid[pac.y][pac.x]=' ';score+=50;poweredUntil=performance.now()+6000;status.textContent='POWER PILL - GHOSTS VULNERABLE';status.style.color='#5794f2';pacTone(880,.14,'sine')}if(!pellets()){ended=true;status.textContent='MAZE CLEARED - PRESS SPACE';status.style.color='#73bf69'}update()}function distance(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y)}function ghostTarget(g){let scatter=Math.floor(performance.now()/7000)%2===0;if(scatter)return g.corner;let ahead={x:pac.x+dir.x*4,y:pac.y+dir.y*4};if(g.name==='BLINKY')return{x:pac.x,y:pac.y};if(g.name==='PINKY')return ahead;if(g.name==='INKY'){let blinky=ghosts[0];return{x:ahead.x+(ahead.x-blinky.x),y:ahead.y+(ahead.y-blinky.y)}}return distance(g,pac)>9?{x:pac.x,y:pac.y}:g.corner}function moveGhost(g,reserved){g.oldX=g.x;g.oldY=g.y;let directions=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}],reverse={x:-g.dx,y:-g.dy};let options=directions.map(d=>({...d,...nextCell(g.x,g.y,d)})).filter(d=>!wall(d.x,d.y));let forward=options.filter(d=>!(d.x-g.x===reverse.x&&d.y-g.y===reverse.y));if(forward.length)options=forward;let open=options.filter(d=>!reserved.has(d.x+','+d.y)&&!ghosts.some(other=>other!==g&&other.x===d.x&&other.y===d.y));if(open.length)options=open;if(!options.length)return;let target=performance.now()<poweredUntil?g.corner:ghostTarget(g);options.sort((a,b)=>distance(a,target)-distance(b,target));let pick=performance.now()<poweredUntil?options[options.length-1]:options[0];g.dx=pick.x-g.x;g.dy=pick.y-g.y;g.x=pick.x;g.y=pick.y;reserved.add(g.x+','+g.y)}function hitCheck(){let caught=ghosts.find(g=>(g.x===pac.x&&g.y===pac.y)||(g.oldX===pac.x&&g.oldY===pac.y&&g.x===pac.prevX&&g.y===pac.prevY));if(caught&&performance.now()<poweredUntil){score+=200;caught.x=13;caught.y=14;caught.dx=0;caught.dy=-1;pacTone(980,.12,'sine');update();return}if(caught){lives--;pacTone(130,.18,'triangle');if(lives<=0){lives=0;ended=true;status.textContent='PAC-MON DOWN - PRESS SPACE';status.style.color='#f2495c'}else{status.textContent='LIFE LOST - '+lives+' REMAIN';status.style.color='#ff9830';resetActors()}update()}}function draw(){ctx.fillStyle='#08090c';ctx.fillRect(0,0,800,500);grid.forEach((row,y)=>row.forEach((v,x)=>{let px=OX+x*CELL,py=OY+y*CELL;if(v==='#'){ctx.fillStyle='#1f4b99';ctx.fillRect(px,py,CELL,CELL);ctx.fillStyle='#5794f2';ctx.fillRect(px+2,py+2,CELL-4,CELL-4)}if(v==='.'){ctx.fillStyle='#ffeb3b';ctx.shadowColor='#ffeb3b';ctx.shadowBlur=4;ctx.beginPath();ctx.arc(px+CELL/2,py+CELL/2,2.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0}if(v==='o'){ctx.fillStyle='#f5f7ff';ctx.shadowColor='#5794f2';ctx.shadowBlur=10;ctx.beginPath();ctx.arc(px+CELL/2,py+CELL/2,5.5,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0}}));let cx=OX+pac.x*CELL+CELL/2,cy=OY+pac.y*CELL+CELL/2,angle=Math.atan2(dir.y,dir.x),mouth=.38;ctx.fillStyle='#ffeb3b';ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,CELL*.42,angle+mouth,angle+Math.PI*2-mouth);ctx.closePath();ctx.fill();ghosts.forEach(g=>{let x=OX+g.x*CELL+CELL/2,y=OY+g.y*CELL+CELL/2;ctx.fillStyle=performance.now()<poweredUntil?'#5794f2':g.c;ctx.beginPath();ctx.arc(x,y,CELL*.4,Math.PI,0);ctx.lineTo(x+CELL*.4,y+CELL*.4);ctx.lineTo(x-CELL*.4,y+CELL*.4);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.fillRect(x-4,y-1,3,4);ctx.fillRect(x+1,y-1,3,4)});if(ended){ctx.fillStyle='rgba(0,0,0,.68)';ctx.fillRect(0,0,800,500);ctx.fillStyle=status.style.color;ctx.font='700 28px monospace';ctx.textAlign='center';ctx.fillText(status.textContent.split(' - ')[0],400,235);ctx.fillStyle='#d8d9da';ctx.font='16px monospace';ctx.fillText('Press SPACE to restart',400,270);ctx.textAlign='left'}}function frame(now){if(!root.isConnected){cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }return}if(!ended&&performance.now()>=poweredUntil&&status.textContent==='POWER PILL - GHOSTS VULNERABLE'){status.textContent='RUNNING - ARROWS/WASD';status.style.color='#73bf69'}if(!ended&&now-lastMove>125){movePac();hitCheck();lastMove=now}if(!ended&&now-lastGhost>210){const reserved=new Set();ghosts.forEach(g=>moveGhost(g,reserved));hitCheck();lastGhost=now}draw();raf=requestAnimationFrame(frame)}function key(e){let k=e.key.toLowerCase(),d={arrowup:{x:0,y:-1},w:{x:0,y:-1},arrowdown:{x:0,y:1},s:{x:0,y:1},arrowleft:{x:-1,y:0},a:{x:-1,y:0},arrowright:{x:1,y:0},d:{x:1,y:0}}[k];if(k===' '){e.preventDefault();resetGame();return}if(d){e.preventDefault();want=d}}root.addEventListener('keydown',key);root.addEventListener('pointerdown',()=>root.focus({preventScroll:true}));this.grafanaPacmanCleanup=()=>{root.removeEventListener('keydown',key);cancelAnimationFrame(raf);try{if(arcadeAudio)arcadeAudio.close()}catch(_){ }};resetGame();raf=requestAnimationFrame(frame);",
+        "content": "<div class=\"pacman-root\"></div>",
+        "contentPartials": [],
+        "defaultContent": "<div class=\"pacman-root\"></div>",
+        "editor": {
+          "format": "auto",
+          "language": "markdown"
+        },
+        "editors": [
+          "default",
+          "afterRender"
+        ],
+        "externalStyles": [],
+        "helpers": "",
+        "renderMode": "all",
+        "styles": "",
+        "wrap": "none"
+      },
+      "pluginVersion": "6.3.0",
+      "title": "Grafana Pac-Man",
+      "type": "marcusolsson-dynamictext-panel"
+    }
+  ],
+  "preload": false,
+  "refresh": "",
+  "schemaVersion": 42,
+  "tags": [
+    "game",
+    "grafana-arcade"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Grafana Pac-Man",
+  "uid": "grafana-pacman",
+  "version": 2,
+  "weekStart": ""
+}

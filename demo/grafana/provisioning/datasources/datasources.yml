@@ -1,0 +1,80 @@
+apiVersion: 1
+datasources:
+  - name: "Mimir"
+    uid: "PAE45454D0EDB9216"
+    type: "prometheus"
+    access: "proxy"
+    url: "http://mimir-demo:8080/prometheus"
+    basicAuth: false
+    withCredentials: false
+    isDefault: true
+    editable: true
+    jsonData:
+      httpMethod: "POST"
+  - name: "Mimir Alertmanager"
+    uid: "mimir-alertmanager"
+    type: "alertmanager"
+    access: "proxy"
+    url: "http://mimir-demo:8080/alertmanager"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      implementation: "prometheus"
+      handleGrafanaManagedAlerts: false
+  - name: "Home Assistant"
+    uid: "homeassistant-api"
+    type: "yesoreyeram-infinity-datasource"
+    access: "proxy"
+    url: "http://homeassistant-demo:8123/api"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true
+    jsonData:
+      auth_method: "bearerToken"
+      allowedHosts:
+        - "http://homeassistant-demo:8123"
+      customHealthCheckEnabled: true
+      customHealthCheckUrl: "http://homeassistant-demo:8123/api/"
+    secureJsonData:
+      # Patched live via Grafana's own API by
+      # demo/tools/setup_demo_grafana_token.py after the demo HA instance
+      # has onboarded - see demo/README.md. This placeholder is never
+      # actually used (no restart needed to pick up the real token - the
+      # script PUTs it straight into the running datasource). Never the
+      # real production token.
+      bearerToken: "__REPLACE_ME__"
+  # Demo-only, and deliberately NOT the Infinity datasource above despite
+  # both pointing at the same HA instance. Production's dashboard renders
+  # <img> tags (Who's Home avatars, Mower Location, the 3D printer/vacuum
+  # map images) with an absolute https://home.example.com:8123{{...}}
+  # src - that domain genuinely works in production, but a Codespaces
+  # visitor's own browser has no way to reach homeassistant-demo:8123 at
+  # all (it's Docker-internal-only by design - see
+  # docker-compose.codespaces.yml's own comment on why 8123 is never
+  # forwarded). build_demo_dashboards.py rewrites those same <img> srcs to
+  # /api/datasources/proxy/uid/ha-static-proxy/... instead, routing the
+  # fetch through Grafana's own already-reachable origin -> Grafana's
+  # backend -> this datasource -> homeassistant-demo:8123, the same path
+  # every Infinity query already takes successfully.
+  #
+  # type: prometheus is not a typo - confirmed live (2026-09-25): Infinity
+  # is a backend PLUGIN with its own fixed set of `CallResource` routes
+  # ("not a known resource call" for anything else), so
+  # /api/datasources/proxy/uid/<uid>/<path> - Grafana's classic, fully
+  # generic path-passthrough proxy - doesn't work through it at all. Core
+  # datasource types (Prometheus here, arbitrarily - any core type behaves
+  # the same) DO support that generic passthrough, verified by fetching a
+  # real PNG through it end to end. Never queried as an actual Prometheus
+  # backend - this datasource exists purely to be proxied through.
+  - name: "HA Static Asset Proxy"
+    uid: "ha-static-proxy"
+    type: "prometheus"
+    access: "proxy"
+    url: "http://homeassistant-demo:8123"
+    basicAuth: false
+    withCredentials: false
+    isDefault: false
+    editable: true

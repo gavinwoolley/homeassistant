@@ -1,0 +1,55 @@
+# Path globs (relative to repo root) never included in the public mirror,
+# regardless of the text-extension allowlist in sanitize.py. One glob per
+# line; # starts a comment. Matched with Python's pathlib.PurePath.match
+# against every path `git ls-files` returns.
+
+# Real face photos of named individuals - no amount of text redaction helps
+# an image, and a cartoon stand-in lives in demo/www/ instead. The actual
+# filenames (which embed real first names - PII in their own right, not just
+# the images they point at) live in the gitignored denylist.local.txt
+# instead of here - see denylist.local.example.txt for the shape. Confirmed
+# live 2026-09-16: the real filenames sitting in THIS committed file leaked
+# the household's real first names even though the photos themselves never
+# published.
+www/base64images/**
+www/mower/**
+
+# Not project content.
+home notes.md
+
+# Internal engineering war-stories for future maintainers of the PRIVATE
+# repo (publish/sanitize.py and demo/tools/generate_demo_entities.py
+# gotchas) - not written for or reviewed against a public audience.
+ENGINEERING_NOTES.md
+
+# TLS material / live credentials - never published even if they reappear
+# locally; matches the private repo's own .gitignore intent.
+Certificate/**
+.codex/**
+
+# Runtime logs / caches.
+**/*.log
+.dccache
+
+# Raw Grafana API export snapshots - may carry org/user identifiers, not
+# useful to a public reader anyway.
+grafanaDashboards/dashboard-index.json
+grafanaDashboards/folders.json
+grafanaDashboards/datasources-export.json
+
+# Local scratch / backups, never meant to leave the private repo.
+BackupConfig/**
+env/**
+**/node_modules/**
+.claude/**
+.mcp.json
+workspace.code-workspace
+tools/claude-usage-mqtt/config.json
+tools/claude-usage-mqtt/*.log
+
+# The sanitizer's own local-only files.
+publish/config/replacements.local.yaml
+publish/config/denylist.local.txt
+publish/out/**
+publish/out.report/**
+demo/out/**
